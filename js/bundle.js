@@ -653,16 +653,58 @@ function initMap(containerId, onLocationSelected) {
 
     marker.on('dragend', function () {
         const pos = marker.getLatLng();
-        map.setView(pos, 17);
+        map.setView(pos, map.getZoom());
         onLocationSelected(pos.lat, pos.lng);
     });
 
     map.on('click', function (e) {
         const pos = e.latlng;
         marker.setLatLng(pos);
-        map.setView(pos, 17);
+        map.setView(pos, map.getZoom());
         onLocationSelected(pos.lat, pos.lng);
     });
+
+    // Tambahkan kontrol Autozoom kustom di bawah kontrol zoom (+/-) bawaan Leaflet
+    const AutoZoomControl = L.Control.extend({
+        options: {
+            position: 'topleft'
+        },
+        onAdd: function (map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-custom-autozoom');
+            const link = L.DomUtil.create('a', '', container);
+            link.href = '#';
+            link.title = 'Fokus & Zoom ke Titik Lokasi Utama (Zoom 17)';
+            link.role = 'button';
+            link.style.display = 'flex';
+            link.style.alignItems = 'center';
+            link.style.justifyContent = 'center';
+            link.style.width = '30px';
+            link.style.height = '30px';
+
+            link.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                </svg>
+            `;
+
+            L.DomEvent.on(link, 'click', function (e) {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                if (marker) {
+                    const pos = marker.getLatLng();
+                    map.setView(pos, 17); // Zoom-in langsung ke level 17
+                }
+            });
+
+            return container;
+        }
+    });
+    map.addControl(new AutoZoomControl());
 
     // Fix bug peta terpotong abu-abu yang lebih solid (menggunakan ResizeObserver)
     if (window.ResizeObserver) {
@@ -679,7 +721,7 @@ function updateMapMarker(lat, lon) {
     if (!map || !marker) return;
     const latlng = L.latLng(lat, lon);
     marker.setLatLng(latlng);
-    map.setView(latlng, 17);
+    map.setView(latlng, map.getZoom());
 }
 
 // ==========================================
