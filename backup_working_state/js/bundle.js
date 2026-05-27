@@ -940,17 +940,8 @@ function showLoading() {
 function showError(message) {
     document.getElementById('loadingIndicator').classList.add('hidden');
     document.getElementById('resultContent').classList.add('hidden');
-    
-    const errorState = document.getElementById('errorState');
-    errorState.classList.remove('hidden');
+    document.getElementById('errorState').classList.remove('hidden');
     document.getElementById('errorMessage').textContent = message;
-
-    // Khusus peringatan di luar batas RI, jadikan warna kuning/emas tema
-    if (message === "Wilayah ini berada di luar batas Negara Republik Indonesia.") {
-        errorState.style.color = "#EEA201";
-    } else {
-        errorState.style.color = ""; // Default bawaan CSS (Merah)
-    }
 
     const modalBox = document.getElementById('mapSingleInfoBox');
     if (modalBox && !modalBox.classList.contains('hidden')) {

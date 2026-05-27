@@ -1,0 +1,1495 @@
+:root {
+    /* Main Dark Blue Background based on reference */
+    --color-bg-deep: #14305E;
+    /* Glass card background slightly lighter blue */
+    --color-bg-card: rgba(26, 61, 115, 0.3);
+    
+    /* Main Yellow/Orange Accent */
+    --color-accent: #EEA201;
+    --color-accent-hover: #D18D00;
+    
+    /* Secondary Accent (e.g. for success states or subtle links) */
+    --color-accent-2: #21519C;
+    
+    /* Text Colors */
+    --color-text-prime: #FFFFFF;
+    --color-text-muted: #9BB1D1; /* Light bluish-grey for muted text */
+    
+    /* Borders and Status */
+    --color-border: rgba(255, 255, 255, 0.06);
+    --color-error: #EF4444;
+    --color-warning: #F59E0B;
+    
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --border-glass: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-bg-deep);
+    color: var(--color-text-prime);
+    font-family: var(--font-family);
+    min-height: 100vh;
+    /* Create a subtle grid pattern + radial glow similar to the reference background */
+    background-image: 
+        radial-gradient(circle at 70% 30%, rgba(33, 81, 156, 0.4) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(238, 162, 1, 0.05) 0%, transparent 40%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+    line-height: 1.6;
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header */
+.app-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.app-header h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-prime);
+    letter-spacing: -0.5px;
+}
+
+.app-header h1 .highlight {
+    background: transparent;
+    color: var(--color-accent);
+    border: 3px solid var(--color-accent);
+    padding: 0.2rem 0.8rem;
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.highlight-inline {
+    background: transparent;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    padding: 0.08rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-size: inherit;
+    font-weight: 700;
+    font-family: inherit;
+    display: inline;
+    white-space: nowrap;
+}
+
+.app-header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+    background: var(--color-bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-glass);
+    padding: 1.5rem;
+}
+
+/* Input Section */
+.input-section {
+    margin-bottom: 2rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-prime);
+}
+
+.input-wrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+input[type="text"] {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    color: var(--color-text-prime);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(238, 162, 1, 0.25);
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+    background: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.helper-text {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+/* Grid Layout */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Result Section */
+.result-section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 1.25rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+}
+
+/* Hierarchy List */
+.admin-hierarchy {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: var(--radius-sm);
+}
+
+.highlight-item {
+    background: rgba(238, 162, 1, 0.08);
+    position: relative;
+}
+
+.highlight-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-accent);
+    border-top-left-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.highlight-sub-item {
+    background: rgba(59, 130, 246, 0.08); /* subtle blue bg */
+    position: relative;
+}
+
+.highlight-sub-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #3B82F6; /* blue accent */
+    border-top-left-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
+.admin-item .label {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.admin-item .value {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--color-text-prime);
+    text-align: right;
+}
+
+/* Copy Wrapper */
+.copy-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    position: relative;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+}
+
+.copy-wrapper:hover {
+    background: rgba(238, 162, 1, 0.15);
+}
+
+.copy-icon {
+    font-size: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.copy-wrapper:hover .copy-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.copy-tooltip {
+    position: absolute;
+    top: -30px;
+    right: 0;
+    background: var(--color-accent);
+    color: #000;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.copy-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+}
+
+/* Loading & States */
+.loading-state, .error-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.error-state {
+    color: var(--color-error);
+}
+
+.error-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.spinner {
+    border: 3px solid rgba(255,255,255,0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border-left-color: var(--color-accent);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--color-accent-2);
+    margin-bottom: 1.5rem;
+}
+
+/* History and Alamat Section */
+.full-address {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.full-address .value {
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.history-section {
+    margin-top: 2rem;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.history-header h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0;
+    color: var(--color-text-prime);
+    font-weight: 600;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.history-empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.history-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.history-item:hover {
+    background: rgba(238, 162, 1, 0.05);
+    border-color: rgba(238, 162, 1, 0.3);
+}
+
+.hist-left {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.delete-item-btn {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    padding: 0.25rem 0.4rem;
+    border-radius: 4px;
+}
+
+.history-item:hover .delete-item-btn {
+    opacity: 1;
+}
+
+.delete-item-btn:hover {
+    color: var(--color-error);
+}
+
+.hist-coord {
+    font-family: monospace;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.hist-details {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.hist-time {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+/* Footer Styling */
+.app-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.footer-sources ul {
+    list-style: none;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.footer-sources li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-disclaimer {
+    background: rgba(26, 61, 115, 0.4);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    color: var(--color-text-prime);
+    line-height: 1.6;
+}
+
+.footer-disclaimer p {
+    margin-bottom: 0.4rem;
+}
+
+.footer-disclaimer ul {
+    margin: 0.25rem 0 0.6rem 1.25rem;
+    padding: 0;
+}
+
+.footer-disclaimer li {
+    margin-bottom: 0.2rem;
+    list-style: disc;
+}
+
+.footer-credits {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    padding-top: 1rem;
+}
+
+.framework-info {
+    font-style: italic;
+    opacity: 0.7;
+}
+
+/* Tabs Navigation */
+.tabs-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: var(--color-bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.25rem;
+}
+
+.tab-btn {
+    flex: 1;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.6rem 1.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    border-radius: var(--radius-sm);
+}
+
+.tab-btn:hover {
+    color: var(--color-text-prime);
+}
+
+.tab-btn.active {
+    color: #000;
+    background: var(--color-accent);
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Batch Geocoding UI */
+.batch-section, .batch-result-section {
+    margin-bottom: 2rem;
+}
+
+.batch-header {
+    margin-bottom: 1rem;
+}
+
+.batch-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.batch-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.batch-result-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+}
+
+.batch-map-header {
+    margin-bottom: 1rem;
+}
+
+.batch-map-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.batch-textarea {
+    width: 100%;
+    height: 150px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    color: var(--color-text-prime);
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.batch-textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.batch-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.batch-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 250px;
+}
+
+.progress-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--color-accent);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+#batchProgressText {
+    font-size: 0.85rem;
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
+/* Batch Result Table */
+.batch-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 450px;
+    background: rgba(15, 23, 42, 0.3);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+}
+
+/* Kustomisasi Scrollbar Table */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(238, 162, 1, 0.4);
+    border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}
+
+.batch-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.batch-table th {
+    background: #14305E;
+    color: var(--color-accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    padding: 0.7rem 0.65rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-accent);
+}
+
+.batch-table td {
+    padding: 0.7rem 0.65rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--color-text-prime);
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.batch-table tbody tr:nth-child(even) td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.batch-table tbody tr:hover td {
+    background: rgba(238, 162, 1, 0.08);
+}
+
+.batch-table .empty-row td {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    padding: 3rem 2rem;
+}
+
+.status-success { color: #10B981; }
+.status-error { color: #EF4444; }
+.status-empty { color: var(--color-text-muted); font-style: italic; font-weight: normal; }
+
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+/* Tombol perbesar (⛶) — target klik yang lebih besar */
+#expandTableBtn,
+#expandMapBtn {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Modal perbesar tabel hasil */
+.table-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.table-modal.active {
+    display: flex;
+}
+
+.table-modal-content {
+    background: var(--color-bg-deep);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    width: 95%;
+    max-width: 1200px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.table-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.table-modal-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.table-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.table-modal-actions .btn-secondary {
+    background: transparent;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+    padding: 6px 12px;
+    line-height: 1.4;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.table-modal-actions .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.table-modal-actions .btn-primary {
+    background: var(--color-accent);
+    color: #000;
+    font-size: 14px;
+    padding: 6px 12px;
+    line-height: 1.4;
+    border: none;
+    transition: background 0.2s;
+}
+
+.table-modal-actions .btn-primary:hover {
+    background: var(--color-accent-hover);
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.2rem;
+    transition: color 0.2s;
+    margin-left: 0.2rem;
+}
+
+.modal-close-btn:hover {
+    color: #fff;
+}
+
+.table-modal-body {
+    flex: 1;
+    overflow: auto;
+    padding: 0;
+    position: relative;
+    isolation: isolate;
+}
+
+/* Dark scrollbar untuk modal tabel */
+.table-modal-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-modal-body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+.table-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(238, 162, 1, 0.35);
+    border-radius: 4px;
+}
+.table-modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}
+
+.table-modal-body .batch-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: separate;
+    border-spacing: 0;
+    position: relative;
+    table-layout: auto;
+}
+
+.table-modal-body .batch-table th {
+    background-color: #0f264a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    border-bottom: 2px solid var(--color-accent);
+}
+
+.table-modal-body .batch-table th,
+.table-modal-body .batch-table td {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* (Duplicate rules removed — consolidated above) */
+
+.batch-map-header {
+    margin-bottom: 0.75rem;
+}
+
+.batch-map-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.batch-map-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+}
+
+.batch-map-header .helper-text {
+    margin-top: 0;
+}
+
+.batch-map-header .helper-text {
+    margin-top: 0;
+}
+
+.map-expand-btn:hover {
+    background: #fff;
+}
+
+/* Batch Layout Grid (2 kolom: input+tabel | peta) */
+.batch-layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: stretch;
+}
+
+.batch-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+}
+
+.batch-right {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Batch Map Section */
+.batch-map-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.batch-map-header {
+    margin-bottom: 1rem;
+}
+
+.batch-map-header h2 {
+    color: var(--color-text-prime);
+    padding-bottom: 0.25rem;
+}
+
+.batch-map-container {
+    width: 100%;
+    flex: 1;
+    min-height: 400px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    position: relative;
+}
+
+/* Tombol perbesar peta — overlay di pojok kanan atas map */
+.map-expand-btn {
+    position: absolute;
+    top: 8px;
+    right: 50px;
+    z-index: 999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+    transition: background 0.2s;
+}
+
+.map-expand-btn:hover {
+    background: #fff;
+}
+
+/* Modal perbesar peta */
+.map-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.map-modal.active {
+    display: flex;
+}
+
+.map-modal-content {
+    background: var(--color-bg-deep);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    width: 95%;
+    max-width: 1400px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.map-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.map-modal-header h2 {
+    font-size: 1.15rem;
+    color: var(--color-text-prime);
+    font-weight: 600;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    transition: color 0.2s;
+}
+
+.modal-close-btn:hover {
+    color: #fff;
+}
+
+.map-modal-legend {
+    display: flex;
+    gap: 1.25rem;
+    padding: 0.4rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.map-modal-body {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.map-modal-body #map,
+.map-modal-body #batchMap {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+
+/* Batch Map Legend */
+.batch-map-legend {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.legend-pin {
+    flex-shrink: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet (max 768px) */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 1rem;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .input-wrapper {
+        flex-direction: column;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+
+    .batch-layout-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .batch-left {
+        overflow-y: visible;
+    }
+
+    .batch-left,
+    .batch-right {
+        min-width: 0;
+    }
+
+    .batch-right {
+        position: static;
+    }
+
+    .batch-actions {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .footer-credits {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* Mobile (max 480px) */
+@media (max-width: 480px) {
+    .app-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .app-header h1 .highlight {
+        padding: 0.15rem 0.5rem;
+    }
+
+    .glass-panel {
+        padding: 1rem;
+    }
+
+    .tab-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .batch-actions {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .btn-small {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .batch-textarea {
+        height: 100px;
+        font-size: 0.8rem;
+    }
+
+    .batch-map-container {
+        min-height: 250px;
+    }
+
+    .batch-progress {
+        width: 100%;
+    }
+
+    .table-container {
+        max-height: 250px;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .batch-table {
+        width: auto;
+        min-width: 600px;
+    }
+
+    .batch-table th,
+    .batch-table td {
+        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+        white-space: normal;
+    }
+
+    .batch-table th:nth-child(5),
+    .batch-table td:nth-child(5),
+    .batch-table th:nth-child(6),
+    .batch-table td:nth-child(6) {
+        display: none;
+    }
+}
+
+/* Premium Glassmorphic Announcement Banner */
+.announcement-banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-md);
+    background: rgba(238, 162, 1, 0.08); /* subtle yellow accent bg tint */
+    border: 1px solid rgba(238, 162, 1, 0.2); /* elegant border highlighting the brand yellow */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-glass);
+    transition: all 0.3s ease;
+}
+
+.announcement-banner:hover {
+    background: rgba(238, 162, 1, 0.12);
+    border-color: rgba(238, 162, 1, 0.35);
+}
+
+.announcement-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.announcement-content {
+    font-size: 0.9rem;
+    color: var(--color-text-prime);
+    line-height: 1.55;
+}
+
+.announcement-content strong {
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Collapsible 'Selengkapnya' Toggle Links */
+.toggle-text-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 6px;
+    font-size: 0.82rem;
+    display: inline-block;
+    border-bottom: 1px dashed rgba(238, 162, 1, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-text-link:hover {
+    color: var(--color-accent-hover);
+    border-bottom-color: var(--color-accent-hover);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Disclaimer Collapsible on Mobile */
+.toggle-disclaimer-btn {
+    display: none; /* Hidden by default on desktop */
+}
+
+@media (max-width: 768px) {
+    .disclaimer-content-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+    }
+    
+    .disclaimer-content-wrapper.expanded {
+        max-height: 1000px;
+        transition: max-height 0.4s ease-in;
+        margin-bottom: 1rem;
+    }
+    
+    .toggle-disclaimer-btn {
+        display: block;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-prime);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 0.5rem;
+    }
+    
+    .toggle-disclaimer-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Premium Map Expand Button */
+.btn-map-expand {
+    position: absolute;
+    bottom: 38px; /* Tepat di atas tulisan atribusi Leaflet, dinaikkan agar tidak tertutup */
+    right: 8px;   /* Merapat ke pojok kanan sejajar control Leaflet */
+    z-index: 1000; /* overlay on Leaflet map */
+    background: rgba(15, 38, 74, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--color-text-prime);
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.btn-map-expand:hover {
+    background: var(--color-accent);
+    color: #000;
+    border-color: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.btn-map-expand:active {
+    transform: scale(0.95);
+}
+
+/* Premium Glassmorphic Info Box for Single Search Map Modal */
+.map-single-info-box {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    color: #1e293b; /* elegant slate-800 text */
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.map-single-info-box .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px dashed rgba(30, 41, 59, 0.15);
+    padding-bottom: 0.35rem;
+}
+
+.map-single-info-box .info-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.map-single-info-box strong {
+    font-weight: 600;
+    color: #0f172a; /* slate-900 */
+}
+
+.map-single-info-box span {
+    font-weight: 600;
+    color: #334155; /* slate-700 */
+    text-align: right;
+}
+
+/* Premium Custom Autozoom Control styling matching the app theme */
+.leaflet-custom-autozoom a {
+    background-color: rgba(15, 38, 74, 0.9) !important;
+    color: var(--color-accent) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.leaflet-custom-autozoom a:hover {
+    background-color: var(--color-accent) !important;
+    color: #000000 !important;
+    border-color: var(--color-accent) !important;
+    transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+    .map-single-info-box {
+        top: auto;
+        bottom: 38px; /* Dinaikkan sedikit agar tidak tertutupi oleh atribusi Leaflet di mobile */
+        left: 10px;
+        right: auto;
+        width: auto;
+        max-width: 250px;
+        min-width: 0;
+        font-size: 0.75rem;
+        padding: 0.6rem 0.8rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-map-expand {
+        bottom: 55px; /* Dinaikkan agar tidak tertutup/menutupi atribusi di mobile */
+    }
+}
+
+
+

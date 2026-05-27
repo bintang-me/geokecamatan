@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cari Kecamatan - Berdasarkan Titik Koordinat</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/style.css?v=1779070546">
+    <link rel="stylesheet" href="css/map.css?v=1779070546">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1><span class="highlight">Cari Kecamatan</span></h1>
+            <p>Berdasarkan Titik Koordinat</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Tabs Navigation -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="tab-tunggal">Cari Tunggal</button>
+                <button class="tab-btn" data-tab="tab-massal">Cari Massal</button>
+            </div>
+
+            <!-- Announcement Banner -->
+            <div class="announcement-banner">
+                <span class="announcement-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                        <circle cx="12" cy="12" r="11" fill="var(--color-accent)"/>
+                        <path d="M16 13c0-.8-.4-1.5-1-1.9v3.8c.6-.4 1-1.1 1-1.9zm2.5 0c0-1.9-1-3.6-2.5-4.4v8.8c1.5-.8 2.5-2.5 2.5-4.4zM6 10v6h3l4 4V6l-4 4H6z" fill="#000000"/>
+                    </svg>
+                </span>
+                <div class="announcement-content">
+                    <span class="text-short"><b>Pembaruan Sistem</b>: Sumber data primer kini dialihkan ke Geoportal Kebijakan Satu Peta BIG...</span>
+                    <span class="text-full hidden"><b>Pembaruan Sistem</b>: Sumber data primer untuk identifikasi batas administrasi kecamatan kini dialihkan ke Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG). Pembaruan ini bertujuan untuk meningkatkan akurasi, kesesuaian, dan keandalan pencarian nama kecamatan.</span>
+                    <a href="#" class="toggle-text-link">Selengkapnya</a>
+                </div>
+            </div>
+
+            <!-- Tab 1: Cari Tunggal -->
+            <div id="tab-tunggal" class="tab-pane active">
+                <section class="input-section glass-panel">
+                <div class="input-group">
+                    <label for="coordInput">Masukkan Koordinat (Lat, Long)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="coordInput" placeholder="Contoh: -6.2088, 106.8456" autocomplete="off">
+                        <button id="searchBtn" class="btn-primary">Cari Lokasi</button>
+                    </div>
+                    <small class="helper-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>
+                        <span class="text-short">Pencarian Cerdas: Mendukung format Desimal, DMS, dan Excel/Spreadsheet...</span>
+                        <span class="text-full hidden">Pencarian Cerdas: Mendukung format Desimal (cth: -6.2088, 106.8456), DMS (cth: 6°14'52.1"S 106°52'40.0"E), serta perapian otomatis salinan koordinat langsung dari Excel/Spreadsheet.</span>
+                        <a href="#" class="toggle-text-link">Selengkapnya</a>
+                    </small>
+                </div>
+            </section>
+
+            <div class="content-grid">
+                <section class="result-section glass-panel">
+                    <h2>Hasil Pencarian</h2>
+                    <div id="loadingIndicator" class="loading-state hidden">
+                        <div class="spinner"></div>
+                        <p>Mencari data lokasi...</p>
+                    </div>
+                    
+                    <div id="errorState" class="error-state hidden">
+                        <span class="error-icon">⚠️</span>
+                        <p id="errorMessage">Koordinat tidak valid.</p>
+                    </div>
+
+                    <div id="resultContent" class="result-content hidden">
+                        <div class="result-header">
+                            <span class="badge" id="confidenceBadge">Akurasi: Tinggi</span>
+                        </div>
+                        
+                        <div class="admin-hierarchy">
+                            <div class="admin-item">
+                                <span class="label">Provinsi</span>
+                                <span class="value" id="resProvinsi">-</span>
+                            </div>
+                            <div class="admin-item">
+                                <span class="label">Kabupaten/Kota</span>
+                                <span class="value" id="resKabKota">-</span>
+                            </div>
+                            <div class="admin-item highlight-item">
+                                <span class="label">Kecamatan</span>
+                                <div class="copy-wrapper" id="copyKecamatanContainer" title="Klik untuk salin">
+                                    <span class="value" id="resKecamatan">-</span>
+                                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    <span class="copy-tooltip" id="copyTooltip">Tersalin!</span>
+                                </div>
+                            </div>
+                            <div class="admin-item">
+                                <span class="label">Desa/Kelurahan</span>
+                                <div class="copy-wrapper" id="copyDesaKelContainer" title="Klik untuk salin">
+                                    <span class="value" id="resDesaKel">-</span>
+                                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    <span class="copy-tooltip" id="copyDesaKelTooltip">Tersalin!</span>
+                                </div>
+                            </div>
+                            <div class="admin-item full-address">
+                                <span class="label">Alamat Lengkap</span>
+                                <span class="value" id="resAlamat">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="map-section glass-panel">
+                    <div class="map-wrapper" style="position: relative; flex: 1; display: flex; flex-direction: column;">
+                        <div id="map" class="map-container"></div>
+                        <button id="expandSingleMapBtn" class="btn-map-expand" title="Perbesar Peta">⛶</button>
+                    </div>
+                    <p class="map-hint">💡 Anda bisa menggeser marker atau klik di peta untuk melihat wilayah lain.</p>
+                </section>
+            </div>
+
+            <section class="history-section glass-panel">
+                <div class="history-header">
+                    <h2>Riwayat Pencarian</h2>
+                    <button id="clearHistoryBtn" class="btn-secondary btn-small">Hapus Semua</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <p class="history-empty">Belum ada histori pencarian.</p>
+                </div>
+            </section>
+            </div> <!-- End of Tab 1 -->
+
+            <!-- Tab 2: Cari Massal -->
+            <div id="tab-massal" class="tab-pane">
+                <div class="batch-layout-grid">
+                    <!-- Kolom Kiri: Input + Tabel -->
+                    <div class="batch-left">
+                        <section class="batch-section glass-panel">
+                            <div class="batch-header">
+                                <h2>Batch Geocoding (Cari Massal)</h2>
+                                <p class="helper-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>
+                                    <span class="text-short">Pencarian Cerdas Massal: Masukkan daftar koordinat, satu per baris (mendukung Excel/Spreadsheet)...</span>
+                                    <span class="text-full hidden">Pencarian Cerdas Massal: Masukkan (paste) daftar koordinat (satu lat dan long per baris). Mendukung format Desimal (cth: -6.2088, 106.8456), DMS (cth: 6°14'52.1"S 106°52'40.0"E), serta perapian otomatis salinan koordinat langsung dari Excel/Spreadsheet.</span>
+                                    <a href="#" class="toggle-text-link">Selengkapnya</a>
+                                </p>
+                            </div>
+                            
+                            <textarea id="batchInput" class="batch-textarea" placeholder="-6.2088, 106.8456&#10;-6.9175, 107.6191&#10;6°14'52.1&quot;S 106°52'40.0&quot;E"></textarea>
+                            
+                            <div class="batch-controls">
+                                <button id="processBatchBtn" class="btn-primary">Mulai Proses</button>
+                                <button id="clearBatchBtn" class="btn-secondary">Hapus Input</button>
+                                <div id="batchProgressContainer" class="batch-progress hidden">
+                                    <span id="batchProgressText">Memproses: 0 / 0</span>
+                                    <div class="progress-bar-bg">
+                                        <div id="batchProgressBar" class="progress-bar-fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="batch-result-section glass-panel">
+                            <div class="batch-result-header">
+                                <h2>Tabel Hasil</h2>
+                                <div class="batch-actions">
+                                    <button id="copyKecamatanBtn" class="btn-secondary btn-small">Salin Kec.</button>
+                                    <button id="copyKabKotaBtn" class="btn-secondary btn-small">Salin Kab/Kota</button>
+                                    <button id="copyCoordBtn" class="btn-secondary btn-small">Salin Koordinat</button>
+                                    <button id="copyTableBtn" class="btn-primary btn-small">Salin Tabel</button>
+                                    <button id="expandTableBtn" class="btn-secondary btn-small" title="Perbesar Tabel">⛶</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table id="batchTable" class="batch-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Lintang</th>
+                                            <th>Bujur</th>
+                                            <th>Kecamatan</th>
+                                            <th>Kab/Kota</th>
+                                            <th>Provinsi</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="batchTableBody">
+                                        <tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    <!-- Kolom Kanan: Peta Batch -->
+                    <div class="batch-right">
+                        <section class="batch-map-section glass-panel">
+                            <div class="batch-map-header">
+                                <div class="batch-map-header-row">
+                                    <h2>Peta Sebaran Titik</h2>
+                                    <button id="expandMapBtn" class="btn-secondary btn-small" title="Perbesar Peta">⛶</button>
+                                </div>
+                                <p class="helper-text">Klik marker untuk melihat info titik.</p>
+                            </div>
+                            <div id="batchMap" class="batch-map-container"></div>
+                            <div class="batch-map-legend">
+                                <span class="legend-item">
+                                    <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#10B981" stroke="#fff" stroke-width="1.5"/>
+                                        <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
+                                    </svg>
+                                    Sukses
+                                </span>
+                                <span class="legend-item">
+                                    <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
+                                        <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#EF4444" stroke="#fff" stroke-width="1.5"/>
+                                        <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
+                                    </svg>
+                                    Wilayah Perairan/Luar RI
+                                </span>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+            </div> <!-- End of Tab 2 -->
+
+            <!-- Modal perbesar tabel hasil -->
+            <div id="tableModal" class="table-modal">
+                <div class="table-modal-content">
+                    <div class="table-modal-header">
+                        <h2>Tabel Hasil</h2>
+                        <div class="table-modal-actions">
+                            <button id="copyKecamatanBtnModal" class="btn-secondary btn-small">Salin Kec.</button>
+                            <button id="copyKabKotaBtnModal" class="btn-secondary btn-small">Salin Kab/Kota</button>
+                            <button id="copyCoordBtnModal" class="btn-secondary btn-small">Salin Koordinat</button>
+                            <button id="copyTableBtnModal" class="btn-primary btn-small">Salin Tabel</button>
+                            <button id="closeTableModalBtn" class="modal-close-btn">&times;</button>
+                        </div>
+                    </div>
+                    <div class="table-modal-body"></div>
+                </div>
+            </div>
+
+            <!-- Modal perbesar peta -->
+            <div id="mapModal" class="map-modal">
+                <div class="map-modal-content">
+                    <div class="map-modal-header">
+                        <h2 id="mapModalTitle">Peta Sebaran Titik</h2>
+                        <button id="closeMapModalBtn" class="modal-close-btn">&times;</button>
+                    </div>
+                    <div id="mapModalLegend" class="map-modal-legend">
+                        <span class="legend-item">
+                            <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
+                                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#10B981" stroke="#fff" stroke-width="1.5"/>
+                                <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
+                            </svg>
+                            Sukses
+                        </span>
+                        <span class="legend-item">
+                            <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
+                                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#EF4444" stroke="#fff" stroke-width="1.5"/>
+                                <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
+                            </svg>
+                            Wilayah Perairan/Luar RI
+                        </span>
+                    </div>
+                    <div id="mapModalBody" class="map-modal-body">
+                        <!-- Box informasi khusus peta tunggal (hanya tampil saat diperbesar) -->
+                        <div id="mapSingleInfoBox" class="map-single-info-box hidden">
+                            <div class="info-row"><strong>Desa/Kelurahan:</strong> <span id="modalInfoDesaKel">-</span></div>
+                            <div class="info-row"><strong>Kecamatan:</strong> <span id="modalInfoKecamatan">-</span></div>
+                            <div class="info-row"><strong>Kab/Kota:</strong> <span id="modalInfoKabKota">-</span></div>
+                            <div class="info-row"><strong>Provinsi:</strong> <span id="modalInfoProvinsi">-</span></div>
+                            <div class="info-row"><strong>Status:</strong> <span id="modalInfoStatus">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-disclaimer" id="footerDisclaimer">
+                    <p><strong><em>Disclaimer</em>/Penafian:</strong></p>
+                    <div class="disclaimer-content-wrapper">
+                        <p><em>Website</em> <span class="highlight-inline">Cari Kecamatan</span> merupakan alat bantu pencarian data administrasi nama kecamatan di Negara Republik Indonesia berdasarkan titik koordinat yang bersifat informatif.</p>
+                        <p><strong>Sumber Data:</strong></p>
+                        <ul>
+                            <li><strong>Primer:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG) &mdash; poligon batas wilayah administrasi dan identifikasi lokasi.</li>
+                            <li><strong>Sekunder:</strong> ArcGIS Esri, OpenStreetMap (Nominatim), BigDataCloud.</li>
+                            <li><strong>Deteksi Perairan:</strong> Is On Water API (NASA ASTER Water Body Database).</li>
+                        </ul>
+                        <p><strong>Batasan dan Risiko:</strong></p>
+                        <ul>
+                            <li>Akurasi hasil sangat bergantung pada ketersediaan dan ketepatan data dari masing-masing API pihak ketiga pada saat permintaan dilakukan dan terkadang terjadi kesalahan.</li>
+                            <li>Tidak semua API merespons setiap saat. Gangguan layanan atau <em>Cross-Origin Resource Sharing</em> (CORS) dapat menyebabkan hasil salah atau kosong.</li>
+                            <li>Koordinat di luar batas wilayah Negara Republik Indonesia tidak dapat diproses untuk pencarian kecamatan.</li>
+                            <li>Jangan gunakan untuk penetapan batas wilayah, sengketa perbatasan, sengketa pertanahan, maupun segala keperluan hukum dan putusan lainnya yang bersifat mengikat.</li>
+                        </ul>
+                    </div>
+                    <button class="toggle-disclaimer-btn" id="toggleDisclaimerBtn">Lihat Disclaimer Selengkapnya</button>
+                </div>
+                <div class="footer-credits">
+                    <p>Proyek oleh <strong>Bintang Bayu K. P.</strong></p>
+                    <p class="framework-info">Dibuat dengan Vanilla JS, HTML5, CSS3, dan Leaflet.js</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+    
+    <!-- App Scripts (Bundled) -->
+    <script src="js/bundle.js"></script>
+</body>
+</html>
+
+
+
+
