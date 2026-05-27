@@ -1456,13 +1456,20 @@ input[type="text"]:focus {
 
 @media (max-width: 480px) {
     .map-single-info-box {
-        top: 10px;
+        top: auto;
+        bottom: 10px;
         left: 10px;
-        right: 10px;
+        right: auto;
+        width: auto;
+        max-width: 250px;
         min-width: 0;
-        font-size: 0.8rem;
-        padding: 0.75rem;
+        font-size: 0.75rem;
+        padding: 0.6rem 0.8rem;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-map-expand {
+        bottom: 55px; /* Dinaikkan agar tidak tertutup/menutupi atribusi di mobile */
     }
 }
 
