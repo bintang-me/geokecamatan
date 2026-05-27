@@ -731,6 +731,7 @@ let batchMap = null;
 let batchMarkers = [];
 let batchBoundaryLayers = []; // Penampung untuk poligon interaktif di peta batch
 let batchMapInitialized = false;
+let lastSelectedBatchMarker = null;
 
 function clearBatchBoundaryLayers() {
     if (!batchMap) return;
@@ -755,6 +756,49 @@ function initBatchMap() {
     satelliteHybrid.addTo(batchMap);
 
     L.control.layers({ "Peta Standar": standardMap, "Satelit Hybrid": satelliteHybrid }, null, { position: 'topright' }).addTo(batchMap);
+
+    // Tambahkan kontrol Autozoom kustom di bawah kontrol zoom (+/-) bawaan Leaflet pada Peta Cari Massal
+    const AutoZoomControlBatch = L.Control.extend({
+        options: {
+            position: 'topleft'
+        },
+        onAdd: function (map) {
+            const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-custom-autozoom');
+            const link = L.DomUtil.create('a', '', container);
+            link.href = '#';
+            link.title = 'Fokus & Autozoom ke Titik Terpilih (Zoom 17)';
+            link.role = 'button';
+            link.style.display = 'flex';
+            link.style.alignItems = 'center';
+            link.style.justifyContent = 'center';
+            link.style.width = '30px';
+            link.style.height = '30px';
+
+            link.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                </svg>
+            `;
+
+            L.DomEvent.on(link, 'click', function (e) {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+                if (lastSelectedBatchMarker) {
+                    batchMap.setView(lastSelectedBatchMarker.getLatLng(), 17); // Zoom-in langsung ke level 17
+                } else if (batchMarkers.length > 0) {
+                    fitBatchMapBounds(); // Zoom ke seluruh sebaran jika belum ada yang dipilih
+                }
+            });
+
+            return container;
+        }
+    });
+    batchMap.addControl(new AutoZoomControlBatch());
 
     // ResizeObserver fix
     if (window.ResizeObserver) {
@@ -842,6 +886,10 @@ function addBatchMarker(data) {
     m.batchId = data.id; // Simpan ID untuk referensi silang tabel-peta
     m.bindPopup(popupContent);
     
+    m.on('click', () => {
+        lastSelectedBatchMarker = m;
+    });
+
     // Fitur: Poligon Interaktif (On-Click Highlight)
     if (data.status === 'Sukses') {
         m.on('click', async () => {
@@ -854,6 +902,7 @@ function addBatchMarker(data) {
 
     // Auto-positioning untuk titik pertama yang muncul di peta
     if (batchMarkers.length === 1) {
+        lastSelectedBatchMarker = m;
         batchMap.setView(m.getLatLng(), 13);
     }
 }
@@ -862,6 +911,7 @@ function clearBatchMarkers() {
     if (!batchMap) return;
     batchMarkers.forEach(m => m.remove());
     batchMarkers = [];
+    lastSelectedBatchMarker = null;
     clearBatchBoundaryLayers(); // Bersihkan poligon juga saat tabel di-reset
 }
 
@@ -1484,6 +1534,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof batchMarkers !== 'undefined' && batchMap) {
             const marker = batchMarkers.find(m => m.batchId === dataId);
             if (marker) {
+                lastSelectedBatchMarker = marker;
                 batchMap.setView(marker.getLatLng(), 13, { animate: true });
                 marker.openPopup();
                 
