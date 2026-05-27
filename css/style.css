@@ -221,6 +221,23 @@ input[type="text"]:focus {
     border-bottom-left-radius: var(--radius-sm);
 }
 
+.highlight-sub-item {
+    background: rgba(59, 130, 246, 0.08); /* subtle blue bg */
+    position: relative;
+}
+
+.highlight-sub-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #3B82F6; /* blue accent */
+    border-top-left-radius: var(--radius-sm);
+    border-bottom-left-radius: var(--radius-sm);
+}
+
 .admin-item .label {
     color: var(--color-text-muted);
     font-size: 0.85rem;
@@ -1104,6 +1121,7 @@ input[type="text"]:focus {
     position: relative;
 }
 
+.map-modal-body #map,
 .map-modal-body #batchMap {
     width: 100%;
     height: 100%;
@@ -1292,4 +1310,161 @@ input[type="text"]:focus {
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
+
+/* Collapsible 'Selengkapnya' Toggle Links */
+.toggle-text-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 6px;
+    font-size: 0.82rem;
+    display: inline-block;
+    border-bottom: 1px dashed rgba(238, 162, 1, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggle-text-link:hover {
+    color: var(--color-accent-hover);
+    border-bottom-color: var(--color-accent-hover);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Disclaimer Collapsible on Mobile */
+.toggle-disclaimer-btn {
+    display: none; /* Hidden by default on desktop */
+}
+
+@media (max-width: 768px) {
+    .disclaimer-content-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+    }
+    
+    .disclaimer-content-wrapper.expanded {
+        max-height: 1000px;
+        transition: max-height 0.4s ease-in;
+        margin-bottom: 1rem;
+    }
+    
+    .toggle-disclaimer-btn {
+        display: block;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--color-text-prime);
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 0.5rem;
+    }
+    
+    .toggle-disclaimer-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* Premium Map Expand Button */
+.btn-map-expand {
+    position: absolute;
+    bottom: 38px; /* Tepat di atas tulisan atribusi Leaflet, dinaikkan agar tidak tertutup */
+    right: 8px;   /* Merapat ke pojok kanan sejajar control Leaflet */
+    z-index: 1000; /* overlay on Leaflet map */
+    background: rgba(15, 38, 74, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--color-text-prime);
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.btn-map-expand:hover {
+    background: var(--color-accent);
+    color: #000;
+    border-color: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.btn-map-expand:active {
+    transform: scale(0.95);
+}
+
+/* Premium Glassmorphic Info Box for Single Search Map Modal */
+.map-single-info-box {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    color: #1e293b; /* elegant slate-800 text */
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+}
+
+.map-single-info-box .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px dashed rgba(30, 41, 59, 0.15);
+    padding-bottom: 0.35rem;
+}
+
+.map-single-info-box .info-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.map-single-info-box strong {
+    font-weight: 600;
+    color: #0f172a; /* slate-900 */
+}
+
+.map-single-info-box span {
+    font-weight: 600;
+    color: #334155; /* slate-700 */
+    text-align: right;
+}
+
+@media (max-width: 480px) {
+    .map-single-info-box {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        min-width: 0;
+        font-size: 0.8rem;
+        padding: 0.75rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    }
+}
+
+
 

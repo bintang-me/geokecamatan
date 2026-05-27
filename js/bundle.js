@@ -199,8 +199,9 @@ function parseBIGResponse(data) {
     let provinsi = toTitleCase(attr.WADMPR);
     let kabKota = toTitleCase(attr.WADMKK);
     let kecamatan = toTitleCase(attr.WADMKC);
+    let desaKel = toTitleCase(attr.WADMKD || attr.WADMKD_HTML || attr.WADMKP || "-");
 
-    return { provinsi, kabKota, kecamatan, alamat: "-", geometry: null };
+    return { provinsi, kabKota, kecamatan, desaKel, alamat: "-", geometry: null };
 }
 
 // ==========================================
@@ -212,10 +213,11 @@ function parseArcGISResponse(data) {
     const provinsi = addr.Region || "-";
     const kabKota = addr.Subregion || addr.MetroArea || "-";
     const kecamatan = addr.City || addr.District || "-";
+    const desaKel = addr.Neighborhood || addr.Block || "-";
     const alamat = addr.LongLabel || addr.Match_addr || "-";
     const countryCode = addr.CountryCode || null;
     if (!addr.Region && !addr.Subregion && !addr.City) return null;
-    return { provinsi, kabKota, kecamatan, alamat, countryCode };
+    return { provinsi, kabKota, kecamatan, desaKel, alamat, countryCode };
 }
 
 // ==========================================
@@ -228,27 +230,31 @@ function parseNominatimResponse(data) {
     let kecamatan = "-";
     if (addr.district) kecamatan = addr.district;
     else if (addr.city_district) kecamatan = addr.city_district;
+    
+    const desaKel = addr.village || addr.suburb || addr.neighbourhood || addr.hamlet || addr.quarter || "-";
+    
     const alamat = data.display_name || "-";
     const countryCode = addr.country_code || null;
     // Deteksi badan air (laut, samudra, teluk, selat) — tidak memiliki administrative data
     const isWaterBody = !!(addr.sea || addr.ocean || addr.bay || addr.strait);
     const geometry = data.geojson || null;
-    return { provinsi, kabKota, kecamatan, alamat, countryCode, isWaterBody, geometry };
+    return { provinsi, kabKota, kecamatan, desaKel, alamat, countryCode, isWaterBody, geometry };
 }
 
 // ==========================================
 // 5. Parser — BigDataCloud (SUMBER KEEMPAT)
 // ==========================================
 function parseBDCResponse(data) {
-    let admin = { provinsi: "-", kabKota: "-", kecamatan: "-", alamat: "-", countryCode: null };
+    let admin = { provinsi: "-", kabKota: "-", kecamatan: "-", desaKel: "-", alamat: "-", countryCode: null };
     const countryCode = data.countryCode || null;
     if (data.localityInfo && data.localityInfo.administrative) {
         const admins = data.localityInfo.administrative;
-        let level4 = null; let level5 = null; let level6Candidates = [];
+        let level4 = null; let level5 = null; let level6Candidates = []; let level7Candidates = [];
         admins.forEach(item => {
             if (item.adminLevel === 4) level4 = item;
             if (item.adminLevel === 5) level5 = item;
             if (item.adminLevel === 6) level6Candidates.push(item);
+            if (item.adminLevel >= 7) level7Candidates.push(item);
         });
         if (level4) admin.provinsi = level4.name;
         if (level5) admin.kabKota = level5.name;
@@ -261,6 +267,8 @@ function parseBDCResponse(data) {
             admin.kecamatan = match ? match.name : level6Candidates[0].name;
         }
         if (admin.kecamatan === "-" && data.locality) admin.kecamatan = data.locality;
+        
+        if (level7Candidates.length > 0) admin.desaKel = level7Candidates[0].name;
 
         const sorted = [...admins].filter(a => a.adminLevel >= 4).sort((a, b) => b.adminLevel - a.adminLevel);
         const unique = sorted.filter((a, i, self) => i === self.findIndex((t) => t.name === a.name));
@@ -360,7 +368,7 @@ async function reverseGeocode(lat, lon) {
     }
 
     // --- FASE 2: Geocoding 4 API paralel (hanya jika daratan) ---
-    const bigUrl = `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/3/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson`;
+    const bigUrl = `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/4/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson`;
     const arcgisUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lon},${lat}&f=pjson&langCode=id`;
     // Gunakan zoom=14 (tingkat Kecamatan/Suburb) di OSM agar poligon yang dikembalikan lebih relevan sebagai batas wilayah, dan tambahkan polygon_geojson=1
     const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=14&polygon_geojson=1`;
@@ -580,18 +588,6 @@ async function fetchAndDrawBoundaries(adminData, lat, lon) {
             .bindTooltip(`Kecamatan: ${name}`, { sticky: true, className: 'boundary-tooltip' })
             .addTo(map);
         boundaryLayers.push(layer);
-
-        // Zoom ke batas kecamatan (level terdalam yang tersedia)
-        try {
-            map.fitBounds(layer.getBounds(), { padding: [30, 30], maxZoom: 15 });
-        } catch(e) { console.warn('fitBounds error:', e); }
-    } else if (kabFeature) {
-        try {
-            const kabLayer = boundaryLayers[boundaryLayers.length - 1];
-            if (kabLayer) {
-                map.fitBounds(kabLayer.getBounds(), { padding: [30, 30], maxZoom: 13 });
-            }
-        } catch(e) {}
     }
 }
 
@@ -657,12 +653,14 @@ function initMap(containerId, onLocationSelected) {
 
     marker.on('dragend', function () {
         const pos = marker.getLatLng();
+        map.setView(pos, 17);
         onLocationSelected(pos.lat, pos.lng);
     });
 
     map.on('click', function (e) {
         const pos = e.latlng;
         marker.setLatLng(pos);
+        map.setView(pos, 17);
         onLocationSelected(pos.lat, pos.lng);
     });
 
@@ -681,7 +679,7 @@ function updateMapMarker(lat, lon) {
     if (!map || !marker) return;
     const latlng = L.latLng(lat, lon);
     marker.setLatLng(latlng);
-    map.setView(latlng, Math.max(map.getZoom(), 13));
+    map.setView(latlng, 17);
 }
 
 // ==========================================
@@ -789,6 +787,7 @@ function addBatchMarker(data) {
         <div style="font-family:inherit;min-width:160px;">
             <div style="font-weight:700;margin-bottom:4px;color:#14305E;">No. ${escapeHtml(String(data.id))}</div>
             <div style="font-size:0.85rem;color:#374151;">
+                <b>Desa/Kelurahan:</b> ${escapeHtml(data.desaKel || '-')}<br>
                 <b>Kecamatan:</b> ${escapeHtml(data.kecamatan)}<br>
                 <b>Kab/Kota:</b> ${escapeHtml(data.kabKota)}<br>
                 <b>Provinsi:</b> ${escapeHtml(data.provinsi)}<br>
@@ -838,6 +837,12 @@ function showLoading() {
     document.getElementById('loadingIndicator').classList.remove('hidden');
     document.getElementById('errorState').classList.add('hidden');
     document.getElementById('resultContent').classList.add('hidden');
+
+    const modalBox = document.getElementById('mapSingleInfoBox');
+    if (modalBox && !modalBox.classList.contains('hidden')) {
+        document.getElementById('modalInfoStatus').textContent = 'Memproses...';
+        document.getElementById('modalInfoStatus').style.color = '#F59E0B';
+    }
 }
 
 function showError(message) {
@@ -845,6 +850,16 @@ function showError(message) {
     document.getElementById('resultContent').classList.add('hidden');
     document.getElementById('errorState').classList.remove('hidden');
     document.getElementById('errorMessage').textContent = message;
+
+    const modalBox = document.getElementById('mapSingleInfoBox');
+    if (modalBox && !modalBox.classList.contains('hidden')) {
+        document.getElementById('modalInfoDesaKel').textContent = '-';
+        document.getElementById('modalInfoKecamatan').textContent = '-';
+        document.getElementById('modalInfoKabKota').textContent = '-';
+        document.getElementById('modalInfoProvinsi').textContent = '-';
+        document.getElementById('modalInfoStatus').textContent = 'Gagal';
+        document.getElementById('modalInfoStatus').style.color = '#EF4444';
+    }
 }
 
 function showResult(data) {
@@ -857,7 +872,43 @@ function showResult(data) {
     document.getElementById('resProvinsi').textContent = admin.provinsi;
     document.getElementById('resKabKota').textContent = admin.kabKota;
     document.getElementById('resKecamatan').textContent = admin.kecamatan;
+    document.getElementById('resDesaKel').textContent = admin.desaKel || "-";
     document.getElementById('resAlamat').textContent = admin.alamat;
+
+    // Update modal info box jika aktif (tidak disembunyikan)
+    const modalBox = document.getElementById('mapSingleInfoBox');
+    if (modalBox && !modalBox.classList.contains('hidden')) {
+        const desa = admin.desaKel || '-';
+        const kec = admin.kecamatan || '-';
+        const kab = admin.kabKota || '-';
+        const prov = admin.provinsi || '-';
+        
+        let status = 'Tidak Ada Data';
+        if (kec !== '-' && kec !== '') {
+            if (kec === '(Luar RI)' || kec.includes('Luar RI')) {
+                status = 'Luar Batas RI';
+            } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
+                status = 'Wilayah Perairan';
+            } else {
+                status = 'Sukses';
+            }
+        }
+        
+        document.getElementById('modalInfoDesaKel').textContent = desa;
+        document.getElementById('modalInfoKecamatan').textContent = kec;
+        document.getElementById('modalInfoKabKota').textContent = kab;
+        document.getElementById('modalInfoProvinsi').textContent = prov;
+        document.getElementById('modalInfoStatus').textContent = status;
+        
+        const statusEl = document.getElementById('modalInfoStatus');
+        if (status === 'Sukses') {
+            statusEl.style.color = '#10B981';
+        } else if (status === 'Tidak Ada Data') {
+            statusEl.style.color = '#EF4444';
+        } else {
+            statusEl.style.color = '#F59E0B';
+        }
+    }
 
     const badge = document.getElementById('confidenceBadge');
     if (admin.kecamatan === '(Luar RI)') {
@@ -878,6 +929,8 @@ function showResult(data) {
         badge.style.background = "var(--color-error)";
     }
 }
+
+
 
 function setInputValue(lat, lon) {
     document.getElementById('coordInput').value = `${lat}, ${lon}`;
@@ -1029,6 +1082,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const copyDesaKelContainer = document.getElementById('copyDesaKelContainer');
+    const resDesaKel = document.getElementById('resDesaKel');
+    const copyDesaKelTooltip = document.getElementById('copyDesaKelTooltip');
+
+    if (copyDesaKelContainer) {
+        copyDesaKelContainer.addEventListener('click', () => {
+            const textToCopy = resDesaKel.textContent;
+            if (textToCopy && textToCopy !== '-') {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    copyDesaKelTooltip.classList.add('show');
+                    setTimeout(() => {
+                        copyDesaKelTooltip.classList.remove('show');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Gagal menyalin: ', err);
+                });
+            }
+        });
+    }
+
     searchBtn.addEventListener('click', () => {
         processInput(coordInput.value);
     });
@@ -1131,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableModalBody = document.querySelector('.table-modal-body');
     const batchTable = document.getElementById('batchTable');
     const expandMapBtn = document.getElementById('expandMapBtn');
+    const expandSingleMapBtn = document.getElementById('expandSingleMapBtn');
     const mapModal = document.getElementById('mapModal');
     const closeMapModalBtn = document.getElementById('closeMapModalBtn');
     const mapModalBody = document.getElementById('mapModalBody');
@@ -1275,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: task.id,
                     lat: lat,
                     lon: lon,
+                    desaKel: adm.desaKel || '-',
                     kecamatan: isSpecial && adm.kecamatan === '-' ? 'Tidak Ditemukan' : adm.kecamatan,
                     kabKota: adm.kabKota,
                     provinsi: adm.provinsi,
@@ -1285,6 +1360,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: task.id,
                     lat: lat,
                     lon: lon,
+                    desaKel: '-',
                     kecamatan: '-', kabKota: '-', provinsi: '-',
                     status: 'Error API'
                 };
@@ -1294,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('processTask error untuk task', task.id, err);
             return {
                 id: task.id,
-                lat: '-', lon: '-', kecamatan: '-', kabKota: '-', provinsi: '-',
+                lat: '-', lon: '-', desaKel: '-', kecamatan: '-', kabKota: '-', provinsi: '-',
                 status: 'Error'
             };
         }
@@ -1503,32 +1579,101 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Perbesar peta (modal)
+    let activeExpandedMap = null; // 'single' or 'batch'
+
     function closeMapModal() {
         document.getElementById('mapModal').classList.remove('active');
-        var mapEl = document.getElementById('batchMap');
-        var legend = document.querySelector('.batch-map-legend');
-        var section = document.querySelector('.batch-map-section');
-        if (section && mapEl) {
-            // Sisipkan map sebelum legend, bukan di akhir section
-            if (legend) {
-                section.insertBefore(mapEl, legend);
-            } else {
-                section.appendChild(mapEl);
+        
+        if (activeExpandedMap === 'single') {
+            var mapEl = document.getElementById('map');
+            var wrapper = document.querySelector('.map-wrapper');
+            var btn = document.getElementById('expandSingleMapBtn');
+            if (wrapper && mapEl) {
+                if (btn) wrapper.insertBefore(mapEl, btn);
+                else wrapper.appendChild(mapEl);
+            }
+            document.getElementById('mapSingleInfoBox').classList.add('hidden');
+            if (typeof map !== 'undefined' && map) {
+                setTimeout(function() { map.invalidateSize(); }, 100);
+                setTimeout(function() { map.invalidateSize(); }, 400);
+                setTimeout(function() { map.invalidateSize(); }, 800);
+            }
+        } else if (activeExpandedMap === 'batch') {
+            var mapEl = document.getElementById('batchMap');
+            var legend = document.querySelector('.batch-map-legend');
+            var section = document.querySelector('.batch-map-section');
+            if (section && mapEl) {
+                if (legend) section.insertBefore(mapEl, legend);
+                else section.appendChild(mapEl);
+            }
+            if (typeof batchMap !== 'undefined' && batchMap) {
+                setTimeout(function() { batchMap.invalidateSize(); }, 100);
+                setTimeout(function() { batchMap.invalidateSize(); }, 400);
+                setTimeout(function() { batchMap.invalidateSize(); }, 800);
             }
         }
-        // Multiple invalidateSize calls to ensure tiles render properly after DOM move
-        if (typeof batchMap !== 'undefined' && batchMap) {
-            setTimeout(function() { batchMap.invalidateSize(); }, 100);
-            setTimeout(function() { batchMap.invalidateSize(); }, 400);
-            setTimeout(function() { batchMap.invalidateSize(); }, 800);
-        }
+        activeExpandedMap = null;
+    }
+
+    if (expandSingleMapBtn) {
+        expandSingleMapBtn.addEventListener('click', function() {
+            activeExpandedMap = 'single';
+            document.getElementById('mapModalTitle').textContent = 'Peta Interaktif (Cari Tunggal)';
+            document.getElementById('mapModalLegend').style.display = 'none';
+            
+            // Ambil data terbaru dari panel hasil Cari Tunggal
+            const desa = document.getElementById('resDesaKel').textContent.trim();
+            const kec = document.getElementById('resKecamatan').textContent.trim();
+            const kab = document.getElementById('resKabKota').textContent.trim();
+            const prov = document.getElementById('resProvinsi').textContent.trim();
+            
+            let status = 'Tidak Ada Data';
+            if (kec !== '-' && kec !== '') {
+                if (kec === '(Luar RI)' || kec.includes('Luar RI')) {
+                    status = 'Luar Batas RI';
+                } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
+                    status = 'Wilayah Perairan';
+                } else {
+                    status = 'Sukses';
+                }
+            }
+            
+            document.getElementById('modalInfoDesaKel').textContent = desa;
+            document.getElementById('modalInfoKecamatan').textContent = kec;
+            document.getElementById('modalInfoKabKota').textContent = kab;
+            document.getElementById('modalInfoProvinsi').textContent = prov;
+            document.getElementById('modalInfoStatus').textContent = status;
+            
+            // Berikan warna status
+            const statusEl = document.getElementById('modalInfoStatus');
+            if (status === 'Sukses') {
+                statusEl.style.color = '#10B981'; // green
+            } else if (status === 'Tidak Ada Data') {
+                statusEl.style.color = '#EF4444'; // red
+            } else {
+                statusEl.style.color = '#F59E0B'; // amber/warning
+            }
+            
+            document.getElementById('mapSingleInfoBox').classList.remove('hidden');
+            
+            document.getElementById('mapModal').classList.add('active');
+            document.getElementById('mapModalBody').appendChild(document.getElementById('map'));
+            
+            if (typeof map !== 'undefined' && map) {
+                setTimeout(function() { map.invalidateSize(); }, 100);
+                setTimeout(function() { map.invalidateSize(); }, 400);
+                setTimeout(function() { map.invalidateSize(); }, 800);
+            }
+        });
     }
 
     expandMapBtn.addEventListener('click', function() {
+        activeExpandedMap = 'batch';
+        document.getElementById('mapModalTitle').textContent = 'Peta Sebaran Titik (Cari Massal)';
+        document.getElementById('mapModalLegend').style.display = 'flex';
         document.getElementById('mapModal').classList.add('active');
         document.getElementById('mapModalBody').appendChild(document.getElementById('batchMap'));
-        // Multiple invalidateSize calls: tiles fail to render with a single call
-        // because Leaflet needs the container to be fully laid out in the DOM
+        
         if (typeof batchMap !== 'undefined' && batchMap) {
             setTimeout(function() { batchMap.invalidateSize(); }, 100);
             setTimeout(function() { batchMap.invalidateSize(); }, 400);
@@ -1541,4 +1686,43 @@ document.addEventListener('DOMContentLoaded', () => {
     mapModal.addEventListener('click', function(e) {
         if (e.target === mapModal) closeMapModal();
     });
+
+    // ==========================================
+    // 11. Collapsible Text Toggle (Selengkapnya)
+    // ==========================================
+    document.querySelectorAll('.toggle-text-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const parent = link.parentElement;
+            const shortText = parent.querySelector('.text-short');
+            const fullText = parent.querySelector('.text-full');
+            
+            if (fullText.classList.contains('hidden')) {
+                // Expand
+                fullText.classList.remove('hidden');
+                shortText.classList.add('hidden');
+                link.textContent = 'Sembunyikan';
+            } else {
+                // Collapse
+                fullText.classList.add('hidden');
+                shortText.classList.remove('hidden');
+                link.textContent = 'Selengkapnya';
+            }
+        });
+    });
+
+    // Disclaimer Toggle (Mobile Only)
+    const toggleDisclaimerBtn = document.getElementById('toggleDisclaimerBtn');
+    const disclaimerWrapper = document.querySelector('.disclaimer-content-wrapper');
+    if (toggleDisclaimerBtn && disclaimerWrapper) {
+        toggleDisclaimerBtn.addEventListener('click', () => {
+            if (disclaimerWrapper.classList.contains('expanded')) {
+                disclaimerWrapper.classList.remove('expanded');
+                toggleDisclaimerBtn.textContent = 'Lihat Disclaimer Selengkapnya';
+            } else {
+                disclaimerWrapper.classList.add('expanded');
+                toggleDisclaimerBtn.textContent = 'Sembunyikan Disclaimer';
+            }
+        });
+    }
 });
