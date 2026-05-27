@@ -1457,7 +1457,7 @@ input[type="text"]:focus {
 @media (max-width: 480px) {
     .map-single-info-box {
         top: auto;
-        bottom: 10px;
+        bottom: 38px; /* Dinaikkan sedikit agar tidak tertutupi oleh atribusi Leaflet di mobile */
         left: 10px;
         right: auto;
         width: auto;
