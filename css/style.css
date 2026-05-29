@@ -369,6 +369,11 @@ input[type="text"]:focus {
     visibility: hidden;
 }
 
+/* Kunci dan nonaktifkan scroll up & down pada halaman selama loading aktif */
+body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
+    overflow: hidden;
+}
+
 .intro-content {
     display: flex;
     flex-direction: column;
