@@ -1,32 +1,31 @@
 :root {
-    /* Main Dark Blue Background based on reference */
-    --color-bg-deep: #14305E;
-    /* Glass card background slightly lighter blue */
-    --color-bg-card: rgba(26, 61, 115, 0.3);
+    /* Navy hangat — identitas asli, disempurnakan */
+    --color-bg-deep: #0F1D35;
+    /* Glassmorphism tipis yang sudah teruji */
+    --color-bg-card: rgba(20, 48, 94, 0.35);
     
-    /* Main Yellow/Orange Accent */
+    /* Emas — identitas website ini */
     --color-accent: #EEA201;
     --color-accent-hover: #D18D00;
     
-    /* Secondary Accent (e.g. for success states or subtle links) */
+    /* Warna sekunder */
     --color-accent-2: #21519C;
     
     /* Text Colors */
     --color-text-prime: #FFFFFF;
-    --color-text-muted: #9BB1D1; /* Light bluish-grey for muted text */
+    --color-text-muted: #8BA3C4; /* Biru-abu hangat, lebih terbaca */
+    --color-text-muted-light: #9BB1D1;
     
     /* Borders and Status */
-    --color-border: rgba(255, 255, 255, 0.06);
+    --color-border: rgba(255, 255, 255, 0.07);
     --color-error: #EF4444;
-    --color-warning: #F59E0B;
+    --color-warning: #EEA201;
     
     --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    --radius-lg: 16px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
-    --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 7px;
     --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    --border-glass: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -40,13 +39,10 @@ body {
     color: var(--color-text-prime);
     font-family: var(--font-family);
     min-height: 100vh;
-    /* Create a subtle grid pattern + radial glow similar to the reference background */
+    /* Dua radial gradient hangat — tidak ada grid kosmik */
     background-image: 
-        radial-gradient(circle at 70% 30%, rgba(33, 81, 156, 0.4) 0%, transparent 60%),
-        radial-gradient(circle at 10% 90%, rgba(238, 162, 1, 0.05) 0%, transparent 40%),
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+        radial-gradient(circle at 70% 30%, rgba(33, 81, 156, 0.35) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(238, 162, 1, 0.04) 0%, transparent 45%);
     background-attachment: fixed;
     line-height: 1.6;
 }
@@ -57,38 +53,24 @@ body {
     padding: 2rem;
 }
 
-/* Header */
+/* Header — kembali ke center, jujur dan bersih */
 .app-header {
     text-align: center;
     margin-bottom: 3rem;
 }
 
-.app-header h1 {
-    font-size: 2.8rem;
-    font-weight: 700;
+.app-header .intro-title {
     margin-bottom: 0.5rem;
-    color: var(--color-text-prime);
-    letter-spacing: -0.5px;
-}
-
-.app-header h1 .highlight {
-    background: transparent;
-    color: var(--color-accent);
-    border: 3px solid var(--color-accent);
-    padding: 0.2rem 0.8rem;
-    border-radius: var(--radius-md);
-    display: inline-block;
 }
 
 .highlight-inline {
     background: transparent;
     color: var(--color-accent);
-    border: 2px solid var(--color-accent);
+    border: 1px solid rgba(238, 162, 1, 0.5);
     padding: 0.08rem 0.4rem;
     border-radius: var(--radius-sm);
     font-size: inherit;
-    font-weight: 700;
-    font-family: inherit;
+    font-weight: 600;
     display: inline;
     white-space: nowrap;
 }
@@ -98,11 +80,11 @@ body {
     font-size: 1.1rem;
 }
 
-/* Glassmorphism Panels */
+/* Glassmorphism tipis — identitas visual asli */
 .glass-panel {
     background: var(--color-bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-glass);
@@ -222,7 +204,7 @@ input[type="text"]:focus {
 }
 
 .highlight-sub-item {
-    background: rgba(59, 130, 246, 0.08); /* subtle blue bg */
+    background: rgba(33, 81, 156, 0.1);
     position: relative;
 }
 
@@ -233,7 +215,7 @@ input[type="text"]:focus {
     top: 0;
     bottom: 0;
     width: 4px;
-    background: #3B82F6; /* blue accent */
+    background: var(--color-accent-2);
     border-top-left-radius: var(--radius-sm);
     border-bottom-left-radius: var(--radius-sm);
 }
@@ -264,7 +246,7 @@ input[type="text"]:focus {
 }
 
 .copy-wrapper:hover {
-    background: rgba(238, 162, 1, 0.15);
+    background: rgba(238, 162, 1, 0.12);
 }
 
 .copy-icon {
@@ -315,25 +297,161 @@ input[type="text"]:focus {
 }
 
 .error-icon {
-    font-size: 2.5rem;
+    font-size: 2rem;
     display: block;
     margin-bottom: 1rem;
 }
 
-.spinner {
-    border: 3px solid rgba(255,255,255,0.1);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border-left-color: var(--color-accent);
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
+/* ===== GLOBE SPINNER ===== */
+.globe-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 1.25rem;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.globe-svg {
+    width: 64px;
+    height: 64px;
+    display: block;
+    overflow: visible;
 }
+
+
+
+/* Map pin — melayang atas bawah */
+.globe-pin {
+    animation: pin-float 2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center bottom;
+}
+
+@keyframes pin-float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-6px); }
+}
+
+/* Bayangan pin — mengecil saat pin naik */
+.globe-pin-shadow {
+    animation: pin-shadow-pulse 2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center center;
+}
+
+@keyframes pin-shadow-pulse {
+    0%, 100% { transform: scaleX(1);    opacity: 0.28; }
+    50%       { transform: scaleX(0.45); opacity: 0.10; }
+}
+
+.globe-loading-text {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0;
+}
+
+/* ===== INTRO SPLASH ===== */
+.intro-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #0F1D35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image:
+        radial-gradient(circle at 70% 30%, rgba(33, 81, 156, 0.35) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(238, 162, 1, 0.04) 0%, transparent 45%);
+    pointer-events: auto; /* Memblokir semua klik/tap agar tidak tembus ke belakang */
+}
+
+/* Sembunyikan dan nonaktifkan total interaksi/fokus pada background selama loading aktif */
+.intro-splash:not(.intro-exit):not(.intro-hidden) ~ .app-container {
+    visibility: hidden;
+}
+
+.intro-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.75rem;
+    text-align: center;
+}
+
+/* Globe in intro — larger */
+.intro-globe .globe-svg {
+    width: 112px;
+    height: 112px;
+    animation: intro-globe-appear 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+
+@keyframes intro-globe-appear {
+    from { opacity: 0; transform: scale(0.35); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.intro-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: center;
+    animation: intro-text-appear 0.55s ease 0.7s both;
+}
+
+.intro-title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--color-text-prime);
+}
+
+/* Reuse existing .highlight box style */
+.intro-title .highlight {
+    background: transparent;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    padding: 0.2rem 0.8rem;
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.intro-subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.05rem;
+    margin: 0;
+    animation: intro-text-appear 0.55s ease 1.0s both;
+}
+
+.intro-skip-hint {
+    position: absolute;
+    bottom: 2rem;
+    font-size: 0.8rem;
+    color: rgba(139, 163, 196, 0.5);
+    animation: intro-text-appear 0.4s ease 1.4s both;
+    pointer-events: none;
+}
+
+@keyframes intro-text-appear {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Exit animation */
+.intro-splash.intro-exit {
+    animation: intro-fade-out 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes intro-fade-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-28px); }
+}
+
+.intro-splash.intro-hidden {
+    display: none !important;
+}
+
 
 .badge {
     display: inline-block;
@@ -341,8 +459,8 @@ input[type="text"]:focus {
     border-radius: 9999px;
     font-size: 0.8rem;
     font-weight: 600;
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--color-accent-2);
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
     margin-bottom: 1.5rem;
 }
 
@@ -356,7 +474,8 @@ input[type="text"]:focus {
 .full-address .value {
     text-align: left;
     font-size: 0.95rem;
-    font-weight: 400;
+    font-weight: 500;
+    color: var(--color-text-prime);
     line-height: 1.5;
 }
 
@@ -426,7 +545,7 @@ input[type="text"]:focus {
 
 .history-item:hover {
     background: rgba(238, 162, 1, 0.05);
-    border-color: rgba(238, 162, 1, 0.3);
+    border-color: rgba(238, 162, 1, 0.25);
 }
 
 .hist-left {
@@ -548,8 +667,8 @@ input[type="text"]:focus {
     gap: 0.5rem;
     margin-bottom: 2rem;
     background: var(--color-bg-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     padding: 0.25rem;
@@ -690,13 +809,6 @@ input[type="text"]:focus {
 }
 
 /* Batch Result Table */
-.batch-result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
 .table-container {
     overflow-x: auto;
     overflow-y: auto;
@@ -759,8 +871,13 @@ input[type="text"]:focus {
 }
 
 .batch-table tbody tr:hover td {
-    background: rgba(238, 162, 1, 0.08);
+    background: rgba(238, 162, 1, 0.07);
 }
+
+.status-success { color: #10B981; }
+.status-error { color: #EF4444; }
+.status-empty { color: var(--color-text-muted); font-style: italic; font-weight: normal; }
+.status-warning { color: #EEA201; font-weight: 600; }
 
 .batch-table .empty-row td {
     text-align: center;
@@ -769,16 +886,12 @@ input[type="text"]:focus {
     padding: 3rem 2rem;
 }
 
-.status-success { color: #10B981; }
-.status-error { color: #EF4444; }
-.status-empty { color: var(--color-text-muted); font-style: italic; font-weight: normal; }
-
 .btn-small {
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
 }
 
-/* Tombol perbesar (⛶) — target klik yang lebih besar */
+/* Tombol perbesar (⛶) */
 #expandTableBtn,
 #expandMapBtn {
     min-width: 36px;
@@ -798,11 +911,12 @@ input[type="text"]:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     z-index: 9999;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    backdrop-filter: blur(8px);
 }
 
 .table-modal.active {
@@ -810,7 +924,7 @@ input[type="text"]:focus {
 }
 
 .table-modal-content {
-    background: var(--color-bg-deep);
+    background: #111827;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     width: 95%;
@@ -819,21 +933,23 @@ input[type="text"]:focus {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-shadow: var(--shadow-premium);
 }
 
 .table-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1.25rem;
+    padding: 1.25rem 1.75rem;
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
 .table-modal-header h2 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: var(--color-text-prime);
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     flex-shrink: 0;
 }
 
@@ -847,28 +963,30 @@ input[type="text"]:focus {
 
 .table-modal-actions .btn-secondary {
     background: transparent;
-    color: #e0e0e0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 14px;
-    padding: 6px 12px;
+    color: var(--color-text-muted-light);
+    border: 1px solid var(--color-border);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
     line-height: 1.4;
-    transition: background 0.2s, border-color 0.2s;
+    transition: all 0.2s;
 }
 
 .table-modal-actions .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     color: #fff;
-    border-color: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .table-modal-actions .btn-primary {
     background: var(--color-accent);
     color: #000;
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
     line-height: 1.4;
     border: none;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .table-modal-actions .btn-primary:hover {
@@ -901,15 +1019,15 @@ input[type="text"]:focus {
 
 /* Dark scrollbar untuk modal tabel */
 .table-modal-body::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 .table-modal-body::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.2);
 }
 .table-modal-body::-webkit-scrollbar-thumb {
-    background: rgba(238, 162, 1, 0.35);
-    border-radius: 4px;
+    background: rgba(99, 102, 241, 0.25);
+    border-radius: 3px;
 }
 .table-modal-body::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
@@ -925,7 +1043,8 @@ input[type="text"]:focus {
 }
 
 .table-modal-body .batch-table th {
-    background-color: #0f264a;
+    background-color: #14305E;
+    color: var(--color-accent);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -933,17 +1052,15 @@ input[type="text"]:focus {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     text-align: left;
-    border-bottom: 2px solid var(--color-accent);
+    border-bottom: 1px solid var(--color-accent);
 }
 
 .table-modal-body .batch-table th,
 .table-modal-body .batch-table td {
-    padding: 0.6rem 0.9rem;
+    padding: 0.85rem 1rem;
     font-size: 0.85rem;
     white-space: nowrap;
 }
-
-/* (Duplicate rules removed — consolidated above) */
 
 .batch-map-header {
     margin-bottom: 0.75rem;
@@ -964,14 +1081,6 @@ input[type="text"]:focus {
 
 .batch-map-header .helper-text {
     margin-top: 0;
-}
-
-.batch-map-header .helper-text {
-    margin-top: 0;
-}
-
-.map-expand-btn:hover {
-    background: #fff;
 }
 
 /* Batch Layout Grid (2 kolom: input+tabel | peta) */
@@ -1001,15 +1110,6 @@ input[type="text"]:focus {
     flex: 1;
 }
 
-.batch-map-header {
-    margin-bottom: 1rem;
-}
-
-.batch-map-header h2 {
-    color: var(--color-text-prime);
-    padding-bottom: 0.25rem;
-}
-
 .batch-map-container {
     width: 100%;
     flex: 1;
@@ -1031,19 +1131,22 @@ input[type="text"]:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+    background: rgba(15, 29, 53, 0.85);
+    border: 1px solid rgba(238, 162, 1, 0.3);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 1rem;
     line-height: 1;
     padding: 0;
-    color: #333;
-    transition: background 0.2s;
+    color: var(--color-accent);
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .map-expand-btn:hover {
-    background: #fff;
+    background: var(--color-accent);
+    color: #000;
+    border-color: var(--color-accent);
 }
 
 /* Modal perbesar peta */
@@ -1054,11 +1157,12 @@ input[type="text"]:focus {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     z-index: 9999;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    backdrop-filter: blur(8px);
 }
 
 .map-modal.active {
@@ -1066,8 +1170,8 @@ input[type="text"]:focus {
 }
 
 .map-modal-content {
-    background: var(--color-bg-deep);
-    border: 1px solid var(--color-border);
+    background: rgba(15, 29, 53, 0.98);
+    border: 1px solid rgba(238, 162, 1, 0.15);
     border-radius: var(--radius-lg);
     width: 95%;
     max-width: 1400px;
@@ -1075,44 +1179,31 @@ input[type="text"]:focus {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-shadow: var(--shadow-glass);
 }
 
 .map-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 1.25rem;
+    padding: 1.25rem 1.75rem;
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
 .map-modal-header h2 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: var(--color-text-prime);
     font-weight: 600;
-}
-
-.modal-close-btn {
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    font-size: 1.6rem;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 0.25rem;
-    transition: color 0.2s;
-}
-
-.modal-close-btn:hover {
-    color: #fff;
 }
 
 .map-modal-legend {
     display: flex;
     gap: 1.25rem;
-    padding: 0.4rem 1.25rem;
+    padding: 0.75rem 1.75rem;
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
+    background: rgba(14, 28, 52, 0.8);
 }
 
 .map-modal-body {
@@ -1141,6 +1232,7 @@ input[type="text"]:focus {
     align-items: center;
     gap: 0.4rem;
     font-size: 0.8rem;
+    font-weight: 600;
     color: var(--color-text-muted);
 }
 
@@ -1199,11 +1291,11 @@ input[type="text"]:focus {
 
 /* Mobile (max 480px) */
 @media (max-width: 480px) {
-    .app-header h1 {
+    .intro-title {
         font-size: 1.8rem;
     }
 
-    .app-header h1 .highlight {
+    .intro-title .highlight {
         padding: 0.15rem 0.5rem;
     }
 
@@ -1265,25 +1357,21 @@ input[type="text"]:focus {
     }
 }
 
-/* Premium Glassmorphic Announcement Banner */
+/* Announcement Banner */
 .announcement-banner {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 2rem;
     border-radius: var(--radius-md);
-    background: rgba(238, 162, 1, 0.08); /* subtle yellow accent bg tint */
-    border: 1px solid rgba(238, 162, 1, 0.2); /* elegant border highlighting the brand yellow */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: var(--shadow-glass);
-    transition: all 0.3s ease;
+    background: rgba(238, 162, 1, 0.06);
+    border: 1px solid rgba(238, 162, 1, 0.2);
+    transition: background 0.3s ease;
 }
 
-.announcement-banner:hover {
-    background: rgba(238, 162, 1, 0.12);
-    border-color: rgba(238, 162, 1, 0.35);
+.app-footer .announcement-banner {
+    margin-bottom: 0;
 }
 
 .announcement-icon {
@@ -1291,7 +1379,6 @@ input[type="text"]:focus {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    animation: pulse 2s infinite ease-in-out;
 }
 
 .announcement-content {
@@ -1302,13 +1389,7 @@ input[type="text"]:focus {
 
 .announcement-content strong {
     color: var(--color-accent);
-    font-weight: 600;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    font-weight: 700;
 }
 
 /* Collapsible 'Selengkapnya' Toggle Links */
@@ -1335,7 +1416,7 @@ input[type="text"]:focus {
 
 /* Disclaimer Collapsible on Mobile */
 .toggle-disclaimer-btn {
-    display: none; /* Hidden by default on desktop */
+    display: none;
 }
 
 @media (max-width: 768px) {
@@ -1354,8 +1435,8 @@ input[type="text"]:focus {
     .toggle-disclaimer-btn {
         display: block;
         width: 100%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         color: var(--color-text-prime);
         padding: 0.75rem 1rem;
         border-radius: var(--radius-sm);
@@ -1367,20 +1448,20 @@ input[type="text"]:focus {
     }
     
     .toggle-disclaimer-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.15);
     }
 }
 
-/* Premium Map Expand Button */
+/* Map Expand Button */
 .btn-map-expand {
     position: absolute;
-    bottom: 38px; /* Tepat di atas tulisan atribusi Leaflet, dinaikkan agar tidak tertutup */
-    right: 8px;   /* Merapat ke pojok kanan sejajar control Leaflet */
-    z-index: 1000; /* overlay on Leaflet map */
-    background: rgba(15, 38, 74, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: var(--color-text-prime);
+    bottom: 38px;
+    right: 8px;
+    z-index: 1000;
+    background: rgba(15, 29, 53, 0.9);
+    border: 1px solid rgba(238, 162, 1, 0.3);
+    color: var(--color-accent);
     width: 34px;
     height: 34px;
     border-radius: var(--radius-sm);
@@ -1389,8 +1470,6 @@ input[type="text"]:focus {
     justify-content: center;
     font-size: 1rem;
     cursor: pointer;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     transition: all 0.2s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
@@ -1406,26 +1485,24 @@ input[type="text"]:focus {
     transform: scale(0.95);
 }
 
-/* Premium Glassmorphic Info Box for Single Search Map Modal */
+/* Dark Info Box for Single Search Map Modal */
 .map-single-info-box {
     position: absolute;
     bottom: 20px;
     left: 20px;
     z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
-    color: #1e293b; /* elegant slate-800 text */
+    background: rgba(15, 29, 53, 0.94);
+    border: 1px solid rgba(238, 162, 1, 0.2);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-glass);
+    color: var(--color-text-prime);
     font-family: var(--font-family);
     font-size: 0.9rem;
     min-width: 280px;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
     transition: all 0.3s ease;
 }
 
@@ -1434,8 +1511,8 @@ input[type="text"]:focus {
     justify-content: space-between;
     align-items: center;
     gap: 1.5rem;
-    border-bottom: 1px dashed rgba(30, 41, 59, 0.15);
-    padding-bottom: 0.35rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    padding-bottom: 0.4rem;
 }
 
 .map-single-info-box .info-row:last-child {
@@ -1444,21 +1521,21 @@ input[type="text"]:focus {
 }
 
 .map-single-info-box strong {
-    font-weight: 600;
-    color: #0f172a; /* slate-900 */
+    font-weight: 500;
+    color: var(--color-text-muted);
 }
 
 .map-single-info-box span {
     font-weight: 600;
-    color: #334155; /* slate-700 */
+    color: var(--color-text-prime);
     text-align: right;
 }
 
-/* Premium Custom Autozoom Control styling matching the app theme */
+/* Custom Autozoom Control matching the app theme */
 .leaflet-custom-autozoom a {
-    background-color: rgba(15, 38, 74, 0.9) !important;
+    background-color: rgba(15, 29, 53, 0.9) !important;
     color: var(--color-accent) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(238, 162, 1, 0.3) !important;
     transition: all 0.2s ease !important;
     display: flex !important;
     align-items: center;
@@ -1467,7 +1544,7 @@ input[type="text"]:focus {
 
 .leaflet-custom-autozoom a:hover {
     background-color: var(--color-accent) !important;
-    color: #000000 !important;
+    color: #000 !important;
     border-color: var(--color-accent) !important;
     transform: scale(1.05);
 }
@@ -1475,7 +1552,7 @@ input[type="text"]:focus {
 @media (max-width: 480px) {
     .map-single-info-box {
         top: auto;
-        bottom: 38px; /* Dinaikkan sedikit agar tidak tertutupi oleh atribusi Leaflet di mobile */
+        bottom: 38px;
         left: 10px;
         right: auto;
         width: auto;
@@ -1487,7 +1564,7 @@ input[type="text"]:focus {
     }
 
     .btn-map-expand {
-        bottom: 55px; /* Dinaikkan agar tidak tertutup/menutupi atribusi di mobile */
+        bottom: 55px;
     }
 }
 

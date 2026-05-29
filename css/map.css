@@ -21,9 +21,9 @@
     text-align: center;
 }
 
-/* Leaflet dark background before tiles load */
+/* Leaflet dark background before tiles load — navy hangat */
 .leaflet-container {
-    background: #1a2035;
+    background: #0F1D35;
     font-family: inherit;
 }
 
@@ -33,19 +33,19 @@
     }
 }
 
-/* Boundary tooltip styling */
+/* Boundary tooltip — navy transparan dengan aksen emas */
 .boundary-tooltip {
-    background: rgba(20, 48, 94, 0.92);
-    color: #fff;
-    border: 1px solid rgba(238, 162, 1, 0.5);
+    background: rgba(15, 29, 53, 0.92);
+    color: #FFFFFF;
+    border: 1px solid rgba(238, 162, 1, 0.35);
     border-radius: 6px;
-    padding: 4px 10px;
+    padding: 6px 12px;
     font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
 .boundary-tooltip::before {
-    border-top-color: rgba(20, 48, 94, 0.92);
+    border-top-color: rgba(15, 29, 53, 0.92);
 }

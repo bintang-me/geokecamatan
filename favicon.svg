@@ -1,4 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
-  <rect x="8" y="8" width="84" height="84" rx="16" ry="16" fill="none" stroke="#EEA201" stroke-width="6"/>
-  <text x="50" y="68" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="52" font-weight="700" fill="#EEA201" text-anchor="middle">CK</text>
+  <!-- Background navy rounded rect -->
+  <rect x="0" y="0" width="100" height="100" rx="18" ry="18" fill="#0F1D35"/>
+
+  <!-- Globe glow fill -->
+  <circle cx="50" cy="50" r="42" fill="rgba(238,162,1,0.06)"/>
+
+  <!-- Clip path for globe interior -->
+  <defs>
+    <clipPath id="fav-clip">
+      <circle cx="50" cy="50" r="42"/>
+    </clipPath>
+  </defs>
+
+  <!-- Latitude lines (static, clipped) -->
+  <g clip-path="url(#fav-clip)" stroke="#EEA201" stroke-width="1.2" opacity="0.35" fill="none">
+    <ellipse cx="50" cy="32" rx="40" ry="9"/>
+    <ellipse cx="50" cy="50" rx="42" ry="12"/>
+    <ellipse cx="50" cy="68" rx="40" ry="9"/>
+  </g>
+
+  <!-- Two meridian ellipses (no crossing lines) -->
+  <g clip-path="url(#fav-clip)" stroke="#EEA201" stroke-width="1.2" opacity="0.4" fill="none">
+    <ellipse cx="50" cy="50" rx="42" ry="13" transform="rotate(90, 50, 50)"/>
+    <ellipse cx="50" cy="50" rx="42" ry="13" transform="rotate(45, 50, 50)"/>
+  </g>
+
+  <!-- Globe outline -->
+  <circle cx="50" cy="50" r="42" stroke="#EEA201" stroke-width="2.2" fill="none"/>
+
+  <!-- Map pin body (teardrop) -->
+  <path d="M50,64 C46,56 39,51 39,44 C39,36 43.5,31 50,31 C56.5,31 61,36 61,44 C61,51 54,56 50,64 Z" fill="#EEA201"/>
+  <!-- Pin hole -->
+  <circle cx="50" cy="42" r="4.5" fill="#0F1D35"/>
 </svg>
