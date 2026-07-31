@@ -1259,8 +1259,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, EXIT_MS);
         }
 
-        // Auto-dismiss — dinonaktifkan sementara untuk menutup akses (Infinite Loading)
-        // setTimeout(dismissSplash, DISPLAY_MS);
+        // Auto-dismiss — selalu tampil, tidak ada skip
+        setTimeout(dismissSplash, DISPLAY_MS);
     })();
 
     const searchBtn = document.getElementById('searchBtn');
