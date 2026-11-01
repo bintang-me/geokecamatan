@@ -54,6 +54,64 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastSingleCoords = null; // titik terakhir Cari Tunggal
     let lastBatchHash = null;    // kode daftar Cari Massal terakhir
 
+    // Kondisi terakhir per tab peramban (sessionStorage): hilang saat tab ditutup,
+    // tidak pernah dikirim ke mana pun. Dipakai agar kembali dari halaman Tentang
+    // langsung ke titik/daftar terakhir tanpa mencari ulang.
+    const SESSION = {
+        get(key) { try { return JSON.parse(sessionStorage.getItem(key)); } catch (e) { return null; } },
+        set(key, val) { try { sessionStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* penuh/diblokir */ } },
+        del(key) { try { sessionStorage.removeItem(key); } catch (e) { /* abaikan */ } }
+    };
+    const SS_SINGLE = 'ck_last_single';   // { lat, lon, input, result?, error? }
+    const SS_BATCH = 'ck_last_batch';     // { hash, input, data? }
+    const SS_DRAFT_SINGLE = 'ck_draft_single';
+    const SS_DRAFT_BATCH = 'ck_draft_batch';
+
+    // Tampilkan kembali hasil Cari Tunggal tersimpan tanpa memanggil API
+    function restoreSingle(st) {
+        const { lat, lon } = st;
+        ++singleRequestSeq;
+        lastSingleCoords = { lat, lon };
+        coordInput.value = st.input || `${lat}, ${lon}`;
+        setPath(singlePath(lat, lon));
+        updateMapMarker(lat, lon);
+        clearBoundaryLayers();
+        singleSearchCoords = { lat, lon };
+        if (st.result) {
+            showResult(st.result, lat, lon);
+            lastResult = { lat, lon, admin: st.result.administrative };
+            fetchAndDrawBoundaries(st.result.administrative, lat, lon);
+        } else if (st.error) {
+            showError(st.error);
+        }
+    }
+
+    // Tampilkan kembali tabel & pin Cari Massal tersimpan tanpa memproses ulang
+    function restoreBatch(st) {
+        lastBatchHash = st.hash || null;
+        batchInput.value = st.input || '';
+        updateGutter();
+        updateProcessLabel();
+        setPath(massalPath(lastBatchHash));
+        if (!Array.isArray(st.data) || st.data.length === 0) return false;
+        initBatchMap();
+        clearBatchMarkers();
+        batchTableBody.innerHTML = '';
+        batchData = st.data.slice();
+        batchFilter = 'all';
+        batchData.forEach(item => {
+            renderBatchRow(item);
+            if (typeof item.lat === 'number' && typeof item.lon === 'number') addBatchMarker(item);
+        });
+        batchProgressContainer.classList.remove('hidden');
+        const label = document.getElementById('batchProgressLabel');
+        if (label) label.textContent = 'Selesai';
+        batchProgressBar.style.width = '100%';
+        batchProgressText.textContent = `${batchData.length} / ${batchData.length}`;
+        setTimeout(() => { batchMap.invalidateSize(); fitBatchMapBounds(); }, 150);
+        return true;
+    }
+
     function activateTab(name) {
         document.querySelector(`.tab-btn[data-tab="tab-${name}"]`)?.click();
     }
@@ -64,28 +122,51 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (r.tab === 'massal') {
                 activateTab('massal');
-                if (r.legacy) setPath(ROUTES.massal);
-                if (r.data && r.data !== lastBatchHash) {
-                    try {
-                        const text = await decodeBatch(r.data);
-                        lastBatchHash = r.data;
-                        batchInput.value = text;
-                        updateGutter();
-                        updateProcessLabel();
-                        const n = countBatchLines();
-                        if (n > 0 && n <= BATCH_AUTORUN_MAX) processBatchBtn.click();
-                    } catch (e) {
-                        console.warn('Tautan Cari Massal tidak valid', e);
+                const saved = SESSION.get(SS_BATCH);
+                if (r.data) {
+                    if (r.data !== lastBatchHash) {
+                        if (saved && saved.hash === r.data && restoreBatch(saved)) return;
+                        try {
+                            const text = await decodeBatch(r.data);
+                            lastBatchHash = r.data;
+                            batchInput.value = text;
+                            updateGutter();
+                            updateProcessLabel();
+                            const n = countBatchLines();
+                            if (n > 0 && n <= BATCH_AUTORUN_MAX) processBatchBtn.click();
+                        } catch (e) {
+                            console.warn('Tautan Cari Massal tidak valid', e);
+                        }
+                    }
+                } else if (batchData.length === 0) {
+                    // /massal tanpa data: kembalikan daftar terakhir di tab ini (bila ada)
+                    if (saved) restoreBatch(saved);
+                    else {
+                        const draft = SESSION.get(SS_DRAFT_BATCH);
+                        if (draft && !batchInput.value) { batchInput.value = draft; updateGutter(); updateProcessLabel(); }
+                        setPath(ROUTES.massal);
                     }
                 }
             } else {
                 activateTab('tunggal');
+                const saved = SESSION.get(SS_SINGLE);
                 if (r.q) {
                     const parsed = parseCoordinates(r.q);
                     const same = parsed.valid && lastSingleCoords && parsed.lat === lastSingleCoords.lat && parsed.lon === lastSingleCoords.lon;
                     if (!same) {
-                        coordInput.value = r.q;
-                        processInput(r.q);
+                        if (parsed.valid && saved && saved.lat === parsed.lat && saved.lon === parsed.lon && (saved.result || saved.error)) {
+                            restoreSingle(saved);
+                        } else {
+                            coordInput.value = r.q;
+                            processInput(r.q);
+                        }
+                    }
+                } else if (!lastSingleCoords) {
+                    // / atau /tunggal tanpa koordinat: kembalikan titik terakhir di tab ini (bila ada)
+                    if (saved && (saved.result || saved.error)) restoreSingle(saved);
+                    else {
+                        const draft = SESSION.get(SS_DRAFT_SINGLE);
+                        if (draft && !coordInput.value) coordInput.value = draft;
                     }
                 }
             }
@@ -251,9 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
         clearBoundaryLayers();
         singleSearchCoords = { lat, lon };
 
+        const inputText = coordInput.value;
+        const remember = (extra) => SESSION.set(SS_SINGLE, { lat, lon, input: inputText, ...extra });
+
         // Koordinat di luar RI: peringatan langsung, tanpa API call
         if (lat < INDONESIA_BOUNDS.latMin || lat > INDONESIA_BOUNDS.latMax || lon < INDONESIA_BOUNDS.lonMin || lon > INDONESIA_BOUNDS.lonMax) {
             showError(OUTSIDE_RI_MSG);
+            remember({ error: OUTSIDE_RI_MSG });
             return;
         }
 
@@ -266,11 +351,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Konfirmasi dari API: wilayah ini bukan Republik Indonesia
         if (result.outsideIndonesia) {
             showError(OUTSIDE_RI_MSG);
+            remember({ error: OUTSIDE_RI_MSG });
             return;
         }
         if (result.success) {
             showResult(result, lat, lon);
             lastResult = { lat, lon, admin: result.administrative };
+            remember({ result: { administrative: result.administrative, source: result.source } });
             saveToHistory(lat, lon, result.administrative);
             // Fetch dan gambar batas administratif di background (non-blocking)
             fetchAndDrawBoundaries(result.administrative, lat, lon, (big) => {
@@ -284,9 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 showResult(result, lat, lon);
                 lastResult = { lat, lon, admin };
                 saveToHistory(lat, lon, admin);
+                remember({ result: { administrative: admin, source: 'BIG' } });
             });
         } else {
             showError(result.error);
+            // Gangguan jaringan tidak disimpan, agar saat kembali dicoba ulang
+            if (!result.networkError) remember({ error: result.error });
         }
     }
 
@@ -372,7 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
         batchGutter.textContent = out;
         batchGutter.scrollTop = batchInput.scrollTop;
     }
-    batchInput.addEventListener('input', () => { updateGutter(); updateProcessLabel(); });
+    batchInput.addEventListener('input', () => {
+        updateGutter();
+        updateProcessLabel();
+        SESSION.set(SS_DRAFT_BATCH, batchInput.value);
+    });
+    coordInput.addEventListener('input', () => SESSION.set(SS_DRAFT_SINGLE, coordInput.value));
     batchInput.addEventListener('scroll', () => { if (batchGutter) batchGutter.scrollTop = batchInput.scrollTop; });
 
     // Unggah / seret file CSV/TXT: ambil pasangan lintang-bujur dari tiap baris
@@ -421,6 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
         batchRunId++; // batalkan proses yang sedang berjalan
         lastBatchHash = null;
         setPath(ROUTES.massal);
+        SESSION.del(SS_BATCH);
+        SESSION.del(SS_DRAFT_BATCH);
         resetBatchButton();
         batchInput.value = '';
         updateGutter();
@@ -550,6 +647,11 @@ document.addEventListener('DOMContentLoaded', () => {
         batchTableBody.innerHTML = '';
         batchData.forEach(item => renderBatchRow(item));
         fitBatchMapBounds();
+
+        // Simpan hasil di tab ini agar bisa dikembalikan tanpa diproses ulang
+        const snapshot = { hash: lastBatchHash, input: batchInput.value, data: batchData };
+        if (JSON.stringify(snapshot).length > 2000000) delete snapshot.data;
+        SESSION.set(SS_BATCH, snapshot);
     });
 
     async function processTask(task) {
