@@ -99,6 +99,11 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .wordmark-lg { font-size: 30px; letter-spacing: -0.2px; }
 .wordmark-lg .wm-strong { border-bottom-width: 3px; }
 
+/* Nama "Cari Kecamatan" di dalam teks: gaya logo, ukuran mengikuti teks sekitarnya */
+.wordmark-inline { white-space: nowrap; color: var(--ink); }
+.wordmark-inline .wm-light { font-weight: 500; }
+.wordmark-inline .wm-strong { font-weight: 700; border-bottom: 0.12em solid var(--gold); }
+
 /* ---------- Header ---------- */
 .site-header {
     background: var(--surface);
