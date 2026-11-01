@@ -278,15 +278,22 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     background: var(--surface);
     color: var(--ink);
     cursor: pointer;
+    position: relative;
+    touch-action: manipulation;          /* ketukan cepat tidak memicu zoom */
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--ease-out);
 }
-.theme-toggle:hover { background: var(--canvas); border-color: var(--line-strong); }
-.theme-toggle:active { transform: scale(0.94); }
+/* Area sentuh minimal 44 px tanpa memperbesar tampilan tombol */
+.theme-toggle::before { content: ''; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+@media (hover: hover) {
+    .theme-toggle:hover { background: var(--canvas); border-color: var(--line-strong); }
+}
+.theme-toggle:active { transform: scale(0.92); background: var(--canvas); }
 .theme-toggle .ic-sun { display: none; }
 :root[data-theme="dark"] .theme-toggle .ic-sun { display: block; color: var(--gold); }
 :root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
 /* Ikon berganti dengan putaran kecil */
-.theme-toggle svg { animation: themeIconIn 0.35s var(--ease-out) both; }
+.theme-toggle.is-switching svg { animation: themeIconIn 0.35s var(--ease-out) both; }
 @keyframes themeIconIn { from { opacity: 0; transform: rotate(-60deg) scale(0.7); } to { opacity: 1; transform: none; } }
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.3s; }
 

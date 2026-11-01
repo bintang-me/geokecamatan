@@ -45,6 +45,10 @@
         const btn = e.target.closest('.theme-toggle');
         if (!btn) return;
         const next = current() === 'dark' ? 'light' : 'dark';
+        // Ikon berputar hanya saat tema benar-benar diganti
+        document.querySelectorAll('.theme-toggle').forEach(b => {
+            b.classList.remove('is-switching'); void b.offsetWidth; b.classList.add('is-switching');
+        });
         try { localStorage.setItem(KEY, next); } catch (err) { /* abaikan */ }
         apply(next, true);
     });
