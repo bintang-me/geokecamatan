@@ -10,12 +10,9 @@ import { Composition } from 'remotion';
 import { Ad, AD_FRAMES } from './Ad';
 
 export const Root: React.FC = () => (
-    <Composition
-        id="CariKecamatanAd"
-        component={Ad}
-        durationInFrames={AD_FRAMES}
-        fps={30}
-        width={1920}
-        height={1080}
-    />
+    <>
+        <Composition id="CariKecamatanAd" component={Ad} durationInFrames={AD_FRAMES} fps={30} width={1920} height={1080} defaultProps={{ vertical: false }} />
+        {/* 9:16 untuk YouTube Shorts, Instagram Reels, TikTok */}
+        <Composition id="CariKecamatanAdVertical" component={Ad} durationInFrames={AD_FRAMES} fps={30} width={1080} height={1920} defaultProps={{ vertical: true }} />
+    </>
 );

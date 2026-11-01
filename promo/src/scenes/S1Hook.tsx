@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C, FONT, MONO } from '../brand';
 import { clamp, pop, rise } from '../anim';
+import { useVertical } from '../layout';
 
 export const HOOK_TEXT = '-6,1754; 106,8272';
 export const HOOK_TYPE_START = 14;
@@ -15,16 +16,19 @@ export const S1Hook: React.FC = () => {
     const caret = Math.floor(f / 8) % 2 === 0 ? 1 : 0;
     const q = pop(f, fps, 62, 180);
     const box = interpolate(f, [0, 12], [0, 1], clamp);
+    const V = useVertical();
     return (
         <AbsoluteFill style={{ fontFamily: FONT, alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', top: 210, width: '100%', textAlign: 'center' }}>
-                <div style={{ fontSize: 30, fontWeight: 500, color: C.dMuted, letterSpacing: 0.3, marginBottom: 26, ...rise(f, 0, 10, 12) }}>Data survei lapangan · Titik infrastruktur · Lokasi aset · Titik pelanggan</div>
+            <div style={{ position: 'absolute', top: V ? 520 : 210, width: '100%', textAlign: 'center' }}>
+                <div style={{ fontSize: 30, fontWeight: 500, color: C.dMuted, letterSpacing: 0.3, lineHeight: 1.5, marginBottom: V ? 34 : 26, ...rise(f, 0, 10, 12) }}>
+                    {V ? <>Data survei lapangan · Titik infrastruktur<br />Lokasi aset · Titik pelanggan</> : 'Data survei lapangan · Titik infrastruktur · Lokasi aset · Titik pelanggan'}
+                </div>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, ...rise(f, 4) }}>Punya titik koordinat,</div>
-                <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, marginTop: 6, ...rise(f, 16) }}>tapi harus tahu kecamatannya?</div>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, marginTop: 6, lineHeight: 1.15, ...rise(f, 16) }}>{V ? <>tapi harus tahu<br />kecamatannya?</> : 'tapi harus tahu kecamatannya?'}</div>
             </div>
             <div style={{
-                position: 'absolute', top: 560, display: 'flex', alignItems: 'center', gap: 22,
-                width: 980, height: 120, padding: '0 40px', borderRadius: 26,
+                position: 'absolute', top: V ? 1060 : 560, display: 'flex', alignItems: 'center', gap: 22,
+                width: V ? 940 : 980, height: 120, padding: '0 40px', borderRadius: 26,
                 background: C.dSurface, border: `2px solid ${C.dLine}`,
                 boxShadow: '0 30px 80px rgba(0,0,0,.45)', opacity: box, transform: `scale(${0.96 + 0.04 * box})`,
             }}>

@@ -11,6 +11,7 @@ import { S6Batch, S6_CUES } from './scenes/S6Batch';
 import { S7Trust, S7_CUES } from './scenes/S7Trust';
 import { S8Cta, S8_CUES } from './scenes/S8Cta';
 import { LANDMARKS } from './data/indonesia';
+import { VerticalCtx } from './layout';
 
 export const AD_FRAMES = 1050; // 35 dtk
 const S = SCENES;
@@ -47,7 +48,7 @@ const Sfx: React.FC<{ at: number; name: string; volume?: number }> = ({ at, name
     </Sequence>
 );
 
-export const Ad: React.FC = () => {
+export const Ad: React.FC<{ vertical?: boolean }> = ({ vertical = false }) => {
     // Tunggu huruf termuat agar setiap frame memakai Plus Jakarta Sans & JetBrains Mono
     const [handle] = useState(() => delayRender('Memuat huruf'));
     useEffect(() => {
@@ -57,6 +58,7 @@ export const Ad: React.FC = () => {
 
     const keys = Array.from({ length: HOOK_TEXT.length }, (_, i) => HOOK_TYPE_START + i * HOOK_TYPE_STEP);
     return (
+        <VerticalCtx.Provider value={vertical}>
         <AbsoluteFill style={{ wordSpacing: '0.06em' }}>
             <Background />
             <Scene from={S.hook.from} dur={S.hook.dur + 6} fadeIn={0}><S1Hook /></Scene>
@@ -89,5 +91,6 @@ export const Ad: React.FC = () => {
             <Sfx at={S.trust.from + S7_CUES.toggle} name="click" volume={0.65} />
             <Sfx at={S.cta.from + S8_CUES.press} name="click" volume={0.65} />
         </AbsoluteFill>
+        </VerticalCtx.Provider>
     );
 };
