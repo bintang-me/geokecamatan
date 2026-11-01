@@ -217,7 +217,7 @@ async function reverseGeocode(lat, lon) {
                 const result = {
                     success: false,
                     isWaterBody: true,
-                    error: `Titik ini berada di perairan (${waterName}), sehingga tidak memiliki data wilayah administrasi.`,
+                    error: `Titik ini berada di perairan (${waterName}) sehingga tidak termasuk wilayah administrasi kecamatan mana pun.`,
                     outsideIndonesia: false
                 };
                 if (bigData) setToCache(lat, lon, result);

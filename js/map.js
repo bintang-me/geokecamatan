@@ -489,7 +489,7 @@ const STATUS_LABELS = {
     'Wilayah Perairan': 'Perairan',
     'Luar Batas RI': 'Luar Indonesia',
     'Gagal': 'Tidak ditemukan',
-    'Error API': 'Layanan gagal',
+    'Error API': 'Gagal terhubung',
     'Error': 'Tidak valid',
     'Kosong': 'Kosong'
 };
