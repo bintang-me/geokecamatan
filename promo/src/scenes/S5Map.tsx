@@ -36,11 +36,10 @@ export const S5Map: React.FC = () => {
                 <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span style={{ width: 40, borderTop: `6px dashed ${C.violet}` }} />Kabupaten/Kota</span>
             </div>
             {/* label sumber */}
-            <div style={{ position: 'absolute', right: 64, top: 56, fontSize: 28, fontWeight: 600, color: C.successText, background: C.successBg, padding: '14px 26px', borderRadius: 999, boxShadow: '0 4px 14px rgba(15,29,53,.12)', transform: `scale(${badge})` }}>● Sumber resmi · BIG</div>
+            <div style={{ position: 'absolute', left: 620, top: 56, fontSize: 28, fontWeight: 600, color: C.successText, background: C.successBg, padding: '14px 26px', borderRadius: 999, boxShadow: '0 4px 14px rgba(15,29,53,.12)', transform: `scale(${badge})` }}>● Sumber resmi · BIG</div>
             {/* teks */}
-            <div style={{ position: 'absolute', right: 64, bottom: 64, padding: '36px 46px', borderRadius: 28, background: 'rgba(255,255,255,.96)', boxShadow: '0 20px 50px rgba(15,29,53,.18)', maxWidth: 1000, ...rise(f, 14, 14, 30) }}>
-                <div style={{ fontSize: 58, fontWeight: 700, color: C.ink, letterSpacing: -1, lineHeight: 1.15 }}>Dicocokkan langsung dengan<br />batas wilayah resmi BIG.</div>
-                <div style={{ fontSize: 28, color: C.muted, marginTop: 14, ...rise(f, 28, 12, 10) }}>Badan Informasi Geospasial, penyelenggara informasi geospasial dasar Indonesia.</div>
+            <div style={{ position: 'absolute', right: 64, bottom: 64, padding: '36px 46px', borderRadius: 28, background: 'rgba(255,255,255,.96)', boxShadow: '0 20px 50px rgba(15,29,53,.18)', maxWidth: 1200, ...rise(f, 14, 14, 30) }}>
+                <div style={{ fontSize: 52, fontWeight: 700, color: C.ink, letterSpacing: -0.8, lineHeight: 1.18 }}>Menggunakan data batas wilayah dari<br />Badan Informasi Geospasial (BIG).</div>
             </div>
         </AbsoluteFill>
     );

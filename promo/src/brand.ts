@@ -28,6 +28,9 @@ export const C = {
 export const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
 export const MONO = "'JetBrains Mono', ui-monospace, monospace";
 
+// Waktu pencarian yang ditampilkan di adegan 4. ANGKA SEMENTARA: ukur ulang di situs sungguhan sebelum publikasi.
+export const SEARCH_SECONDS = 0.8;
+
 // Pergantian adegan (frame, 30 fps) — tepat di ketukan musik 120 BPM (15 frame per ketukan)
 export const SCENES = {
     hook: { from: 0, dur: 90 },
@@ -37,5 +40,5 @@ export const SCENES = {
     map: { from: 450, dur: 150 },
     batch: { from: 600, dur: 150 },
     trust: { from: 750, dur: 75 },
-    cta: { from: 825, dur: 75 },
+    cta: { from: 825, dur: 225 }, // 7,5 dtk: layar akhir YouTube (min. 5 dtk) + kode QR
 } as const;

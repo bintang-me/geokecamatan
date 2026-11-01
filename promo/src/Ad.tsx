@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AbsoluteFill, Audio, continueRender, delayRender, interpolate, interpolateColors, Sequence, staticFile, useCurrentFrame } from 'remotion';
-import { C, SCENES } from './brand';
+import { C, FONT, SCENES } from './brand';
 import { clamp } from './anim';
 import { S1Hook, HOOK_TEXT, HOOK_TYPE_START, HOOK_TYPE_STEP } from './scenes/S1Hook';
 import { S2Problem } from './scenes/S2Problem';
@@ -10,9 +10,10 @@ import { S5Map, S5_CUES } from './scenes/S5Map';
 import { S6Batch, S6_CUES } from './scenes/S6Batch';
 import { S7Trust, S7_CUES } from './scenes/S7Trust';
 import { S8Cta, S8_CUES } from './scenes/S8Cta';
+import { Logo, Wordmark } from './components/Logo';
 import { LANDMARKS } from './data/indonesia';
 
-export const AD_FRAMES = 900;
+export const AD_FRAMES = 1050; // 35 dtk
 const S = SCENES;
 
 // Latar: navy gelap (masalah) → terang (solusi, dibuka oleh logo) → gelap (mode gelap & ajakan)
@@ -26,6 +27,26 @@ const Background: React.FC = () => {
         <AbsoluteFill style={{ background: bg }}>
             <AbsoluteFill style={{ opacity: glow, background: 'radial-gradient(1200px 700px at 50% 45%, rgba(238,162,1,.10), rgba(11,18,32,0) 70%)' }} />
         </AbsoluteFill>
+    );
+};
+
+// Merek sejak detik pertama: logo kecil di kanan atas (disembunyikan saat logo besar tampil)
+const Watermark: React.FC = () => {
+    const f = useCurrentFrame();
+    const darkEnd = S.trust.from + S7_CUES.toggle;
+    const light = f < S.single.from ? 0 : interpolate(f, [darkEnd, darkEnd + 12], [1, 0], clamp);
+    const o = Math.min(
+        interpolate(f, [S.logo.from - 6, S.logo.from + 2, S.single.from + 4, S.single.from + 14], [1, 0, 0, 1], clamp),
+        interpolate(f, [S.cta.from - 6, S.cta.from + 2], [1, 0], clamp),
+    );
+    const ink = interpolateColors(light, [0, 1], [C.dInk, C.ink]);
+    return (
+        <div style={{ position: 'absolute', right: 56, top: 40, display: 'flex', alignItems: 'center', gap: 14, opacity: o, zIndex: 50, fontFamily: FONT,
+            padding: '10px 18px 10px 10px', borderRadius: 18, background: interpolateColors(light, [0, 1], ['rgba(19,28,46,.82)', 'rgba(255,255,255,.88)']),
+            boxShadow: '0 4px 16px rgba(0,0,0,.12)' }}>
+            <Logo size={46} edge={light < 0.5 ? '#2C3B57' : undefined} />
+            <Wordmark size={26} color={ink} />
+        </div>
     );
 };
 
@@ -68,6 +89,7 @@ export const Ad: React.FC = () => {
             <Scene from={S.batch.from} dur={S.batch.dur}><S6Batch /></Scene>
             <Scene from={S.trust.from} dur={S.trust.dur + 4}><S7Trust /></Scene>
             <Scene from={S.cta.from} dur={S.cta.dur} fadeOut={0}><S8Cta /></Scene>
+            <Watermark />
 
             {/* musik latar & efek suara (semua disintesis, lihat scripts/make_audio.py) */}
             <Audio src={staticFile('audio/music.wav')} volume={0.85} />
@@ -83,11 +105,11 @@ export const Ad: React.FC = () => {
             <Sfx at={S.map.from + S5_CUES.badge} name="pop" volume={0.5} />
             <Sfx at={S.map.from + S5_CUES.tooltip} name="pop" volume={0.35} />
             {LANDMARKS.map((_, i) => <Sfx key={`p${i}`} at={S.batch.from + S6_CUES.rowsStart + i * S6_CUES.rowStep} name="plip" volume={0.45} />)}
-            <Sfx at={S.batch.from + S6_CUES.chips} name="pop" volume={0.45} />
             <Sfx at={S.batch.from + S6_CUES.download} name="click" volume={0.6} />
             {S7_CUES.chips.map((c, i) => <Sfx key={`c${i}`} at={S.trust.from + c} name="pop" volume={0.55} />)}
             <Sfx at={S.trust.from + S7_CUES.toggle} name="click" volume={0.65} />
             <Sfx at={S.cta.from + S8_CUES.press} name="click" volume={0.65} />
+            <Sfx at={S.cta.from + S8_CUES.qr} name="pop" volume={0.45} />
         </AbsoluteFill>
     );
 };
