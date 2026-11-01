@@ -38,7 +38,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; padding: 0; }
 
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; }
 
 /* Transisi halus antarhalaman (index ↔ Tentang) — didukung peramban modern, tanpa JS */
 @view-transition { navigation: auto; }
@@ -61,6 +61,9 @@ a { color: var(--ink); }
 a:hover { color: var(--gold-text); }
 
 button { font-family: inherit; }
+
+/* Ketukan beruntun pada tombol tidak memicu zoom halaman (double-tap) di HP */
+button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch-action: manipulation; }
 
 :focus-visible {
     outline: 2px solid var(--gold);
@@ -928,6 +931,7 @@ button { font-family: inherit; }
     width: 100%;
     max-width: 1280px;
     max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px); /* tinggi layar yang benar-benar terlihat di HP */
     background: var(--surface);
     border-radius: var(--r-xl);
     box-shadow: var(--shadow-lg);
@@ -935,7 +939,7 @@ button { font-family: inherit; }
     flex-direction: column;
     overflow: hidden;
 }
-.map-modal-content { height: calc(100vh - 48px); }
+.map-modal-content { height: calc(100vh - 48px); height: calc(100dvh - 48px); }
 
 .table-modal-header, .map-modal-header {
     display: flex;
@@ -1146,7 +1150,6 @@ a.tab-btn { text-decoration: none; display: inline-block; }
         transition-duration: 0.01ms !important;
         animation-delay: 0s !important;
     }
-    html { scroll-behavior: auto; }
     .splash-ring { stroke-dashoffset: 0; }
     .splash-equator { opacity: 0.5; }
 }
@@ -1226,8 +1229,15 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .about-grid { grid-template-columns: minmax(0, 1fr); }
     .about-card p, .about-card li { font-size: 14px; }
     .wordmark-lg { font-size: 24px; }
-    .table-modal, .map-modal { padding: 0; }
-    .table-modal-content, .map-modal-content { max-height: 100vh; height: 100vh; border-radius: 0; }
+    /* Jendela perbesar memenuhi area layar yang terlihat (bukan 100vh), agar tombol tutup
+       tidak tertutup bilah alamat/tab peramban; ditambah jarak aman untuk notch */
+    .table-modal, .map-modal {
+        padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+        align-items: stretch;
+    }
+    .table-modal-content, .map-modal-content { max-height: none; height: 100%; border-radius: 0; }
+    .table-modal-header, .map-modal-header { position: sticky; top: 0; z-index: 5; background: var(--surface); padding: 10px 12px 10px 16px; }
+    #closeMapModalBtn, #closeTableModalBtn { width: 44px; height: 44px; font-size: 26px; }
     .map-single-info-box { left: 12px; right: 12px; top: auto; bottom: 28px; min-width: 0; }
 }
 

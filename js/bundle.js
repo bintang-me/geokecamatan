@@ -679,6 +679,25 @@ async function fetchAndDrawBoundaries(adminData, lat, lon, onKecamatanFeature) {
     }).catch(e => console.warn('Gagal memuat batas kecamatan', e));
 }
 
+// Leaflet memfokuskan peta saat diklik lalu mengembalikan posisi gulir dengan window.scrollTo,
+// yang bisa membuat halaman "melompat" ketika tombol zoom ditekan. Fokuskan tanpa menggulir.
+if (window.L && L.Map && L.Map.Keyboard) {
+    L.Map.Keyboard.prototype._onMouseDown = function () {
+        if (this._focused) return;
+        try { this._map._container.focus({ preventScroll: true }); }
+        catch (e) { this._map._container.focus(); }
+    };
+}
+// Tombol kontrol (zoom +/−, dll.) juga memfokuskan ulang peta setelah diklik — tanpa menggulir halaman
+if (window.L && L.Control) {
+    L.Control.prototype._refocusOnMap = function (e) {
+        if (this._map && e && e.screenX > 0 && e.screenY > 0) {
+            try { this._map.getContainer().focus({ preventScroll: true }); }
+            catch (err) { /* abaikan */ }
+        }
+    };
+}
+
 // Factory: buat tile layers — sekali definisi, dipakai initMap dan initBatchMap
 function createMapLayers() {
     // Semua basemap dari server Esri (tanpa API key). CARTO tidak dipakai lagi karena kini
@@ -686,7 +705,7 @@ function createMapLayers() {
     const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
 
     const standardMap = L.tileLayer(`${ESRI}/World_Street_Map/MapServer/tile/{z}/{y}/{x}`, {
-        attribution: 'Tiles &copy; Esri &mdash; Sumber: Esri, HERE, Garmin, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        attribution: 'Tiles &copy; Esri. Sumber: Esri, HERE, Garmin, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     });
 
@@ -1517,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         shareBtn.addEventListener('click', async () => {
             if (!lastResult) return;
             const url = `${location.origin}${location.pathname}?q=${lastResult.lat},${lastResult.lon}`;
-            const title = `Kecamatan ${lastResult.admin.kecamatan} — Cari Kecamatan`;
+            const title = `Kecamatan ${lastResult.admin.kecamatan} | Cari Kecamatan`;
             if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
                 try { await navigator.share({ title, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
             }
@@ -2300,8 +2319,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const kab = document.getElementById('resKabKota').textContent.trim();
             const prov = document.getElementById('resProvinsi').textContent.trim();
             
-            let status = 'Data tidak ditemukan';
-            if (kec !== '-' && kec !== '') {
+            const noSearchYet = document.getElementById('resultContent').classList.contains('hidden');
+            let status = noSearchYet ? 'Belum ada pencarian' : 'Data tidak ditemukan';
+            if (!noSearchYet && kec !== '-' && kec !== '') {
                 if (kec === '(Luar RI)' || kec.includes('Luar RI')) {
                     status = 'Luar Indonesia';
                 } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
@@ -2321,6 +2341,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusEl = document.getElementById('modalInfoStatus');
             if (status === 'Berhasil') {
                 statusEl.style.color = '#0F6B41'; // green
+            } else if (status === 'Belum ada pencarian') {
+                statusEl.style.color = '#5B6577'; // netral
             } else if (status === 'Data tidak ditemukan') {
                 statusEl.style.color = '#9B1C12'; // red
             } else {
