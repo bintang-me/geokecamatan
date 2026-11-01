@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/tunggal", "destination": "/index.html" },
+    { "source": "/tunggal/:koordinat", "destination": "/index.html" },
+    { "source": "/massal", "destination": "/index.html" }
+  ]
+}
