@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Provinsi: ${a.provinsi || '-'}`,
                 `Koordinat: ${lastResult.lat}, ${lastResult.lon}`
             ].join('\n');
-            copyText(text).then(() => flashLabel(copyAllBtn, 'Tersalin!')).catch(err => console.error(err));
+            copyText(text).then(() => flashLabel(copyAllBtn, 'Disalin')).catch(err => console.error(err));
         });
     }
     const shareBtn = document.getElementById('shareBtn');
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
                 try { await navigator.share({ title, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
             }
-            copyText(url).then(() => flashLabel(shareBtn, 'Tautan tersalin!')).catch(err => console.error(err));
+            copyText(url).then(() => flashLabel(shareBtn, 'Tautan disalin')).catch(err => console.error(err));
         });
     }
 
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setSearching(on) {
         searchBtn.classList.toggle('is-loading', on);
-        searchBtn.querySelector('.btn-label').textContent = on ? 'Mencari…' : 'Cari lokasi';
+        searchBtn.querySelector('.btn-label').textContent = on ? 'Mencari…' : 'Cari kecamatan';
     }
 
     async function doGeocode(lat, lon) {
@@ -560,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         batchInput.value = '';
         updateGutter();
         updateProcessLabel();
-        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data yang diproses.</td></tr>';
+        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Hasil akan tampil di sini setelah daftar diproses.</td></tr>';
         batchFilter = 'all';
         updateBatchSummary();
         batchData = [];
@@ -803,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const BATCH_MESSAGES = {
         'Wilayah Perairan': 'Titik berada di perairan',
         'Luar Batas RI': 'Berada di luar wilayah Indonesia',
-        'Error API': 'Layanan data tidak merespons. Silakan proses ulang.',
+        'Error API': 'Layanan data tidak merespons. Coba proses ulang.',
         'Gagal': 'Kecamatan tidak ditemukan',
         'Error': 'Format tidak dikenali. Gunakan format desimal atau DMS.',
         'Kosong': 'Baris kosong'
@@ -864,8 +864,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let batchFilter = 'all';
     const BATCH_GROUP_LABELS = {
         success: 'Ditemukan',
-        warning: 'Perairan/luar Indonesia',
-        error: 'Gagal/tidak valid',
+        warning: 'Perairan atau luar RI',
+        error: 'Gagal atau tidak valid',
         empty: 'Kosong'
     };
 
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn.dataset.copying) return;
             btn.dataset.copying = '1';
             const originalHTML = btn.innerHTML;
-            btn.textContent = 'Tersalin!';
+            btn.textContent = 'Disalin';
             setTimeout(() => { btn.innerHTML = originalHTML; delete btn.dataset.copying; }, 2000);
         }).catch(err => console.error('Gagal menyalin: ', err));
     }
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
             closeCopyMenus();
             if (batchData.length === 0) return;
             if (item.dataset.copy === 'link' && !lastBatchHash) {
-                alert('Daftar terlalu panjang untuk dijadikan tautan. Gunakan Unduh CSV.');
+                alert('Daftar terlalu panjang untuk dijadikan tautan. Gunakan tombol Unduh CSV.');
                 return;
             }
             clipboardCopyWithFeedback(copyBuilders[item.dataset.copy](), toggle);

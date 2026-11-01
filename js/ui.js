@@ -82,10 +82,10 @@ function showResult(data, lat, lon) {
     else if (kec !== '-' && kec !== '') { status = 'Ditemukan'; kind = 'success'; }
 
     // Badge sumber data
-    if (kec === '(Luar RI)') setBadge('Berada di luar wilayah Indonesia', 'danger');
-    else if (kec === '-' || kec === '') setBadge('Kecamatan tidak terdeteksi', 'danger');
+    if (kec === '(Luar RI)') setBadge('Di luar wilayah Indonesia', 'danger');
+    else if (kec === '-' || kec === '') setBadge('Kecamatan tidak ditemukan', 'danger');
     else if (data.source === 'BIG') setBadge('Sumber resmi · BIG', 'success');
-    else setBadge('Sumber: Esri/OSM', 'neutral');
+    else setBadge('Sumber pendukung · Esri/OSM', 'neutral');
 
     // Update modal info box jika aktif (tidak disembunyikan)
     const modalBox = document.getElementById('mapSingleInfoBox');

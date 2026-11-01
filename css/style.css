@@ -36,6 +36,10 @@
     --fs-small: 13px;    /* label, teks bantu, footer */
     --fs-micro: 12px;    /* status, legenda, chip kecil */
     --lh-tight: 1.25;
+    /* Ketebalan: judul tebal, subjudul semi-tebal, keterangan regular */
+    --fw-title: 700;
+    --fw-subtitle: 600;
+    --fw-body: 400;
     --lh-body: 1.6;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -208,7 +212,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 
 .card-title {
     font-size: var(--fs-title);
-    font-weight: 600;
+    font-weight: var(--fw-subtitle);
     line-height: var(--lh-tight);
     color: var(--ink);
 }
@@ -218,10 +222,10 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .hero h1 {
     font-size: var(--fs-h1);
     line-height: var(--lh-tight);
-    font-weight: 600;
+    font-weight: var(--fw-title);
     letter-spacing: -0.2px;
 }
-.hero-sub { color: var(--muted); font-size: var(--fs-body); line-height: var(--lh-body); }
+.hero-sub { color: var(--muted); font-size: var(--fs-body); font-weight: var(--fw-body); line-height: var(--lh-body); }
 
 .search-form {
     display: flex;
@@ -470,11 +474,11 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     gap: 12px;
 }
 .kec-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.kec-text .label { font-size: 13px; color: var(--muted); }
+.kec-text .label { font-size: var(--fs-small); font-weight: var(--fw-body); color: var(--muted); }
 .kec-value {
     font-size: var(--fs-display);
     line-height: 1.1;
-    font-weight: 600;
+    font-weight: var(--fw-title);
     letter-spacing: -0.3px;
     overflow-wrap: anywhere;
 }
@@ -489,7 +493,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border-top: 1px solid var(--line-soft);
 }
 .detail-list > div:last-child { border-bottom: 1px solid var(--line-soft); }
-.detail-list dt { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+.detail-list dt { font-size: var(--fs-ui); font-weight: var(--fw-body); color: var(--muted); flex-shrink: 0; }
 .detail-list dd {
     font-size: 15px;
     font-weight: 500;
@@ -550,7 +554,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     margin-bottom: 4px;
 }
-.history-header h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
+.history-header h2 { font-size: var(--fs-title); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
 .history-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; margin-top: 4px; }
 .history-list[hidden] { display: none; }
 .history-card { padding: 14px 16px 14px 24px; }
@@ -635,7 +639,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border-radius: var(--r-sm);
     box-shadow: 0 1px 3px rgba(15, 29, 53, 0.12);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-body);
     pointer-events: none;
 }
 .map-legend span { display: flex; align-items: center; gap: 6px; }
@@ -709,7 +713,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     gap: 12px;
 }
-.batch-input-head label { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
+.batch-input-head label { font-size: var(--fs-title); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
 
 .batch-editor {
     flex: 1;
@@ -800,7 +804,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     flex-wrap: wrap;
     gap: 14px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-body);
 }
 .batch-map-legend {
     position: absolute;
@@ -829,7 +833,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     gap: 12px;
 }
 .batch-result-title { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.batch-result-title h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
+.batch-result-title h2 { font-size: var(--fs-title); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
 .batch-actions { display: flex; align-items: center; gap: 8px; }
 
 .batch-summary { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -991,7 +995,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     padding: 16px 20px;
     border-bottom: 1px solid var(--line);
 }
-.table-modal-header h2, .map-modal-header h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
+.table-modal-header h2, .map-modal-header h2 { font-size: var(--fs-title); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
 .table-modal-actions { display: flex; align-items: center; gap: 8px; }
 .table-modal-body { overflow: auto; padding: 0 20px 12px; }
 
@@ -1028,7 +1032,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     padding-bottom: 6px;
     border-bottom: 1px solid var(--line-soft);
 }
-.batch-info-box .info-title { font-size: var(--fs-h3); font-weight: 600; color: var(--ink); }
+.batch-info-box .info-title { font-size: var(--fs-h3); font-weight: var(--fw-subtitle); color: var(--ink); }
 .batch-info-box .info-close {
     width: 28px; height: 28px;
     border: none; background: transparent; border-radius: 8px;
@@ -1058,7 +1062,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     0% { transform: scale(1); opacity: 0.7; }
     100% { transform: scale(2.2); opacity: 0; }
 }
-.map-single-info-box strong { color: var(--muted); font-weight: 500; }
+.map-single-info-box strong { color: var(--muted); font-weight: var(--fw-body); }
 .map-single-info-box span { font-weight: 600; text-align: right; }
 
 /* ---------- Footer ---------- */
@@ -1090,7 +1094,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     gap: 24px;
 }
 .about-card { display: flex; flex-direction: column; gap: 12px; }
-.about-card h2 { font-size: var(--fs-h2); font-weight: 600; line-height: var(--lh-tight); }
+.about-card h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
 .about-card p, .about-card li { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
 .about-card ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .about-card strong { color: var(--ink); font-weight: 600; }
@@ -1112,7 +1116,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     flex-direction: column;
     gap: 10px;
 }
-.about-sub h3 { font-size: var(--fs-h3); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
+.about-sub h3 { font-size: var(--fs-h3); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
 /* Daftar privasi: dua kolom di desktop */
 .about-card ul.privacy-list { display: block; columns: 2; column-gap: 40px; }
 .privacy-list li { break-inside: avoid; margin-bottom: 8px; }
