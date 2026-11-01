@@ -9,6 +9,7 @@
     const root = document.documentElement;
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const META = { light: '#0F1D35', dark: '#0B1220' };
+    let switchTimer = 0;
 
     const saved = () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } };
     const current = () => (root.dataset.theme === 'dark' ? 'dark' : 'light');
@@ -33,9 +34,13 @@
             window.dispatchEvent(new CustomEvent('ck-themechange', { detail: { theme } }));
         };
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (animate && document.startViewTransition && !reduce) {
-            const t = document.startViewTransition(swap); // pergantian tema memudar halus
-            t.ready.catch(() => {}); t.finished.catch(() => {});
+        if (animate && !reduce) {
+            // Warna berpindah halus lewat transisi CSS biasa. Tidak memakai View Transition:
+            // di HP, potretan halaman membuat header yang menempel sempat hilang.
+            clearTimeout(switchTimer);
+            root.classList.add('theme-switching');
+            swap();
+            switchTimer = setTimeout(() => root.classList.remove('theme-switching'), 400);
         } else {
             swap();
         }
