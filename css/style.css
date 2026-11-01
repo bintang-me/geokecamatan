@@ -9,7 +9,7 @@
     --line-soft: #EEF0F3;
     --line-strong: #D5D9E0;
     --muted: #5B6577;
-    --muted-2: #8A93A3;
+    --muted-2: #626B7E; /* kontras ≥ 4,5:1 di atas putih, kanvas, & garis lembut */
     --gold: #EEA201;
     --gold-hover: #D99400;
     --gold-text: #9A6700;
@@ -50,6 +50,95 @@
     --shadow-sm: 0 1px 2px rgba(15, 29, 53, 0.06);
     --shadow-md: 0 4px 16px rgba(15, 29, 53, 0.10);
     --shadow-lg: 0 16px 40px rgba(15, 29, 53, 0.18);
+
+    /* Token semantik (nilai berbeda per tema) */
+    --fill-strong: #0F1D35;        /* isian tegas: tombol gelap, chip aktif, tooltip */
+    --fill-strong-hover: #1B2D4D;
+    --on-fill-strong: #FFFFFF;
+    --on-gold: #0F1D35;            /* teks di atas tombol emas */
+    --text-body: #334155;
+    --neutral-text: #3E4757;
+    --notice-bg: #FFFBF2;
+    --notice-border: #F3D9A4;
+    --notice-sub-border: #F1E3C2;
+    --row-hover: #FAFBFC;
+    --row-selected: #FDF6E3;
+    --row-error: #FDF3F2;
+    --row-warning: #FDF8EC;
+    --fix-mark-bg: #FDF6E3;
+    --field-bg: #FBFBFC;
+    --gutter-bg: #F1F3F6;
+    --skeleton: #EEF0F3;
+    --shimmer: rgba(255, 255, 255, 0.65);
+    --map-bg: #E9EEF1;
+    --float-bg: rgba(255, 255, 255, 0.95);
+    --float-shadow: 0 1px 3px rgba(15, 29, 53, 0.12);
+    --overlay: rgba(15, 29, 53, 0.5);
+    --overlay-soft: rgba(15, 29, 53, 0.35);
+    --focus-ring: rgba(238, 162, 1, 0.25);
+    --spinner-track: rgba(15, 29, 53, 0.25);
+    --logo-edge: transparent;
+    color-scheme: light;
+}
+
+/* =========================================================
+   Mode gelap — navy gelap sewarna merek (hue ±218°), bukan hitam pekat.
+   Permukaan yang lebih "tinggi" sedikit lebih terang; emas & warna status
+   dinaikkan kecerahannya. Semua pasangan teks/latar ≥ 4,5:1 (teks utama ≥ 14:1).
+   ========================================================= */
+:root[data-theme="dark"] {
+    --ink: #E8EDF5;
+    --canvas: #0B1220;
+    --surface: #131C2E;
+    --line: #26324A;
+    --line-soft: #1C2639;
+    --line-strong: #34425E;
+    --muted: #A6B1C4;
+    --muted-2: #8592A8;
+    --gold: #F5B428;
+    --gold-hover: #FFC44D;
+    --gold-text: #F7C350;
+    --success: #3CCB8A;
+    --success-bg: #11302A;
+    --success-text: #6EDDA6;
+    --warning: #E0A43A;
+    --warning-bg: #33280F;
+    --warning-text: #F2C46D;
+    --danger: #F2675B;
+    --danger-bg: #3B1B1E;
+    --danger-text: #FF9C91;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.6);
+
+    --fill-strong: #E8EDF5;
+    --fill-strong-hover: #CBD5E4;
+    --on-fill-strong: #0F1D35;
+    --on-gold: #0F1D35;
+    --text-body: #CDD5E2;
+    --neutral-text: #C3CBD8;
+    --notice-bg: #1A2131; /* navy sedikit hangat: padanan kotak krem di mode terang */
+    --notice-border: #4A3C17;
+    --notice-sub-border: #3A3118;
+    --row-hover: #182236;
+    --row-selected: #2A2413;
+    --row-error: #2B1719;
+    --row-warning: #2A2312;
+    --fix-mark-bg: #3A2F12;
+    --field-bg: #0F1727;
+    --gutter-bg: #162035;
+    --skeleton: #1C2639;
+    --shimmer: rgba(255, 255, 255, 0.06);
+    --map-bg: #0E1626;
+    --float-bg: rgba(19, 28, 46, 0.94);
+    --float-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    --overlay: rgba(2, 6, 14, 0.7);
+    --overlay-soft: rgba(2, 6, 14, 0.6);
+    --focus-ring: rgba(245, 180, 40, 0.35);
+    --spinner-track: rgba(232, 237, 245, 0.25);
+    --logo-edge: #2C3B57;
+    color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -176,6 +265,31 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     box-shadow: var(--shadow-sm);
 }
 
+.header-actions { display: flex; align-items: center; gap: 14px; }
+.theme-toggle {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s var(--ease-out);
+}
+.theme-toggle:hover { background: var(--canvas); border-color: var(--line-strong); }
+.theme-toggle:active { transform: scale(0.94); }
+.theme-toggle .ic-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .ic-sun { display: block; color: var(--gold); }
+:root[data-theme="dark"] .theme-toggle .ic-moon { display: none; }
+/* Ikon berganti dengan putaran kecil */
+.theme-toggle svg { animation: themeIconIn 0.35s var(--ease-out) both; }
+@keyframes themeIconIn { from { opacity: 0; transform: rotate(-60deg) scale(0.7); } to { opacity: 1; transform: none; } }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.3s; }
+
 .header-link {
     font-size: 14px;
     font-weight: 500;
@@ -250,7 +364,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 .search-field:focus-within {
     border-color: var(--ink);
-    box-shadow: 0 0 0 3px rgba(238, 162, 1, 0.25);
+    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .search-field input {
     flex: 1;
@@ -404,14 +518,14 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .btn-sm { height: 40px; padding: 0 14px; border-radius: var(--r-sm); }
 .btn-grow { flex: 1; }
 
-.btn-primary { background: var(--gold); color: var(--ink); font-weight: 600; }
+.btn-primary { background: var(--gold); color: var(--on-gold); font-weight: 600; }
 .btn-primary:hover:not(:disabled) { background: var(--gold-hover); }
 
 .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
 .btn-secondary:hover:not(:disabled) { background: var(--canvas); }
 
-.btn-dark { background: var(--ink); color: #FFFFFF; }
-.btn-dark:hover:not(:disabled) { background: #1B2D4D; }
+.btn-dark { background: var(--fill-strong); color: var(--on-fill-strong); }
+.btn-dark:hover:not(:disabled) { background: var(--fill-strong-hover); }
 
 .btn-text, .btn-link {
     border: none;
@@ -457,7 +571,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 2px solid rgba(15, 29, 53, 0.25);
+    border: 2px solid var(--spinner-track);
     border-top-color: var(--ink);
     animation: spin 0.8s linear infinite;
 }
@@ -510,7 +624,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .badge-success { background: var(--success-bg); color: var(--success-text); }
 .badge-warning { background: var(--warning-bg); color: var(--warning-text); }
 .badge-danger { background: var(--danger-bg); color: var(--danger-text); }
-.badge-neutral { background: var(--line-soft); color: #3E4757; }
+.badge-neutral { background: var(--line-soft); color: var(--neutral-text); }
 
 .empty-state {
     display: flex;
@@ -530,13 +644,13 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border-radius: 6px;
     position: relative;
     overflow: hidden;
-    background: #EEF0F3;
+    background: var(--skeleton);
 }
 .sk::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    background: linear-gradient(90deg, transparent, var(--shimmer), transparent);
     transform: translateX(-100%);
     animation: shimmer 1.4s linear infinite;
 }
@@ -632,8 +746,8 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     transform: translate(-50%, 4px);
     padding: 4px 8px;
     border-radius: 6px;
-    background: var(--ink);
-    color: #FFFFFF;
+    background: var(--fill-strong);
+    color: var(--on-fill-strong);
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -728,7 +842,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border-radius: var(--r-xl);
     overflow: hidden;
     border: 1px solid var(--line);
-    background: #E9EEF1;
+    background: var(--map-bg);
 }
 
 .map-legend {
@@ -739,9 +853,9 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     display: flex;
     gap: 14px;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--float-bg);
     border-radius: var(--r-sm);
-    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.12);
+    box-shadow: var(--float-shadow);
     font-size: 12px;
     font-weight: var(--fw-body);
     pointer-events: none;
@@ -754,6 +868,10 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .map-wrapper.is-satellite .map-legend { background: rgba(15, 29, 53, 0.92); color: #FFFFFF; }
 .map-wrapper.is-satellite .lg-kec { background: #FFC233; box-shadow: 0 0 0 1.5px #000000; }
 .map-wrapper.is-satellite .lg-kab { border-top-color: #F0ABFC; }
+:root[data-theme="dark"] .lg-kec { background: #FFC233; box-shadow: 0 0 0 1.5px #000000; }
+:root[data-theme="dark"] .lg-kab { border-top-color: #F0ABFC; }
+/* Logo navy tetap terbaca di atas latar gelap */
+.brand-logo rect, .splash-logo > rect { stroke: var(--logo-edge); stroke-width: 2; }
 
 .map-loading {
     position: absolute;
@@ -794,7 +912,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border: none;
     background: var(--surface);
     border-radius: var(--r-md);
-    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.15);
+    box-shadow: var(--float-shadow);
     color: var(--ink);
     cursor: pointer;
 }
@@ -826,17 +944,17 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border: 1px solid var(--line-strong);
     border-radius: var(--r-lg);
     overflow: hidden;
-    background: #FBFBFC;
+    background: var(--field-bg);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .batch-editor:focus-within {
     border-color: var(--ink);
-    box-shadow: 0 0 0 3px rgba(238, 162, 1, 0.25);
+    box-shadow: 0 0 0 3px var(--focus-ring);
 }
 .line-gutter {
     padding: 14px 10px;
     min-width: 40px;
-    background: #F1F3F6;
+    background: var(--gutter-bg);
     border-right: 1px solid var(--line);
     font-family: var(--mono);
     font-size: 13px;
@@ -899,7 +1017,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     border-radius: var(--r-xl);
     overflow: hidden;
     border: 1px solid var(--line);
-    background: #E9EEF1;
+    background: var(--map-bg);
 }
 .batch-map-container { flex: 1; min-height: 0; }
 
@@ -916,9 +1034,9 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     bottom: 28px;
     z-index: 800;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--float-bg);
     border-radius: var(--r-sm);
-    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.12);
+    box-shadow: var(--float-shadow);
     pointer-events: none;
 }
 .batch-map-legend span, .map-modal-legend span { display: flex; align-items: center; gap: 6px; }
@@ -978,13 +1096,13 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     margin-left: 6px;
     vertical-align: -3px;
     border-radius: 50%;
-    background: #FDF6E3;
-    color: #8A5A00;
+    background: var(--fix-mark-bg);
+    color: var(--gold-text);
     cursor: help;
 }
 .summary-chip:hover { border-color: var(--line-strong); }
-.summary-chip.active { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
-.summary-chip.active::before { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6); }
+.summary-chip.active { background: var(--fill-strong); border-color: var(--fill-strong); color: var(--on-fill-strong); }
+.summary-chip.active::before { box-shadow: 0 0 0 2px var(--surface); }
 
 .copy-menu { position: relative; }
 .copy-menu-list {
@@ -1041,16 +1159,16 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     vertical-align: middle;
 }
 .batch-table tbody tr { cursor: pointer; transition: background 0.15s ease; }
-.batch-table tbody tr:hover td { background: #FAFBFC; }
-.batch-table tbody tr.row-selected td { background: #FDF6E3; }
+.batch-table tbody tr:hover td { background: var(--row-hover); }
+.batch-table tbody tr.row-selected td { background: var(--row-selected); }
 .batch-table tbody tr:last-child td { border-bottom: none; }
 .batch-table td.col-no { color: var(--muted); width: 48px; }
 .batch-table td.col-coord { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
 .batch-table td.col-kec { font-weight: 600; }
 .batch-table td.col-msg { color: var(--muted); }
-.batch-table tbody tr.row-error td { background: #FDF3F2; }
+.batch-table tbody tr.row-error td { background: var(--row-error); }
 .batch-table tbody tr.row-error td.col-coord { color: var(--danger); }
-.batch-table tbody tr.row-warning td { background: #FDF8EC; }
+.batch-table tbody tr.row-warning td { background: var(--row-warning); }
 .batch-table tbody tr.row-empty td { color: var(--muted-2); }
 .batch-table tbody tr.row-filtered { display: none; }
 .batch-table .empty-row td {
@@ -1075,7 +1193,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .status-success { background: var(--success-bg); color: var(--success-text); }
 .status-warning { background: var(--warning-bg); color: var(--warning-text); }
 .status-error { background: var(--danger-bg); color: var(--danger-text); }
-.status-empty { background: var(--line-soft); color: #3E4757; }
+.status-empty { background: var(--line-soft); color: var(--neutral-text); }
 .status-empty::before { display: none; }
 
 /* ---------- Modal ---------- */
@@ -1087,7 +1205,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 29, 53, 0.5);
+    background: var(--overlay);
 }
 .table-modal.active, .map-modal.active { display: flex; }
 
@@ -1130,7 +1248,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     z-index: 900;
     min-width: 240px;
     padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.97);
+    background: var(--float-bg);
     border-radius: var(--r-md);
     box-shadow: var(--shadow-md);
     font-size: 13px;
@@ -1206,7 +1324,7 @@ a.footer-credit:hover { color: var(--gold-text); }
 /* Kontak di halaman Tentang: sederhana, tanpa kotak */
 .about-contact { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 0; scroll-margin-top: 88px; }
 .about-contact h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
-.about-contact p { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
+.about-contact p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-body); }
 .about-contact p a { color: var(--ink); font-weight: 600; text-decoration: none; }
 .about-contact p a:hover { color: var(--gold-text); }
 
@@ -1228,10 +1346,10 @@ body.is-about .footer-note a { display: none; }
 }
 .about-card { display: flex; flex-direction: column; gap: 12px; }
 .about-card h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
-.about-card p, .about-card li { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
+.about-card p, .about-card li { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-body); }
 .about-card ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .about-card strong { color: var(--ink); font-weight: 600; }
-.about-card.is-notice { border-color: #F3D9A4; background: #FFFBF2; }
+.about-card.is-notice { border-color: var(--notice-border); background: var(--notice-bg); }
 
 /* Sub-bagian di dalam kotak Tentang / Privasi */
 .about-subgrid {
@@ -1242,7 +1360,7 @@ body.is-about .footer-note a { display: none; }
 }
 .about-sub {
     background: var(--surface);
-    border: 1px solid #F1E3C2;
+    border: 1px solid var(--notice-sub-border);
     border-radius: var(--r-lg);
     padding: 18px 20px;
     display: flex;
@@ -1412,6 +1530,16 @@ body.is-about .footer-note a { display: none; }
     .tab-pane.active { gap: 20px; }
 
     .header-inner { min-height: 56px; flex-wrap: nowrap; gap: 10px; }
+    .theme-toggle { width: 34px; height: 34px; }
+    .header-actions { gap: 0; }
+}
+@media (max-width: 480px) {
+    .header-inner { gap: 8px; }
+    .brand { gap: 6px; }
+    .brand-logo { width: 28px; height: 28px; }
+    .wordmark { font-size: 14px; }
+    .tab-btn { padding: 7px 8px; }
+    .theme-toggle { width: 32px; height: 32px; }
     .brand { gap: 8px; min-width: 0; }
     .wordmark { font-size: 15px; }
     .brand-logo { width: 30px; height: 30px; }
@@ -1441,7 +1569,7 @@ body.is-about .footer-note a { display: none; }
         position: fixed;
         inset: 0;
         z-index: 1150;
-        background: rgba(15, 29, 53, 0.35);
+        background: var(--overlay-soft);
         animation: fadeIn 0.2s ease-out both;
     }
     .tab-prefix { display: none; }

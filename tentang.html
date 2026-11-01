@@ -6,11 +6,22 @@
     <title>Tentang &amp; Privasi | Cari Kecamatan</title>
     <meta name="description" content="Tentang Cari Kecamatan: cara kerja, sumber data resmi BIG, koreksi otomatis, batasan serta risiko, ketentuan penggunaan, dan privasi.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261131">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261133">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css?v=20261131">
+    <link rel="stylesheet" href="/css/style.css?v=20261133">
+    <script>
+        // Tema dipasang sebelum halaman digambar (tanpa kilatan putih): pilihan tersimpan, atau pengaturan perangkat
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('ck_theme'); } catch (e) {}
+            var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.content = dark ? '#0B1220' : '#0F1D35';
+        })();
+    </script>
     <script>
         // Transisi antarhalaman bisa dibatalkan peramban (mis. saat alamat diperbarui); abaikan tanpa galat
         ['pageswap', 'pagereveal'].forEach(function (ev) {
@@ -38,7 +49,13 @@
                 <a class="tab-btn" href="/tunggal"><span class="tab-prefix">Cari </span>Tunggal</a>
                 <a class="tab-btn" href="/massal"><span class="tab-prefix">Cari </span>Massal</a>
             </nav>
-            <a href="/tentang" class="header-link" aria-current="page">Tentang &amp; Privasi</a>
+            <div class="header-actions">
+                <a href="/tentang" class="header-link" aria-current="page">Tentang &amp; Privasi</a>
+                <button type="button" class="theme-toggle" aria-label="Aktifkan mode gelap" title="Aktifkan mode gelap" aria-pressed="false">
+                    <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+                    <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -109,7 +126,7 @@
                     <li><strong>Tanpa akun:</strong> Semua fitur dapat digunakan langsung tanpa mendaftar, masuk, atau memberikan identitas apa pun.</li>
                     <li><strong>Tanpa pelacak:</strong> Situs ini tidak memasang <em>cookie</em>, alat analitik, maupun iklan.</li>
                     <li><strong>Tanpa basis data pengguna:</strong> Koordinat dan berkas CSV/TXT yang Anda masukkan diolah langsung di peramban Anda, tidak disimpan di server <span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>.</li>
-                    <li><strong>Riwayat tetap di perangkat Anda:</strong> Riwayat pencarian hanya tersimpan di peramban perangkat yang Anda gunakan dan dapat dihapus kapan saja melalui tombol "Hapus semua".</li>
+                    <li><strong>Riwayat tetap di perangkat Anda:</strong> Riwayat pencarian dan pilihan tampilan (terang atau gelap) hanya tersimpan di peramban perangkat yang Anda gunakan. Riwayat dapat dihapus kapan saja melalui tombol "Hapus semua".</li>
                     <li><strong>Lokasi hanya dengan izin Anda:</strong> Fitur "Gunakan lokasi saya" membaca lokasi perangkat hanya setelah Anda memberikan izin, dan hanya untuk pencarian saat itu.</li>
                     <li><strong>Transparansi:</strong> Untuk menemukan nama wilayah, koordinat (tanpa identitas Anda) dikirim ke layanan yang tercantum pada bagian Sumber Data. Seperti situs web pada umumnya, layanan tersebut dan penyedia <em>hosting</em> dapat mencatat informasi teknis standar, seperti alamat IP, sesuai kebijakan privasi masing-masing.</li>
                 </ul>
@@ -133,5 +150,6 @@
             <a class="footer-credit" href="#kontak-bagian">Kontak</a>
         </div>
     </footer>
+    <script src="/js/theme.js?v=20261133" defer></script>
 </body>
 </html>

@@ -1353,13 +1353,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Berikan warna status
             const statusEl = document.getElementById('modalInfoStatus');
             if (status === 'Ditemukan') {
-                statusEl.style.color = '#0F6B41'; // green
+                statusEl.style.color = 'var(--success-text)';
             } else if (status === 'Belum ada pencarian') {
-                statusEl.style.color = '#5B6577'; // netral
+                statusEl.style.color = 'var(--muted)';
             } else if (status === 'Data tidak ditemukan') {
-                statusEl.style.color = '#9B1C12'; // red
+                statusEl.style.color = 'var(--danger-text)';
             } else {
-                statusEl.style.color = '#7A5200'; // amber/warning
+                statusEl.style.color = 'var(--warning-text)';
             }
             
             document.getElementById('mapSingleInfoBox').classList.remove('hidden');

@@ -5,7 +5,7 @@
 // ==========================================
 // UI
 // ==========================================
-const STATUS_COLORS = { success: '#0F6B41', warning: '#7A5200', error: '#9B1C12' };
+const STATUS_COLORS = { success: 'var(--success-text)', warning: 'var(--warning-text)', error: 'var(--danger-text)' };
 
 function setModalStatus(text, kind) {
     const statusEl = document.getElementById('modalInfoStatus');

@@ -34,9 +34,17 @@ function boundaryCoreStyle(t) {
     return { ...t.core, fill: !!t.core.fillColor, lineJoin: 'round' };
 }
 
+const isDarkTheme = () => document.documentElement.dataset.theme === 'dark';
+
+// Palet garis batas: palet terang untuk peta jalan biasa; palet cerah (berkontras tinggi)
+// untuk satelit maupun peta gelap
+function boundaryPalette(mapObj) {
+    return (mapObj._ckMode === 'sat' || isDarkTheme()) ? BOUNDARY_THEMES.sat : BOUNDARY_THEMES.map;
+}
+
 // Buat layer batas (casing + garis inti) mengikuti mode basemap peta tersebut
 function makeBoundaryLayer(geojson, type, pane, mapObj) {
-    const t = BOUNDARY_THEMES[mapObj._ckMode || 'map'][type];
+    const t = boundaryPalette(mapObj)[type];
     const casing = L.geoJSON(geojson, { pane, interactive: false, style: boundaryCasingStyle(t) });
     const core = L.geoJSON(geojson, { pane, style: boundaryCoreStyle(t) });
     const group = L.featureGroup([casing, core]);
@@ -49,9 +57,10 @@ function makeBoundaryLayer(geojson, type, pane, mapObj) {
 // Terapkan ulang warna batas saat pengguna berganti Peta ↔ Satelit
 function applyBoundaryTheme(mapObj) {
     const mode = mapObj._ckMode || 'map';
+    const palette = boundaryPalette(mapObj);
     mapObj.eachLayer(l => {
         if (!l.ckType) return;
-        const t = BOUNDARY_THEMES[mode][l.ckType];
+        const t = palette[l.ckType];
         l.ckCasing.setStyle(boundaryCasingStyle(t));
         l.ckCore.setStyle(boundaryCoreStyle(t));
     });
@@ -222,10 +231,18 @@ function createMapLayers() {
     // menampilkan tile "API key required".
     const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
 
-    const standardMap = L.tileLayer(`${ESRI}/World_Street_Map/MapServer/tile/{z}/{y}/{x}`, {
+    // "Peta": peta jalan di mode terang; Dark Gray Canvas + label di mode gelap
+    const streetTile = L.tileLayer(STREET_TILES[isDarkTheme() ? 'dark' : 'light'].url, {
         attribution: 'Tiles &copy; Esri. Sumber: Esri, HERE, Garmin, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
+        maxZoom: 19,
+        maxNativeZoom: STREET_TILES[isDarkTheme() ? 'dark' : 'light'].maxNativeZoom
     });
+    const darkLabels = L.tileLayer(`${ESRI}/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, {
+        attribution: 'Label &copy; Esri',
+        maxZoom: 19,
+        maxNativeZoom: 16
+    });
+    const standardMap = L.layerGroup(isDarkTheme() ? [streetTile, darkLabels] : [streetTile]);
 
     const esriSatellite = L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, {
         attribution: '&copy; <a href="https://www.esri.com">Esri</a>, Maxar, Earthstar Geographics, and the GIS User Community',
@@ -239,8 +256,29 @@ function createMapLayers() {
 
     const satelliteHybrid = L.layerGroup([esriSatellite, labelsMap]);
 
-    return { standardMap, esriSatellite, labelsMap, satelliteHybrid };
+    return { standardMap, streetTile, darkLabels, esriSatellite, labelsMap, satelliteHybrid };
 }
+
+const STREET_TILES = {
+    light: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', maxNativeZoom: 19 },
+    dark: { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', maxNativeZoom: 16 }
+};
+
+// Ganti tema peta (dipanggil saat pengguna mengganti mode terang/gelap)
+function applyMapTheme(mapObj) {
+    const layers = mapObj && mapObj._ckLayers;
+    if (!layers) return;
+    const key = isDarkTheme() ? 'dark' : 'light';
+    layers.streetTile.options.maxNativeZoom = STREET_TILES[key].maxNativeZoom;
+    layers.streetTile.setUrl(STREET_TILES[key].url);
+    if (key === 'dark') layers.standardMap.addLayer(layers.darkLabels);
+    else layers.standardMap.removeLayer(layers.darkLabels);
+    applyBoundaryTheme(mapObj);
+}
+window.addEventListener('ck-themechange', () => {
+    applyMapTheme(map);
+    if (typeof batchMap !== 'undefined' && batchMap) applyMapTheme(batchMap);
+});
 
 // Pemilih basemap "Peta | Satelit" (segmented control)
 function addBasemapSwitch(mapObj, layers) {
@@ -291,7 +329,7 @@ function watchMapLoading(layers) {
     const el = document.getElementById('mapLoading');
     if (!el) return;
     const hide = () => el.classList.add('hidden');
-    layers.standardMap.once('load', hide);
+    layers.streetTile.once('load', hide);
     layers.esriSatellite.once('load', hide);
     setTimeout(hide, 8000);
 }
@@ -317,6 +355,7 @@ function initMap(containerId, onLocationSelected) {
     map.getPane('kecPane').style.zIndex = 430;
 
     const layers = createMapLayers();
+    map._ckLayers = layers;
     watchMapLoading(layers);
 
     // Peta default: standar (terang) — selaras tampilan; Satelit tersedia di pemilih
@@ -452,6 +491,7 @@ function initBatchMap() {
     batchMap.getPane('kecPane').style.zIndex = 430;
 
     const batchLayers = createMapLayers();
+    batchMap._ckLayers = batchLayers;
     batchLayers.standardMap.addTo(batchMap);
     addBasemapSwitch(batchMap, batchLayers);
 
@@ -611,7 +651,7 @@ function addBatchMarker(data) {
 }
 
 // ---- Titik terpilih di peta Cari Massal ----
-const BATCH_STATUS_TEXT_COLOR = { success: '#0F6B41', warning: '#7A5200', error: '#9B1C12', empty: '#3E4757' };
+const BATCH_STATUS_TEXT_COLOR = { success: 'var(--success-text)', warning: 'var(--warning-text)', error: 'var(--danger-text)', empty: 'var(--neutral-text)' };
 
 function batchGroupOf(status) {
     if (status === 'Sukses') return 'success';

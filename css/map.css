@@ -9,7 +9,7 @@
 }
 
 .leaflet-container {
-    background: #E9EEF1;
+    background: var(--map-bg);
     font-family: var(--font);
 }
 
@@ -18,7 +18,7 @@
 .leaflet-bar {
     border: none !important;
     border-radius: 12px !important;
-    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.15) !important;
+    box-shadow: var(--float-shadow) !important;
     overflow: hidden;
 }
 .leaflet-bar a,
@@ -27,7 +27,7 @@
     height: 40px !important;
     line-height: 40px !important;
     color: var(--ink) !important;
-    background: #FFFFFF !important;
+    background: var(--surface) !important;
     border-bottom: 1px solid var(--line-soft) !important;
     font-size: 18px !important;
 }
@@ -42,9 +42,9 @@
     display: flex;
     gap: 4px;
     padding: 4px;
-    background: #FFFFFF;
+    background: var(--surface);
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.15);
+    box-shadow: var(--float-shadow);
     margin-right: 12px !important;
 }
 .basemap-switch button {
@@ -58,11 +58,11 @@
     color: var(--ink);
     cursor: pointer;
 }
-.basemap-switch button[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; }
+.basemap-switch button[aria-pressed="true"] { background: var(--fill-strong); color: var(--on-fill-strong); }
 
 .leaflet-control-attribution {
     font-size: 10px !important;
-    background: rgba(255, 255, 255, 0.85) !important;
+    background: var(--float-bg) !important;
     color: var(--muted) !important;
     border-top-left-radius: 6px;
 }
@@ -86,8 +86,8 @@
 .leaflet-popup-content { margin: 12px 14px !important; font-family: var(--font); }
 
 .boundary-tooltip {
-    background: var(--ink);
-    color: #FFFFFF;
+    background: var(--fill-strong);
+    color: var(--on-fill-strong);
     border: none;
     border-radius: 8px;
     padding: 6px 10px;
@@ -96,4 +96,4 @@
     font-weight: 600;
     box-shadow: var(--shadow-md);
 }
-.boundary-tooltip::before { border-top-color: var(--ink) !important; }
+.boundary-tooltip::before { border-top-color: var(--fill-strong) !important; }
