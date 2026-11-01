@@ -251,38 +251,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Panel "Format yang dikenali"
-    const formatInfoBtn = document.getElementById('formatInfoBtn');
+    // Panel "Format yang dikenali" — satu panel, dibuka dari Cari Tunggal maupun Cari Massal
     const formatPopover = document.getElementById('formatPopover');
     const formatBackdrop = document.querySelector('.format-backdrop');
-    const formatHome = formatPopover ? formatPopover.parentElement : null;
+    const formatTriggers = document.querySelectorAll('.format-info-btn');
     const mobileSheet = window.matchMedia('(max-width: 768px)');
-    function setFormatOpen(open) {
+    let formatTrigger = null; // tombol yang membuka panel
+    function setFormatOpen(open, trigger) {
         if (!formatPopover) return;
         if (open) {
-            // HP: lembar bawah harus menempel ke layar, jadi keluarkan dari bagian yang beranimasi
-            const target = mobileSheet.matches ? document.body : formatHome;
+            formatTrigger = trigger;
+            // Desktop: panel tampil di bawah tombolnya; HP: lembar bawah menempel ke layar
+            const target = mobileSheet.matches ? document.body : trigger.closest('.examples-wrap');
             if (formatBackdrop && formatBackdrop.parentElement !== target) target.appendChild(formatBackdrop);
             if (formatPopover.parentElement !== target) target.appendChild(formatPopover);
+            const hint = document.getElementById('formatTryHint');
+            if (hint) hint.textContent = trigger.closest('#tab-massal')
+                ? 'Klik contoh untuk menambahkannya ke daftar.'
+                : 'Klik contoh untuk mencoba.';
         }
         formatPopover.hidden = !open;
         if (formatBackdrop) formatBackdrop.hidden = !open;
-        formatInfoBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        formatTriggers.forEach(b => b.setAttribute('aria-expanded', open && b === formatTrigger ? 'true' : 'false'));
     }
-    if (formatInfoBtn && formatPopover) {
-        formatInfoBtn.addEventListener('click', (e) => { e.stopPropagation(); setFormatOpen(formatPopover.hidden); });
-        formatPopover.querySelector('.format-popover-close').addEventListener('click', () => { setFormatOpen(false); formatInfoBtn.focus({ preventScroll: true }); });
-        if (formatBackdrop) formatBackdrop.addEventListener('click', () => setFormatOpen(false));
+    function closeFormat(refocus) {
+        setFormatOpen(false);
+        if (refocus && formatTrigger) formatTrigger.focus({ preventScroll: true });
+    }
+    if (formatPopover && formatTriggers.length) {
+        formatTriggers.forEach(b => b.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setFormatOpen(formatPopover.hidden || formatTrigger !== b, b);
+        }));
+        formatPopover.querySelector('.format-popover-close').addEventListener('click', () => closeFormat(true));
+        if (formatBackdrop) formatBackdrop.addEventListener('click', () => closeFormat(false));
         document.addEventListener('click', (e) => {
-            if (!formatPopover.hidden && !formatPopover.contains(e.target) && e.target !== formatInfoBtn) setFormatOpen(false);
+            if (!formatPopover.hidden && !formatPopover.contains(e.target)) closeFormat(false);
         });
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !formatPopover.hidden) { setFormatOpen(false); formatInfoBtn.focus({ preventScroll: true }); }
+            if (e.key === 'Escape' && !formatPopover.hidden) closeFormat(true);
         });
         formatPopover.querySelectorAll('.format-try').forEach(b => b.addEventListener('click', () => {
+            const fromMassal = formatTrigger && formatTrigger.closest('#tab-massal');
             setFormatOpen(false);
-            coordInput.value = b.dataset.coord;
-            processInput(coordInput.value);
+            if (fromMassal) {
+                // Cari Massal: contoh ditambahkan sebagai baris baru di daftar
+                const cur = batchInput.value.replace(/\n+$/, '');
+                batchInput.value = (cur ? cur + '\n' : '') + b.dataset.coord;
+                batchInput.dispatchEvent(new Event('input')); // nomor baris, label tombol, draf sesi
+                batchInput.focus({ preventScroll: true });
+            } else {
+                coordInput.value = b.dataset.coord;
+                processInput(coordInput.value);
+            }
         }));
     }
 

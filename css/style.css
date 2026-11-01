@@ -329,6 +329,8 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     transition: color 0.2s ease, background 0.2s ease;
 }
 .format-info-btn:hover, .format-info-btn[aria-expanded="true"] { color: var(--ink); background: var(--canvas); }
+/* Cari Massal: tombol sejajar teks subjudul (tanpa indentasi tombol) */
+.format-info-inline { margin-left: -10px; }
 .format-popover {
     position: absolute;
     top: calc(100% + 10px);
