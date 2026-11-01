@@ -24,6 +24,19 @@
     --danger-text: #9B1C12;
 
     --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Skala tipografi */
+    --fs-display: 34px;  /* nama kecamatan hasil */
+    --fs-h1: 30px;       /* judul halaman */
+    --fs-h2: 20px;       /* judul seksi (halaman Tentang & Privasi) */
+    --fs-title: 17px;    /* judul kartu & jendela */
+    --fs-h3: 15px;       /* sub-bagian */
+    --fs-body: 15px;     /* isi */
+    --fs-ui: 14px;       /* tombol, tabel, menu */
+    --fs-small: 13px;    /* label, teks bantu, footer */
+    --fs-micro: 12px;    /* status, legenda, chip kecil */
+    --lh-tight: 1.25;
+    --lh-body: 1.6;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --r-sm: 10px;
@@ -48,7 +61,7 @@ body {
     background: var(--canvas);
     color: var(--ink);
     font-family: var(--font);
-    font-size: 15px;
+    font-size: var(--fs-body);
     line-height: 1.5;
     word-spacing: 0.06em; /* Plus Jakarta Sans memiliki spasi antarkata yang sempit */
     -webkit-font-smoothing: antialiased;
@@ -193,23 +206,22 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     padding: 24px;
 }
 
-.eyebrow {
-    font-size: 13px;
+.card-title {
+    font-size: var(--fs-title);
     font-weight: 600;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    color: var(--muted);
+    line-height: var(--lh-tight);
+    color: var(--ink);
 }
 
 /* ---------- Hero / pencarian ---------- */
 .hero { display: flex; flex-direction: column; gap: 12px; }
 .hero h1 {
-    font-size: 30px;
-    line-height: 1.2;
+    font-size: var(--fs-h1);
+    line-height: var(--lh-tight);
     font-weight: 600;
     letter-spacing: -0.2px;
 }
-.hero-sub { color: var(--muted); font-size: 15px; }
+.hero-sub { color: var(--muted); font-size: var(--fs-body); line-height: var(--lh-body); }
 
 .search-form {
     display: flex;
@@ -460,7 +472,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .kec-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .kec-text .label { font-size: 13px; color: var(--muted); }
 .kec-value {
-    font-size: 34px;
+    font-size: var(--fs-display);
     line-height: 1.1;
     font-weight: 600;
     letter-spacing: -0.3px;
@@ -525,7 +537,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 .copy-tooltip.show { opacity: 1; transform: translate(-50%, 0); }
 
-.address { font-size: 13px; line-height: 1.55; color: var(--muted); }
+.address { font-size: var(--fs-small); line-height: var(--lh-body); color: var(--muted); }
 
 .result-actions { display: flex; gap: 10px; }
 .result-actions .btn { flex: 1; }
@@ -538,7 +550,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     margin-bottom: 4px;
 }
-.history-header h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.history-header h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
 .history-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
 .history-empty { font-size: 13px; color: var(--muted); padding: 10px 0; border-top: 1px solid var(--line-soft); }
 
@@ -677,7 +689,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     gap: 12px;
 }
-.batch-input-head label { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.batch-input-head label { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
 
 .batch-editor {
     flex: 1;
@@ -797,7 +809,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     gap: 12px;
 }
 .batch-result-title { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.batch-result-title h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.batch-result-title h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
 .batch-actions { display: flex; align-items: center; gap: 8px; }
 
 .batch-summary { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -873,10 +885,8 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     background: var(--surface);
     text-align: left;
     padding: 10px 12px;
-    font-size: 12px;
+    font-size: var(--fs-small);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     color: var(--muted);
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
@@ -961,7 +971,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     padding: 16px 20px;
     border-bottom: 1px solid var(--line);
 }
-.table-modal-header h2, .map-modal-header h2 { font-size: 17px; font-weight: 600; }
+.table-modal-header h2, .map-modal-header h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
 .table-modal-actions { display: flex; align-items: center; gap: 8px; }
 .table-modal-body { overflow: auto; padding: 0 20px 12px; }
 
@@ -998,14 +1008,14 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     padding-bottom: 6px;
     border-bottom: 1px solid var(--line-soft);
 }
-.batch-info-box .info-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.batch-info-box .info-title { font-size: var(--fs-h3); font-weight: 600; color: var(--ink); }
 .batch-info-box .info-close {
     width: 28px; height: 28px;
     border: none; background: transparent; border-radius: 8px;
     font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer;
 }
 .batch-info-box .info-close:hover { background: var(--line-soft); color: var(--ink); }
-.batch-info-box .mono { font-family: var(--mono); font-weight: 500; font-size: 12px; }
+.batch-info-box .mono { font-family: var(--mono); font-weight: 500; font-size: var(--fs-micro); }
 
 /* Pin terpilih: cincin berdenyut di ujung pin + pin sedikit membesar */
 .batch-pin { overflow: visible; }
@@ -1060,12 +1070,11 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     gap: 24px;
 }
 .about-card { display: flex; flex-direction: column; gap: 12px; }
-.about-card h2 { font-size: 17px; font-weight: 600; }
-.about-card p, .about-card li { font-size: 15px; line-height: 1.65; color: #334155; }
+.about-card h2 { font-size: var(--fs-h2); font-weight: 600; line-height: var(--lh-tight); }
+.about-card p, .about-card li { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
 .about-card ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .about-card strong { color: var(--ink); font-weight: 600; }
 .about-card.is-notice { border-color: #F3D9A4; background: #FFFBF2; }
-.about-card.is-notice h2 { font-size: 19px; }
 
 /* Sub-bagian di dalam kotak Tentang / Privasi */
 .about-subgrid {
@@ -1083,7 +1092,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     flex-direction: column;
     gap: 10px;
 }
-.about-sub h3 { font-size: 15px; font-weight: 600; color: var(--ink); }
+.about-sub h3 { font-size: var(--fs-h3); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
 /* Daftar privasi: dua kolom di desktop */
 .about-card ul.privacy-list { display: block; columns: 2; column-gap: 40px; }
 .privacy-list li { break-inside: avoid; margin-bottom: 8px; }
@@ -1235,7 +1244,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .batch-layout-grid { grid-template-columns: minmax(0, 1fr); }
     .batch-map-section, .batch-map-container { min-height: 0; }
     .batch-map-section { height: clamp(320px, 52vh, 480px); position: relative; top: auto; }
-    .batch-map-legend { right: 68px; gap: 6px 12px; font-size: 11px; padding: 6px 10px; }
+    .batch-map-legend { right: 68px; gap: 6px 12px; font-size: var(--fs-micro); padding: 6px 10px; }
     .header-link { display: none; }
 }
 
@@ -1256,7 +1265,8 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .tab-prefix { display: none; }
     .tab-btn { padding: 7px 14px; }
 
-    .hero h1 { font-size: 22px; }
+    .hero h1 { font-size: 24px; }
+    .about-card h2 { font-size: 18px; }
     .hero-sub { font-size: 14px; }
     .search-field { flex-basis: 100%; height: 52px; }
     .btn-lg { height: 52px; }
@@ -1285,6 +1295,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
         align-self: center;
     }
     .kec-value { font-size: 28px; }
+    .card-title, .history-header h2, .batch-input-head label, .batch-result-title h2 { font-size: 16px; }
     .map-legend { display: none; }
     .map-float-btn { bottom: 40px; }
 
@@ -1320,9 +1331,9 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .table-modal-header, .map-modal-header { position: sticky; top: 0; z-index: 5; background: var(--surface); padding: 10px 12px 10px 16px; }
     #closeMapModalBtn, #closeTableModalBtn { width: 44px; height: 44px; font-size: 26px; }
     .map-single-info-box { left: 12px; right: 12px; top: auto; bottom: 28px; min-width: 0; }
-    .batch-info-box { top: 60px; left: 60px; right: 12px; bottom: auto; max-width: none; padding: 8px 10px; gap: 1px; font-size: 12px; }
+    .batch-info-box { top: 60px; left: 60px; right: 12px; bottom: auto; max-width: none; padding: 8px 10px; gap: 1px; font-size: var(--fs-micro); }
     .batch-info-box .info-head { margin-bottom: 2px; padding-bottom: 4px; }
-    .batch-info-box .info-title { font-size: 13px; }
+    .batch-info-box .info-title { font-size: var(--fs-small); }
     .batch-info-box .info-close { width: 24px; height: 24px; }
     .batch-info-box .info-row:nth-child(6) { display: none; } /* koordinat sudah ada di tabel */
 }
