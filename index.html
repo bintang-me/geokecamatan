@@ -6,7 +6,7 @@
     <title>Cari Kecamatan | Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261128">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261129">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com">
@@ -17,8 +17,8 @@
     <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="/css/style.css?v=20261128">
-    <link rel="stylesheet" href="/css/map.css?v=20261128">
+    <link rel="stylesheet" href="/css/style.css?v=20261129">
+    <link rel="stylesheet" href="/css/map.css?v=20261129">
     <script>
         // Transisi antarhalaman bisa dibatalkan peramban (mis. saat alamat diperbarui); abaikan tanpa galat
         ['pageswap', 'pagereveal'].forEach(function (ev) {
@@ -127,7 +127,7 @@
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                         </button>
                     </div>
-                    <p class="format-popover-intro">Tulis koordinat dengan cara yang biasa Anda pakai. Penulisan yang keliru dirapikan otomatis sebelum dicari. Klik contoh untuk mencoba.</p>
+                    <p class="format-popover-intro">Tulis koordinat dengan cara yang biasa Anda pakai. Penulisan yang keliru dirapikan otomatis sebelum dicari. <span id="formatTryHint">Klik contoh untuk mencoba.</span></p>
                     <dl class="format-list">
                         <div><dt>Desimal</dt><dd><button type="button" class="format-try" data-coord="-6.2088, 106.8456">-6.2088, 106.8456</button></dd></div>
                         <div><dt>Koma desimal</dt><dd><button type="button" class="format-try" data-coord="-6,2088; 106,8456">-6,2088; 106,8456</button></dd></div>
@@ -240,7 +240,15 @@
         <div id="tab-massal" class="tab-pane">
             <section class="hero">
                 <h1>Cari Massal</h1>
-                <p class="hero-sub">Cari kecamatan untuk banyak titik sekaligus, lalu salin atau unduh hasilnya.</p>
+                <p class="hero-sub">Cari kecamatan untuk banyak titik sekaligus, lalu salin atau unduh hasilnya. Setiap baris boleh memakai format yang berbeda, dan penulisan yang keliru akan dirapikan otomatis.</p>
+                <div class="examples-wrap">
+                    <div class="examples">
+                        <button type="button" class="format-info-btn format-info-inline" aria-expanded="false" aria-controls="formatPopover">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
+                            <span>Format yang dikenali</span>
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <div class="batch-layout-grid">
@@ -251,7 +259,7 @@
                     </div>
                     <div class="batch-editor">
                         <div class="line-gutter" id="batchGutter" aria-hidden="true">1</div>
-                        <textarea id="batchInput" class="batch-textarea" spellcheck="false" placeholder="-6.2088, 106.8456&#10;-6.9175, 107.6191&#10;6°14'52.1&quot;S 106°52'40.0&quot;E"></textarea>
+                        <textarea id="batchInput" class="batch-textarea" spellcheck="false" placeholder="-6.2088, 106.8456&#10;-6,9175; 107,6191&#10;6°14'52.1&quot;S 106°52'40.0&quot;E&#10;7.2575 LS, 112.7521 BT"></textarea>
                     </div>
                     <label class="drop-zone" id="batchDrop" for="batchFile">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
@@ -413,11 +421,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js" defer></script>
-    <script src="/js/parser.js?v=20261128" defer></script>
-    <script src="/js/geocoder.js?v=20261128" defer></script>
-    <script src="/js/map.js?v=20261128" defer></script>
-    <script src="/js/ui.js?v=20261128" defer></script>
-    <script src="/js/router.js?v=20261128" defer></script>
-    <script src="/js/app.js?v=20261128" defer></script>
+    <script src="/js/parser.js?v=20261129" defer></script>
+    <script src="/js/geocoder.js?v=20261129" defer></script>
+    <script src="/js/map.js?v=20261129" defer></script>
+    <script src="/js/ui.js?v=20261129" defer></script>
+    <script src="/js/router.js?v=20261129" defer></script>
+    <script src="/js/app.js?v=20261129" defer></script>
 </body>
 </html>
