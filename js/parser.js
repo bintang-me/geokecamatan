@@ -97,6 +97,21 @@ function cleanNumberStr(str) {
 
 const STRICT_NUMBER = /^[+-]?\d+(\.\d+)?$/;
 
+// Alasan koreksi otomatis → kalimat untuk pengguna
+const FIX_TEXT = {
+    dms: 'format DMS dikonversi ke desimal',
+    arah: 'arah mata angin dikonversi ke desimal',
+    koma: 'koma desimal diubah menjadi titik',
+    desimal: 'titik desimal yang hilang dipulihkan',
+    tukar: 'urutan dibalik menjadi lintang, bujur'
+};
+function describeFixes(fixes) {
+    const parts = (fixes || []).map(f => FIX_TEXT[f]).filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0];
+    return parts.slice(0, -1).join(', ') + ' dan ' + parts[parts.length - 1];
+}
+
 // Koreksi angka "raksasa" dari Excel yang kehilangan titik desimal, per sumbu
 function fixGiantLat(lat) {
     if (Math.abs(lat) <= 90) return lat;
@@ -122,12 +137,13 @@ function parseCoordinates(inputStr) {
     }
 
     // 1. Coba konversi DMS, lalu derajat desimal + arah mata angin
-    const dirResult = convertDMSToDecimal(inputStr) || convertHemisphereDecimal(inputStr);
+    const dmsResult = convertDMSToDecimal(inputStr);
+    const dirResult = dmsResult || convertHemisphereDecimal(inputStr);
     if (dirResult) {
         if (dirResult.lat < -90 || dirResult.lat > 90 || dirResult.lon < -180 || dirResult.lon > 180) {
             return { valid: false, error: "Nilai lintang/bujur di luar rentang yang valid (lintang −90 hingga 90, bujur −180 hingga 180)." };
         }
-        return { valid: true, lat: dirResult.lat, lon: dirResult.lon, converted: true };
+        return { valid: true, lat: dirResult.lat, lon: dirResult.lon, converted: true, fixes: [dmsResult ? 'dms' : 'arah'] };
     }
 
     const formatError = { valid: false, error: "Format koordinat tidak dikenali. Gunakan format desimal (contoh: -6.208, 106.845) atau DMS (contoh: 6°14'52.1\"S 106°52'40.0\"E)." };
@@ -163,7 +179,8 @@ function parseCoordinates(inputStr) {
 
     let latStr = parts[0].replace(/,$/, '');
     let lonStr = parts[1].replace(/,$/, '');
-    let convertedFlag = parsedFromCommaPairs || latStr.includes(',') || lonStr.includes(',');
+    const fixes = [];
+    if (parsedFromCommaPairs || latStr.includes(',') || lonStr.includes(',')) fixes.push('koma');
     latStr = cleanNumberStr(latStr);
     lonStr = cleanNumberStr(lonStr);
 
@@ -173,16 +190,22 @@ function parseCoordinates(inputStr) {
     let lat = parseFloat(latStr);
     let lon = parseFloat(lonStr);
 
+    // URUTAN TERBALIK (bujur, lintang): lintang mustahil > 90, sedangkan nilai kedua cocok sebagai lintang
+    if (Math.abs(lat) > 90 && Math.abs(lat) <= 180 && Math.abs(lon) <= 90) {
+        [lat, lon] = [lon, lat];
+        fixes.push('tukar');
+    }
+
     // KOREKSI ANGKA RAKSASA (Kesalahan Ketik Excel tanpa desimal asli) — hanya sumbu yang keluar batas
     if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
         lat = fixGiantLat(lat);
         lon = fixGiantLon(lon);
-        convertedFlag = true;
+        fixes.push('desimal');
     }
 
     if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
         return { valid: false, error: "Nilai lintang/bujur di luar rentang yang valid (lintang −90 hingga 90, bujur −180 hingga 180)." };
     }
 
-    return { valid: true, lat: lat, lon: lon, converted: convertedFlag };
+    return { valid: true, lat: lat, lon: lon, converted: fixes.length > 0, fixes };
 }
