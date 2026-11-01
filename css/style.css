@@ -1200,6 +1200,15 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .footer-note a { color: var(--ink); text-underline-offset: 2px; white-space: nowrap; }
 .footer-credit { flex: 0 0 auto; }
 .footer-credit strong { color: var(--ink); font-weight: 600; }
+a.footer-credit { color: var(--ink); font-weight: 500; text-decoration: none; }
+a.footer-credit:hover { color: var(--gold-text); }
+
+/* Kontak di halaman Tentang: sederhana, tanpa kotak */
+.about-contact { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 0; scroll-margin-top: 88px; }
+.about-contact h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
+.about-contact p { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
+.about-contact p a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
+.about-contact p a:hover { color: var(--gold-text); }
 
 /* ---------- Halaman Tentang & Sumber Data ---------- */
 .header-link[aria-current="page"] { color: var(--ink); font-weight: 600; }
