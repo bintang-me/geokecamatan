@@ -939,14 +939,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof batchMarkers !== 'undefined' && batchMap) {
             const marker = batchMarkers.find(m => m.batchId === dataId);
             if (marker) {
-                lastSelectedBatchMarker = marker;
-                batchMap.setView(marker.getLatLng(), 13, { animate: true });
-                marker.openPopup();
-                
-                const dataItem = batchData.find(item => item.id === dataId);
-                if (dataItem) {
-                    showBatchBoundaries(dataItem);
-                }
+                batchMap.setView(marker.getLatLng(), Math.max(batchMap.getZoom(), 13), { animate: true });
+                selectBatchMarker(marker);
                 
                 // Jika peta dalam modal terbuka, invalidateSize sesaat untuk memastikan
                 if (document.getElementById('mapModal') && document.getElementById('mapModal').classList.contains('active')) {
@@ -1050,6 +1044,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (batchData.length === 0) return;
         // Clone tabel ke dalam modal
         const clone = batchTable.cloneNode(true);
+        // Buang semua id dari salinan agar tidak bentrok dengan tabel asli (#batchTableBody, dll.)
+        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
         clone.id = 'batchTableClone';
         // Pastikan thead selalu sebelum tbody
         const thead = clone.querySelector('thead');
@@ -1057,14 +1053,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (thead && tbody && tbody.compareDocumentPosition(thead) & Node.DOCUMENT_POSITION_PRECEDING) {
             clone.insertBefore(thead, tbody);
         }
-        // Pastikan header cells solid — inline style override
-        const headerCells = clone.querySelectorAll('thead th');
-        headerCells.forEach(function(cell) {
-            cell.style.position = 'sticky';
-            cell.style.top = '0';
-            cell.style.zIndex = '100';
-            cell.style.background = '#0f264a';
-        });
         tableModalBody.innerHTML = '';
         tableModalBody.appendChild(clone);
         tableModal.classList.add('active');
