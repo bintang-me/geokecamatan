@@ -6,13 +6,13 @@
     <title>Cari Kecamatan — Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261106">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261107">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=20261106">
-    <link rel="stylesheet" href="css/map.css?v=20261106">
+    <link rel="stylesheet" href="css/style.css?v=20261107">
+    <link rel="stylesheet" href="css/map.css?v=20261107">
 </head>
 <body>
 
@@ -57,7 +57,7 @@
                 <button type="button" class="tab-btn active" data-tab="tab-tunggal" aria-pressed="true"><span class="tab-prefix">Cari </span>Tunggal</button>
                 <button type="button" class="tab-btn" data-tab="tab-massal" aria-pressed="false"><span class="tab-prefix">Cari </span>Massal</button>
             </nav>
-            <a href="tentang.html" class="header-link">Tentang &amp; sumber data</a>
+            <a href="tentang.html" class="header-link">Tentang &amp; Sumber Data</a>
         </div>
     </header>
 
@@ -67,7 +67,7 @@
         <div id="tab-tunggal" class="tab-pane active">
             <section class="hero" aria-labelledby="heroTitle">
                 <h1 id="heroTitle">Temukan kecamatan dari titik koordinat</h1>
-                <p class="hero-sub">Tempel koordinat desimal, DMS, atau salinan langsung dari Excel.</p>
+                <p class="hero-sub">Masukkan koordinat dalam format desimal atau DMS, atau tempel langsung dari Excel.</p>
                 <form class="search-form" id="searchForm" autocomplete="off">
                     <div class="search-field">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -101,7 +101,7 @@
 
                         <div id="emptyState" class="empty-state">
                             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-                            <p>Masukkan koordinat di atas, atau klik langsung di peta.</p>
+                            <p>Masukkan koordinat di atas atau klik langsung pada peta.</p>
                         </div>
 
                         <div id="loadingIndicator" class="loading-state hidden" role="status" aria-label="Memuat hasil">
@@ -142,7 +142,7 @@
                                         </button>
                                     </dd>
                                 </div>
-                                <div><dt>Kab/Kota</dt><dd id="resKabKota">-</dd></div>
+                                <div><dt>Kabupaten/Kota</dt><dd id="resKabKota">-</dd></div>
                                 <div><dt>Provinsi</dt><dd id="resProvinsi">-</dd></div>
                                 <div><dt>Koordinat</dt><dd class="mono" id="resKoordinat">-</dd></div>
                             </dl>
@@ -170,7 +170,7 @@
                         <div id="map" class="map-container"></div>
                         <div class="map-legend" aria-hidden="true">
                             <span><i class="lg-line lg-kec"></i>Kecamatan</span>
-                            <span><i class="lg-line lg-kab"></i>Kab/Kota</span>
+                            <span><i class="lg-line lg-kab"></i>Kabupaten/Kota</span>
                         </div>
                         <div class="map-loading" id="mapLoading" role="status"><span class="spinner-sm" aria-hidden="true"></span>Memuat peta…</div>
                         <button type="button" id="expandSingleMapBtn" class="map-float-btn" title="Perbesar peta" aria-label="Perbesar peta">
@@ -200,7 +200,7 @@
                     </div>
                     <label class="drop-zone" id="batchDrop" for="batchFile">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-                        <span>Seret file CSV/TXT ke sini · <u>pilih file</u></span>
+                        <span>Seret berkas CSV/TXT ke sini atau <u>pilih berkas</u></span>
                         <input type="file" id="batchFile" accept=".csv,.txt,.tsv,text/csv,text/plain" class="sr-only">
                     </label>
                     <div id="batchProgressContainer" class="batch-progress hidden">
@@ -221,9 +221,9 @@
                 <section class="batch-map-section" aria-label="Peta sebaran titik">
                     <div id="batchMap" class="batch-map-container"></div>
                     <div class="batch-map-legend">
-                        <span><i class="dot dot-success"></i>Sukses</span>
-                        <span><i class="dot dot-warning"></i>Perairan / luar RI</span>
-                        <span><i class="dot dot-error"></i>Gagal</span>
+                        <span><i class="dot dot-success"></i>Berhasil</span>
+                        <span><i class="dot dot-warning"></i>Perairan/luar Indonesia</span>
+                        <span><i class="dot dot-error"></i>Gagal/tidak valid</span>
                     </div>
                     <button type="button" id="expandMapBtn" class="map-float-btn" title="Perbesar peta" aria-label="Perbesar peta">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
@@ -235,7 +235,7 @@
                 <div class="batch-result-header">
                     <div class="batch-result-title">
                         <h2 id="batchResultTitle">Hasil</h2>
-                        <div id="batchSummary" class="batch-summary hidden" role="group" aria-label="Filter status"></div>
+                        <div id="batchSummary" class="batch-summary hidden" role="group" aria-label="Saring berdasarkan status"></div>
                     </div>
                     <div class="batch-actions">
                         <div class="copy-menu">
@@ -263,17 +263,17 @@
                     <table id="batchTable" class="batch-table">
                         <thead>
                             <tr>
-                                <th scope="col">No</th>
+                                <th scope="col">No.</th>
                                 <th scope="col">Koordinat</th>
-                                <th scope="col">Desa/Kel.</th>
+                                <th scope="col">Desa/Kelurahan</th>
                                 <th scope="col">Kecamatan</th>
-                                <th scope="col">Kab/Kota</th>
+                                <th scope="col">Kab./Kota</th>
                                 <th scope="col">Provinsi</th>
                                 <th scope="col">Status</th>
                             </tr>
                         </thead>
                         <tbody id="batchTableBody">
-                            <tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>
+                            <tr class="empty-row"><td colspan="7">Belum ada data yang diproses.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -314,9 +314,9 @@
                     <button type="button" id="closeMapModalBtn" class="icon-btn icon-btn-sm" aria-label="Tutup">&times;</button>
                 </div>
                 <div id="mapModalLegend" class="map-modal-legend">
-                    <span><i class="dot dot-success"></i>Sukses</span>
-                    <span><i class="dot dot-warning"></i>Perairan / luar RI</span>
-                    <span><i class="dot dot-error"></i>Gagal</span>
+                    <span><i class="dot dot-success"></i>Berhasil</span>
+                    <span><i class="dot dot-warning"></i>Perairan/luar Indonesia</span>
+                    <span><i class="dot dot-error"></i>Gagal/tidak valid</span>
                 </div>
                 <div id="mapModalBody" class="map-modal-body">
                     <div id="mapSingleInfoBox" class="map-single-info-box hidden">
@@ -340,6 +340,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script src="js/bundle.js?v=20261106"></script>
+    <script src="js/bundle.js?v=20261107"></script>
 </body>
 </html>

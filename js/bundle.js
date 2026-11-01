@@ -121,12 +121,12 @@ function parseCoordinates(inputStr) {
     const dirResult = convertDMSToDecimal(inputStr) || convertHemisphereDecimal(inputStr);
     if (dirResult) {
         if (dirResult.lat < -90 || dirResult.lat > 90 || dirResult.lon < -180 || dirResult.lon > 180) {
-            return { valid: false, error: "Nilai lat/long dari format DMS di luar batas Bumi." };
+            return { valid: false, error: "Nilai lintang/bujur di luar rentang yang valid (lintang −90 hingga 90, bujur −180 hingga 180)." };
         }
         return { valid: true, lat: dirResult.lat, lon: dirResult.lon, converted: true };
     }
 
-    const formatError = { valid: false, error: "Format koordinat tidak dikenali. Coba desimal (cth: -6.208, 106.845) atau DMS (cth: 6°14'52.1\"S 106°52'40.0\"E)" };
+    const formatError = { valid: false, error: "Format koordinat tidak dikenali. Gunakan format desimal (contoh: -6.208, 106.845) atau DMS (contoh: 6°14'52.1\"S 106°52'40.0\"E)." };
 
     // 2. Fallback ke format desimal standar
     // Hilangkan tanda petik tunggal/ganda (sering terbawa dari copy-paste Excel)
@@ -177,7 +177,7 @@ function parseCoordinates(inputStr) {
     }
 
     if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-        return { valid: false, error: "Nilai lat/long di luar batas normal Bumi." };
+        return { valid: false, error: "Nilai lintang/bujur di luar rentang yang valid (lintang −90 hingga 90, bujur −180 hingga 180)." };
     }
 
     return { valid: true, lat: lat, lon: lon, converted: convertedFlag };
@@ -423,7 +423,7 @@ async function reverseGeocode(lat, lon) {
             return {
                 success: false,
                 networkError: true,
-                error: "Gagal terhubung ke layanan data geoportal. Periksa koneksi internet lalu coba lagi."
+                error: "Tidak dapat terhubung ke layanan data. Periksa koneksi internet Anda, lalu coba lagi."
             };
         }
 
@@ -439,7 +439,7 @@ async function reverseGeocode(lat, lon) {
                 const result = {
                     success: false,
                     isWaterBody: true,
-                    error: `Wilayah ini terdeteksi berada di perairan (${waterName}). Tidak terdapat data administrasi darat pada titik koordinat ini.`,
+                    error: `Titik ini berada di perairan (${waterName}), sehingga tidak memiliki data wilayah administrasi.`,
                     outsideIndonesia: false
                 };
                 if (bigData) setToCache(lat, lon, result);
@@ -498,11 +498,11 @@ async function reverseGeocode(lat, lon) {
         }
 
         // Sumber merespons tetapi tidak ada data — tidak di-cache
-        return { success: false, notFound: true, error: "Lokasi tidak ditemukan di database manapun. Titik mungkin berada di luar wilayah daratan Indonesia." };
+        return { success: false, notFound: true, error: "Data wilayah untuk titik ini tidak ditemukan. Titik kemungkinan berada di luar daratan Indonesia." };
 
     } catch (error) {
         console.error("Geocoding failed:", error);
-        return { success: false, networkError: true, error: "Gagal terhubung ke layanan data geoportal." };
+        return { success: false, networkError: true, error: "Tidak dapat terhubung ke layanan data. Periksa koneksi internet Anda, lalu coba lagi." };
     }
 }
 
@@ -652,7 +652,7 @@ async function fetchAndDrawBoundaries(adminData, lat, lon, onKecamatanFeature) {
         if (kabFeature && map && singleSearchCoords && singleSearchCoords.lat === lat && singleSearchCoords.lon === lon) {
             const name = formatWilayahName(bigAttr(kabFeature.properties, 'WADMKK')) !== '-' ? formatWilayahName(bigAttr(kabFeature.properties, 'WADMKK')) : adminData.kabKota;
             const layer = makeBoundaryLayer(kabFeature, 'kabKota', 'kabPane', map)
-                .bindTooltip(`Kab/Kota: ${name}`, { sticky: true, className: 'boundary-tooltip' })
+                .bindTooltip(`Kabupaten/Kota: ${name}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(map);
             boundaryLayers.push(layer);
         }
@@ -712,7 +712,7 @@ function addBasemapSwitch(mapObj, layers) {
         onAdd: function () {
             const box = L.DomUtil.create('div', 'leaflet-control basemap-switch');
             box.setAttribute('role', 'group');
-            box.setAttribute('aria-label', 'Jenis peta');
+            box.setAttribute('aria-label', 'Jenis peta dasar');
             const make = (label, layer, active) => {
                 const b = L.DomUtil.create('button', '', box);
                 b.type = 'button';
@@ -786,7 +786,7 @@ function initMap(containerId, onLocationSelected) {
     layers.standardMap.addTo(map);
     addBasemapSwitch(map, layers);
 
-    marker = L.marker([initialLat, initialLon], { draggable: true, icon: createMainPinIcon(), keyboard: true, title: 'Titik lokasi (bisa digeser)' }).addTo(map);
+    marker = L.marker([initialLat, initialLon], { draggable: true, icon: createMainPinIcon(), keyboard: true, title: 'Titik lokasi (dapat digeser)' }).addTo(map);
 
     // Normalisasi bujur ke -180..180 (peta bisa digeser melewati antimeridian) & bulatkan 6 desimal
     const normalizeLatLng = (latlng) => {
@@ -817,7 +817,7 @@ function initMap(containerId, onLocationSelected) {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-custom-autozoom');
             const link = L.DomUtil.create('a', '', container);
             link.href = '#';
-            link.title = 'Fokus & Zoom ke Titik Lokasi Utama (Zoom 17)';
+            link.title = 'Perbesar ke titik lokasi';
             link.role = 'button';
             link.style.display = 'flex';
             link.style.alignItems = 'center';
@@ -916,7 +916,7 @@ function initBatchMap() {
             const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-custom-autozoom');
             const link = L.DomUtil.create('a', '', container);
             link.href = '#';
-            link.title = 'Fokus & Autozoom ke Titik Terpilih (Zoom 17)';
+            link.title = 'Perbesar ke titik terpilih';
             link.role = 'button';
             link.style.display = 'flex';
             link.style.alignItems = 'center';
@@ -956,6 +956,19 @@ function initBatchMap() {
     }
 }
 
+// Pesan & label status yang tampil ke pengguna
+const OUTSIDE_RI_MSG = "Titik ini berada di luar wilayah Negara Kesatuan Republik Indonesia.";
+const STATUS_LABELS = {
+    'Sukses': 'Berhasil',
+    'Wilayah Perairan': 'Perairan',
+    'Luar Batas RI': 'Luar Indonesia',
+    'Gagal': 'Tidak ditemukan',
+    'Error API': 'Layanan gagal',
+    'Error': 'Tidak valid',
+    'Kosong': 'Kosong'
+};
+function statusLabel(status) { return STATUS_LABELS[status] || status; }
+
 // Utilitas sanitasi HTML — mencegah XSS via data dari API atau input pengguna
 function escapeHtml(str) {
     if (typeof str !== 'string') return '-';
@@ -977,7 +990,7 @@ async function showBatchBoundaries(data) {
     fetchBIGBoundary(BIG_URLS.kabKota, data.lat, data.lon).then(kabFeature => {
         if (kabFeature && batchMap && activeBatchCoords && activeBatchCoords.lat === data.lat && activeBatchCoords.lon === data.lon) {
             const kabLayer = makeBoundaryLayer(kabFeature, 'kabKota', 'kabPane', batchMap)
-                .bindTooltip(`Kab/Kota: ${data.kabKota}`, { sticky: true, className: 'boundary-tooltip' })
+                .bindTooltip(`Kabupaten/Kota: ${data.kabKota}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(batchMap);
             batchBoundaryLayers.push(kabLayer);
         }
@@ -1035,9 +1048,9 @@ function addBatchMarker(data) {
             <div style="font-size:0.85rem;color:#374151;">
                 <b>Desa/Kelurahan:</b> ${escapeHtml(data.desaKel || '-')}<br>
                 <b>Kecamatan:</b> ${escapeHtml(data.kecamatan)}<br>
-                <b>Kab/Kota:</b> ${escapeHtml(data.kabKota)}<br>
+                <b>Kabupaten/Kota:</b> ${escapeHtml(data.kabKota)}<br>
                 <b>Provinsi:</b> ${escapeHtml(data.provinsi)}<br>
-                <b>Status:</b> <span style="color:${pinColor};font-weight:600;">${escapeHtml(data.status)}</span>
+                <b>Status:</b> <span style="color:${pinColor};font-weight:600;">${escapeHtml(statusLabel(data.status))}</span>
             </div>
         </div>
     `;
@@ -1100,7 +1113,7 @@ function setBadge(text, kind) {
     badge.className = `badge badge-${kind}`;
     badge.title = kind === 'success'
         ? 'Nama wilayah dari poligon batas resmi Badan Informasi Geospasial (BIG).'
-        : kind === 'neutral' ? 'Layanan BIG belum merespons; nama wilayah dari layanan peta Esri/OpenStreetMap.' : '';
+        : kind === 'neutral' ? 'Layanan BIG belum merespons; nama wilayah diambil dari layanan peta Esri/OpenStreetMap.' : '';
 }
 
 function showLoading() {
@@ -1125,15 +1138,15 @@ function showError(message) {
     document.getElementById('errorMessage').textContent = message;
 
     // Peringatan (kuning) untuk luar RI dan wilayah perairan; selain itu error (merah)
-    const isWater = message.startsWith("Wilayah ini terdeteksi berada di perairan");
-    const isWarning = message === "Wilayah ini berada di luar batas Negara Republik Indonesia." || isWater;
+    const isWater = message.startsWith("Titik ini berada di perairan");
+    const isWarning = message === OUTSIDE_RI_MSG || isWater;
     errorState.classList.toggle('is-warning', isWarning);
 
     const modalBox = document.getElementById('mapSingleInfoBox');
     if (modalBox && !modalBox.classList.contains('hidden')) {
         ['modalInfoDesaKel', 'modalInfoKecamatan', 'modalInfoKabKota', 'modalInfoProvinsi']
             .forEach(id => { document.getElementById(id).textContent = '-'; });
-        if (isWarning) setModalStatus(isWater ? 'Di perairan' : 'Luar RI', 'warning');
+        if (isWarning) setModalStatus(isWater ? 'Perairan' : 'Luar Indonesia', 'warning');
         else setModalStatus('Gagal', 'error');
     }
 }
@@ -1155,12 +1168,12 @@ function showResult(data, lat, lon) {
     if (coordEl) coordEl.textContent = (typeof lat === 'number' && typeof lon === 'number') ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : '-';
 
     const kec = admin.kecamatan || '-';
-    let status = 'Tidak ada data', kind = 'error';
-    if (kec === '(Luar RI)') { status = 'Luar batas RI'; kind = 'warning'; }
-    else if (kec !== '-' && kec !== '') { status = 'Sukses'; kind = 'success'; }
+    let status = 'Data tidak ditemukan', kind = 'error';
+    if (kec === '(Luar RI)') { status = 'Luar Indonesia'; kind = 'warning'; }
+    else if (kec !== '-' && kec !== '') { status = 'Berhasil'; kind = 'success'; }
 
     // Badge sumber data
-    if (kec === '(Luar RI)') setBadge('Di luar wilayah RI', 'danger');
+    if (kec === '(Luar RI)') setBadge('Berada di luar wilayah Indonesia', 'danger');
     else if (kec === '-' || kec === '') setBadge('Kecamatan tidak terdeteksi', 'danger');
     else if (data.source === 'BIG') setBadge('Sumber resmi · BIG', 'success');
     else setBadge('Sumber: Esri/OSM', 'neutral');
@@ -1192,7 +1205,7 @@ function copyText(text) {
         let ok = false;
         try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
         document.body.removeChild(ta);
-        ok ? resolve() : reject(new Error('Salin ke clipboard tidak didukung browser ini'));
+        ok ? resolve() : reject(new Error('Peramban ini tidak mendukung fitur salin'));
     });
 }
 
@@ -1283,7 +1296,7 @@ function renderHistory() {
         const details = document.createElement('span');
         details.className = 'hist-details';
         details.textContent = [item.kecamatan && item.kecamatan !== '-' ? item.kecamatan : null, item.kabKota && item.kabKota !== '-' ? item.kabKota : null]
-            .filter(Boolean).join(', ') || 'Tanpa data kecamatan';
+            .filter(Boolean).join(', ') || 'Kecamatan tidak ditemukan';
 
         const coord = document.createElement('span');
         coord.className = 'hist-coord';
@@ -1444,7 +1457,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (locateBtn) {
         locateBtn.addEventListener('click', () => {
             if (!navigator.geolocation) {
-                showError('Browser ini tidak mendukung deteksi lokasi.');
+                showError('Peramban ini tidak mendukung deteksi lokasi.');
                 return;
             }
             locateBtn.disabled = true;
@@ -1458,7 +1471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, (err) => {
                 locateBtn.disabled = false;
                 showError(err.code === 1
-                    ? 'Izin lokasi ditolak. Aktifkan izin lokasi di browser, atau masukkan koordinat secara manual.'
+                    ? 'Izin akses lokasi ditolak. Aktifkan izin lokasi pada peramban atau masukkan koordinat secara manual.'
                     : 'Lokasi perangkat tidak dapat ditentukan. Coba lagi atau masukkan koordinat secara manual.');
             }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
         });
@@ -1481,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = [
                 `Desa/Kelurahan: ${a.desaKel || '-'}`,
                 `Kecamatan: ${a.kecamatan || '-'}`,
-                `Kab/Kota: ${a.kabKota || '-'}`,
+                `Kabupaten/Kota: ${a.kabKota || '-'}`,
                 `Provinsi: ${a.provinsi || '-'}`,
                 `Koordinat: ${lastResult.lat}, ${lastResult.lon}`
             ].join('\n');
@@ -1538,7 +1551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Koordinat di luar RI: peringatan langsung, tanpa API call
         if (lat < INDONESIA_BOUNDS.latMin || lat > INDONESIA_BOUNDS.latMax || lon < INDONESIA_BOUNDS.lonMin || lon > INDONESIA_BOUNDS.lonMax) {
-            showError("Wilayah ini berada di luar batas Negara Republik Indonesia.");
+            showError(OUTSIDE_RI_MSG);
             return;
         }
 
@@ -1550,7 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setSearching(false);
         // Konfirmasi dari API: wilayah ini bukan Republik Indonesia
         if (result.outsideIndonesia) {
-            showError("Wilayah ini berada di luar batas Negara Republik Indonesia.");
+            showError(OUTSIDE_RI_MSG);
             return;
         }
         if (result.success) {
@@ -1666,7 +1679,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function loadBatchFile(file) {
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { alert('Ukuran file maksimal 5 MB.'); return; }
+        if (file.size > 5 * 1024 * 1024) { alert('Ukuran berkas maksimal 5 MB.'); return; }
         const reader = new FileReader();
         reader.onload = () => {
             const rows = String(reader.result).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
@@ -1700,7 +1713,7 @@ document.addEventListener('DOMContentLoaded', () => {
         batchInput.value = '';
         updateGutter();
         updateProcessLabel();
-        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>';
+        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data yang diproses.</td></tr>';
         batchFilter = 'all';
         updateBatchSummary();
         batchData = [];
@@ -1716,7 +1729,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const lines = rawText.replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
         
         if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === '')) {
-            alert('Silakan masukkan setidaknya satu baris koordinat.');
+            alert('Masukkan setidaknya satu baris koordinat.');
             return;
         }
 
@@ -1876,7 +1889,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lat: lat,
                     lon: lon,
                     desaKel: adm.desaKel || '-',
-                    kecamatan: adm.kecamatan === '-' ? 'Tidak Ditemukan' : adm.kecamatan,
+                    kecamatan: adm.kecamatan === '-' ? 'Tidak ditemukan' : adm.kecamatan,
                     kabKota: adm.kabKota,
                     provinsi: adm.provinsi,
                     status: status
@@ -1911,7 +1924,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         lat: lat,
                         lon: lon,
                         desaKel: '-',
-                        kecamatan: result.notFound ? 'Tidak Ditemukan' : '-', kabKota: '-', provinsi: '-',
+                        kecamatan: result.notFound ? 'Tidak ditemukan' : '-', kabKota: '-', provinsi: '-',
                         status: result.networkError ? 'Error API' : 'Gagal',
                         errorMsg: result.error || ''
                     };
@@ -1930,10 +1943,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BATCH_MESSAGES = {
         'Wilayah Perairan': 'Titik berada di perairan',
-        'Luar Batas RI': 'Di luar wilayah Indonesia',
-        'Error API': 'Layanan data tidak merespons — coba proses ulang',
+        'Luar Batas RI': 'Berada di luar wilayah Indonesia',
+        'Error API': 'Layanan data tidak merespons. Silakan proses ulang.',
         'Gagal': 'Kecamatan tidak ditemukan',
-        'Error': 'Format tidak dikenali — gunakan desimal atau DMS',
+        'Error': 'Format tidak dikenali. Gunakan format desimal atau DMS.',
         'Kosong': 'Baris kosong'
     };
 
@@ -1945,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderBatchRow(data) {
         const tr = document.createElement('tr');
-        tr.title = 'Klik untuk melihat titik di peta';
+        tr.title = 'Klik untuk melihat titik pada peta';
 
         const group = batchStatusGroup(data.status);
         tr.dataset.group = group;
@@ -1979,7 +1992,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusTd = td('', 'col-status');
         const pill = document.createElement('span');
         pill.className = `status-pill status-${group}`;
-        pill.textContent = data.status === 'Luar Batas RI' ? 'Luar RI' : data.status === 'Wilayah Perairan' ? 'Perairan' : data.status;
+        pill.textContent = statusLabel(data.status);
         statusTd.appendChild(pill);
 
         batchTableBody.appendChild(tr);
@@ -1990,9 +2003,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const batchSummary = document.getElementById('batchSummary');
     let batchFilter = 'all';
     const BATCH_GROUP_LABELS = {
-        success: 'Sukses',
-        warning: 'Perairan/Luar RI',
-        error: 'Error/Gagal',
+        success: 'Berhasil',
+        warning: 'Perairan/luar Indonesia',
+        error: 'Gagal/tidak valid',
         empty: 'Kosong'
     };
 
@@ -2115,8 +2128,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sortedBatchData = () => batchData.slice().sort((a, b) => a.id - b.id);
     const copyBuilders = {
-        table: () => "No\tLintang\tBujur\tDesa/Kelurahan\tKecamatan\tKab/Kota\tProvinsi\tStatus\n" +
-            sortedBatchData().map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.desaKel ?? ''}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n'),
+        table: () => "No.\tLintang\tBujur\tDesa/Kelurahan\tKecamatan\tKabupaten/Kota\tProvinsi\tStatus\n" +
+            sortedBatchData().map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.desaKel ?? ''}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${statusLabel(d.status)}`).join('\n'),
         kecamatan: () => sortedBatchData().map(d => d.kecamatan).join('\n'),
         kabKota: () => sortedBatchData().map(d => d.kabKota).join('\n'),
         desaKel: () => sortedBatchData().map(d => d.desaKel ?? '').join('\n'),
@@ -2160,8 +2173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const str = String(v ?? '');
             return /[",;\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
         };
-        const header = ['No', 'Input', 'Lintang', 'Bujur', 'Desa/Kelurahan', 'Kecamatan', 'Kab/Kota', 'Provinsi', 'Status'];
-        const rows = sortedBatchData().map(d => [d.id, d.inputText ?? '', d.lat, d.lon, d.desaKel ?? '', d.kecamatan, d.kabKota, d.provinsi, d.status]);
+        const header = ['No.', 'Input asli', 'Lintang', 'Bujur', 'Desa/Kelurahan', 'Kecamatan', 'Kabupaten/Kota', 'Provinsi', 'Status'];
+        const rows = sortedBatchData().map(d => [d.id, d.inputText ?? '', d.lat, d.lon, d.desaKel ?? '', d.kecamatan, d.kabKota, d.provinsi, statusLabel(d.status)]);
         // BOM agar Excel membaca UTF-8 dengan benar
         return '﻿' + [header, ...rows].map(r => r.map(esc).join(',')).join('\r\n');
     }
@@ -2275,14 +2288,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const kab = document.getElementById('resKabKota').textContent.trim();
             const prov = document.getElementById('resProvinsi').textContent.trim();
             
-            let status = 'Tidak Ada Data';
+            let status = 'Data tidak ditemukan';
             if (kec !== '-' && kec !== '') {
                 if (kec === '(Luar RI)' || kec.includes('Luar RI')) {
-                    status = 'Luar Batas RI';
+                    status = 'Luar Indonesia';
                 } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
-                    status = 'Wilayah Perairan';
+                    status = 'Perairan';
                 } else {
-                    status = 'Sukses';
+                    status = 'Berhasil';
                 }
             }
             
@@ -2294,9 +2307,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Berikan warna status
             const statusEl = document.getElementById('modalInfoStatus');
-            if (status === 'Sukses') {
+            if (status === 'Berhasil') {
                 statusEl.style.color = '#0F6B41'; // green
-            } else if (status === 'Tidak Ada Data') {
+            } else if (status === 'Data tidak ditemukan') {
                 statusEl.style.color = '#9B1C12'; // red
             } else {
                 statusEl.style.color = '#7A5200'; // amber/warning
