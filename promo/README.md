@@ -7,7 +7,8 @@ Video iklan 16:9 (1920×1080, 30 fps, 35 detik termasuk layar akhir 7,5 detik) u
 ```bash
 npm install
 npm run audio    # membuat public/audio/*.wav (butuh Python 3 + numpy)
-npm run render   # menghasilkan out/cari-kecamatan-iklan-35s.mp4 (butuh ffmpeg)
+npm run render            # 16:9 → out/cari-kecamatan-iklan-35s.mp4 (butuh ffmpeg)
+npm run render:vertical   # 9:16 → out/cari-kecamatan-iklan-35s-vertikal.mp4
 ```
 
 `npm run studio` membuka pratinjau interaktif untuk menyunting adegan. Jika Remotion tidak bisa mengunduh Chrome sendiri, tambahkan `--browser-executable=<jalur chrome-headless-shell>` pada perintah render.
@@ -15,6 +16,8 @@ npm run render   # menghasilkan out/cari-kecamatan-iklan-35s.mp4 (butuh ffmpeg)
 Audio akhir dinormalkan ke −14 LUFS (standar kekerasan YouTube).
 
 ## Struktur
+
+Ada dua komposisi dengan isi yang sama: `CariKecamatanAd` (16:9, 1920×1080, YouTube & presentasi) dan `CariKecamatanAdVertical` (9:16, 1080×1920, Shorts/Reels/TikTok). Tata letak vertikal diatur lewat `useVertical()` (`src/layout.ts`) dan menjaga isi penting di luar ±220 px atas serta ±380 px bawah yang tertutup antarmuka aplikasi. Peta Gambir vertikal memakai data tegak tersendiri (`src/data/jakarta_v.ts`).
 
 | Waktu | Adegan | Berkas |
 |---|---|---|

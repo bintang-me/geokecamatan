@@ -6,7 +6,8 @@
     "studio": "remotion studio src/index.ts",
     "audio": "python3 scripts/make_audio.py public/audio",
     "render": "remotion render src/index.ts CariKecamatanAd out/raw.mp4 && ffmpeg -y -loglevel error -i out/raw.mp4 -t 35 -c:v copy -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:a aac -b:a 192k out/cari-kecamatan-iklan-35s.mp4",
-    "qr": "node scripts/make_qr.js https://carikecamatan.vercel.app"
+    "qr": "node scripts/make_qr.js https://carikecamatan.vercel.app",
+    "render:vertical": "remotion render src/index.ts CariKecamatanAdVertical out/raw_v.mp4 && ffmpeg -y -loglevel error -i out/raw_v.mp4 -t 35 -c:v copy -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:a aac -b:a 192k out/cari-kecamatan-iklan-35s-vertikal.mp4"
   },
   "dependencies": {
     "@fontsource/jetbrains-mono": "5.1.1",

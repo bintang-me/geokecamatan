@@ -2,6 +2,7 @@ import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { C, FONT, MONO } from '../brand';
 import { clamp, rise } from '../anim';
+import { useVertical } from '../layout';
 
 // Format campur aduk seperti di lembar kerja sungguhan
 const MESSY = [
@@ -14,13 +15,16 @@ const BAD = new Set([2, 5, 9, 14, 19, 23, 28]);
 // 3–7 dtk: lembar kerja bergulir, beberapa sel berkedip merah
 export const S2Problem: React.FC = () => {
     const f = useCurrentFrame();
+    const V = useVertical();
     const scroll = interpolate(f, [0, 120], [0, -520], clamp);
     const count = Math.round(interpolate(f, [8, 100], [12, 216], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
     const rows = Array.from({ length: 30 }, (_, i) => i);
     return (
         <AbsoluteFill style={{ fontFamily: FONT }}>
             {/* lembar kerja miring */}
-            <div style={{ position: 'absolute', left: 980, top: -40, width: 860, height: 1200, transform: 'perspective(1600px) rotateY(-14deg) rotateZ(2deg)', transformOrigin: 'left center', ...rise(f, 0, 16, 60) }}>
+            <div style={V
+                ? { position: 'absolute', left: 70, top: 860, width: 940, height: 1200, transform: 'perspective(1800px) rotateX(16deg) rotateZ(-2deg)', transformOrigin: 'center top', ...rise(f, 0, 16, 60) }
+                : { position: 'absolute', left: 980, top: -40, width: 860, height: 1200, transform: 'perspective(1600px) rotateY(-14deg) rotateZ(2deg)', transformOrigin: 'left center', ...rise(f, 0, 16, 60) }}>
                 <div style={{ transform: `translateY(${scroll}px)` }}>
                     {rows.map(i => {
                         const bad = BAD.has(i);
@@ -38,8 +42,8 @@ export const S2Problem: React.FC = () => {
                     })}
                 </div>
             </div>
-            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, ${C.dCanvas} 46%, rgba(11,18,32,0) 70%)` }} />
-            <div style={{ position: 'absolute', left: 140, top: 330, width: 820 }}>
+            <div style={{ position: 'absolute', inset: 0, background: V ? `linear-gradient(180deg, ${C.dCanvas} 44%, rgba(11,18,32,0) 62%, rgba(11,18,32,0) 80%, ${C.dCanvas} 96%)` : `linear-gradient(90deg, ${C.dCanvas} 46%, rgba(11,18,32,0) 70%)` }} />
+            <div style={{ position: 'absolute', left: V ? 80 : 140, top: V ? 400 : 330, width: V ? 920 : 820 }}>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, lineHeight: 1.12, ...rise(f, 6) }}>Format datanya<br />campur aduk?</div>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, lineHeight: 1.12, marginTop: 14, ...rise(f, 30) }}>Ratusan baris pula</div>
                 <div style={{ marginTop: 40, fontFamily: MONO, fontSize: 30, color: C.dMuted, ...rise(f, 40) }}>{count} baris</div>

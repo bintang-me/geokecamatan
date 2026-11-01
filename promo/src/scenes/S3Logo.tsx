@@ -1,5 +1,5 @@
 import React from 'react';
-import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C, FONT } from '../brand';
 import { clamp, easeOut, rise } from '../anim';
 import { Logo, Wordmark } from '../components/Logo';
@@ -7,11 +7,12 @@ import { Logo, Wordmark } from '../components/Logo';
 // 7–9,5 dtk: layar terbuka menjadi terang, logo tergambar seperti layar pembuka situs
 export const S3Logo: React.FC = () => {
     const f = useCurrentFrame();
-    const r = interpolate(f, [0, 16], [0, 1300], { ...clamp, easing: easeOut });
+    const { width, height } = useVideoConfig();
+    const r = interpolate(f, [0, 16], [0, Math.hypot(width, height) / 2 + 60], { ...clamp, easing: easeOut });
     const ul = interpolate(f, [30, 44], [0, 1], { ...clamp, easing: easeOut });
     return (
         <AbsoluteFill style={{ fontFamily: FONT, alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', left: 960 - r, top: 540 - r, width: r * 2, height: r * 2, borderRadius: '50%', background: C.canvas }} />
+            <div style={{ position: 'absolute', left: width / 2 - r, top: height / 2 - r, width: r * 2, height: r * 2, borderRadius: '50%', background: C.canvas }} />
             <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 34 }}>
                     <Logo size={150} animated delay={2} />
