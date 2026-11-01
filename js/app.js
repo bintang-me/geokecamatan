@@ -112,6 +112,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
+    function restoreTabFromSession(tabId) {
+        if (tabId === 'tab-tunggal' && !lastSingleCoords) {
+            const saved = SESSION.get(SS_SINGLE);
+            if (saved && (saved.result || saved.error)) restoreSingle(saved);
+            else {
+                const draft = SESSION.get(SS_DRAFT_SINGLE);
+                if (draft && !coordInput.value) coordInput.value = draft;
+            }
+        } else if (tabId === 'tab-massal' && batchData.length === 0 && !isProcessing) {
+            const saved = SESSION.get(SS_BATCH);
+            if (saved) restoreBatch(saved);
+            else {
+                const draft = SESSION.get(SS_DRAFT_BATCH);
+                if (draft && !batchInput.value) { batchInput.value = draft; updateGutter(); updateProcessLabel(); }
+            }
+        }
+    }
+
     function activateTab(name) {
         document.querySelector(`.tab-btn[data-tab="tab-${name}"]`)?.click();
     }
@@ -402,6 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     : (lastSingleCoords ? singlePath(lastSingleCoords.lat, lastSingleCoords.lon) : ROUTES.tunggal);
                 setPath(path, true);
             }
+
+            // Pindah tab di halaman yang sama (mis. Tentang → Massal → Tunggal):
+            // pulihkan kondisi terakhir tab tujuan bila belum ada isinya
+            if (!routing) restoreTabFromSession(btn.dataset.tab);
             
             // Fix map rendering issue when switching tabs
             if (btn.dataset.tab === 'tab-tunggal' && map) {
