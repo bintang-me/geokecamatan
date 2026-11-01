@@ -34,6 +34,7 @@ function readRoute() {
     }
     if (path === ROUTES.tunggal) return { tab: 'tunggal' };
     if (path === ROUTES.massal) return { tab: 'massal', data: readBatchHash() };
+    if (path === '/tentang') return { tab: 'tentang' };
 
     // Tautan lama
     const q = new URLSearchParams(location.search).get('q');
