@@ -6,7 +6,7 @@
     <title>Cari Kecamatan | Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261126">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261127">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com">
@@ -17,8 +17,8 @@
     <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="/css/style.css?v=20261126">
-    <link rel="stylesheet" href="/css/map.css?v=20261126">
+    <link rel="stylesheet" href="/css/style.css?v=20261127">
+    <link rel="stylesheet" href="/css/map.css?v=20261127">
     <script>
         // Transisi antarhalaman bisa dibatalkan peramban (mis. saat alamat diperbarui); abaikan tanpa galat
         ['pageswap', 'pagereveal'].forEach(function (ev) {
@@ -87,7 +87,7 @@
         <div id="tab-tunggal" class="tab-pane active">
             <section class="hero" aria-labelledby="heroTitle">
                 <h1 id="heroTitle">Temukan Kecamatan dari Titik Koordinat</h1>
-                <p class="hero-sub">Ketik atau tempel koordinat dalam format desimal maupun DMS, termasuk salinan langsung dari Excel atau CSV.</p>
+                <p class="hero-sub">Ketik atau tempel koordinat dalam format desimal maupun DMS, termasuk salinan langsung dari Excel atau CSV. Penulisan yang keliru akan dirapikan otomatis.</p>
                 <form class="search-form" id="searchForm" autocomplete="off">
                     <div class="search-field">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -103,11 +103,41 @@
                         <span class="btn-label">Cari kecamatan</span>
                     </button>
                 </form>
+                <p id="coordNote" class="coord-note" role="status" hidden>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+                    <span><span id="coordNoteText"></span> <span class="coord-note-orig">Masukan asli: <code id="coordNoteOrig"></code></span></span>
+                </p>
+                <div class="examples-wrap">
                 <div class="examples">
                     <span>Coba contoh:</span>
                     <button type="button" class="example-chip" data-coord="-6.2088, 106.8456">-6.2088, 106.8456</button>
                     <button type="button" class="example-chip" data-coord="6°14'52&quot;S 106°52'40&quot;E">6°14'52"S 106°52'40"E</button>
                     <button type="button" class="example-chip" data-coord="6.9175 LS, 107.6191 BT">6.9175 LS, 107.6191 BT</button>
+                    <button type="button" class="example-chip" data-coord="-7,2575; 112,7521">-7,2575; 112,7521</button>
+                    <button type="button" id="formatInfoBtn" class="format-info-btn" aria-expanded="false" aria-controls="formatPopover" title="Format yang dikenali">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
+                        <span>Format lain</span>
+                    </button>
+                </div>
+                <div class="format-backdrop" hidden></div>
+                <div id="formatPopover" class="format-popover" role="dialog" aria-labelledby="formatPopoverTitle" hidden>
+                    <div class="format-popover-head">
+                        <h2 id="formatPopoverTitle">Format yang Dikenali</h2>
+                        <button type="button" class="icon-btn icon-btn-sm format-popover-close" aria-label="Tutup">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <p class="format-popover-intro">Tulis koordinat dengan cara yang biasa Anda pakai. Penulisan yang keliru dirapikan otomatis sebelum dicari. Klik contoh untuk mencoba.</p>
+                    <dl class="format-list">
+                        <div><dt>Desimal</dt><dd><button type="button" class="format-try" data-coord="-6.2088, 106.8456">-6.2088, 106.8456</button></dd></div>
+                        <div><dt>Koma desimal</dt><dd><button type="button" class="format-try" data-coord="-6,2088; 106,8456">-6,2088; 106,8456</button></dd></div>
+                        <div><dt>Derajat, menit, detik (DMS)</dt><dd><button type="button" class="format-try" data-coord="6°14'52&quot;S 106°52'40&quot;E">6°14'52"S 106°52'40"E</button><small>Simbol ° boleh diganti huruf o atau spasi.</small></dd></div>
+                        <div><dt>Arah mata angin</dt><dd><button type="button" class="format-try" data-coord="6.9175 LS, 107.6191 BT">6.9175 LS, 107.6191 BT</button><small>LS, LU, BT, BB, atau N, S, E, W.</small></dd></div>
+                        <div><dt>Titik desimal hilang</dt><dd><button type="button" class="format-try" data-coord="-62088, 1068456">-62088, 1068456</button><small>Sering terjadi pada angka dari Excel.</small></dd></div>
+                        <div><dt>Urutan terbalik</dt><dd><button type="button" class="format-try" data-coord="106.8456, -6.2088">106.8456, -6.2088</button><small>Bujur ditulis lebih dulu.</small></dd></div>
+                        <div><dt>Salinan Excel atau CSV</dt><dd><small>Kolom yang dipisah tab, titik koma, atau bertanda kutip langsung terbaca.</small></dd></div>
+                    </dl>
+                </div>
                 </div>
             </section>
 
@@ -383,11 +413,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js" defer></script>
-    <script src="/js/parser.js?v=20261126" defer></script>
-    <script src="/js/geocoder.js?v=20261126" defer></script>
-    <script src="/js/map.js?v=20261126" defer></script>
-    <script src="/js/ui.js?v=20261126" defer></script>
-    <script src="/js/router.js?v=20261126" defer></script>
-    <script src="/js/app.js?v=20261126" defer></script>
+    <script src="/js/parser.js?v=20261127" defer></script>
+    <script src="/js/geocoder.js?v=20261127" defer></script>
+    <script src="/js/map.js?v=20261127" defer></script>
+    <script src="/js/ui.js?v=20261127" defer></script>
+    <script src="/js/router.js?v=20261127" defer></script>
+    <script src="/js/app.js?v=20261127" defer></script>
 </body>
 </html>

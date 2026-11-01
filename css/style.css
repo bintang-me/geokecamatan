@@ -217,7 +217,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 
 /* ---------- Hero / pencarian ---------- */
-.hero { display: flex; flex-direction: column; gap: 12px; }
+.hero { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 5; } /* panel "Format lain" tampil di atas kartu di bawahnya */
 .hero h1 {
     font-size: var(--fs-h1);
     line-height: var(--lh-tight);
@@ -285,6 +285,91 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     transition: border-color 0.2s ease, background 0.2s ease;
 }
 .example-chip:hover { border-color: var(--line-strong); background: var(--canvas); }
+
+/* Keterangan koreksi otomatis (muncul hanya bila masukan dirapikan) */
+.coord-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: -4px 0 12px;
+    font-size: var(--fs-small);
+    line-height: 1.5;
+    color: var(--muted);
+    animation: fadeUp 0.3s var(--ease-out) both;
+}
+.coord-note[hidden] { display: none; }
+.coord-note svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
+.coord-note-orig { color: var(--muted-2); }
+.coord-note code {
+    font-family: var(--mono);
+    font-size: var(--fs-micro);
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--canvas);
+    border: 1px solid var(--line-soft);
+    color: var(--ink);
+    word-break: break-all;
+}
+
+/* Tombol "Format lain" & panel daftar format */
+.examples-wrap { position: relative; }
+.format-info-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+.format-info-btn:hover, .format-info-btn[aria-expanded="true"] { color: var(--ink); background: var(--canvas); }
+.format-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 1200;
+    width: min(460px, 100%);
+    padding: 18px 20px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+    animation: menuIn 0.18s var(--ease-out) both;
+    transform-origin: top left;
+}
+.format-popover[hidden] { display: none; }
+.format-backdrop { display: none; }
+.format-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.format-popover-head h2 { font-size: var(--fs-h3); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
+.format-popover-intro { margin: 6px 0 12px; font-size: var(--fs-small); line-height: 1.5; color: var(--muted); }
+.format-list { display: flex; flex-direction: column; margin: 0; }
+.format-list > div {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--line-soft);
+}
+.format-list dt { font-size: var(--fs-small); font-weight: 500; color: var(--ink); padding-top: 3px; }
+.format-list dd { margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.format-list small { font-size: var(--fs-micro); line-height: 1.45; color: var(--muted); }
+.format-try {
+    padding: 3px 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.format-try:hover { border-color: var(--line-strong); background: var(--canvas); }
 
 /* ---------- Tombol ---------- */
 .btn {
@@ -870,6 +955,22 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .summary-chip.chip-success::before { background: var(--success); }
 .summary-chip.chip-warning::before { background: var(--warning); }
 .summary-chip.chip-error::before { background: var(--danger); }
+.summary-chip.chip-fixed::before { background: var(--gold, #EEA201); }
+
+/* Cari Massal: penanda koordinat yang dirapikan otomatis */
+.fix-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-left: 6px;
+    vertical-align: -3px;
+    border-radius: 50%;
+    background: #FDF6E3;
+    color: #8A5A00;
+    cursor: help;
+}
 .summary-chip:hover { border-color: var(--line-strong); }
 .summary-chip.active { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
 .summary-chip.active::before { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6); }
@@ -1206,6 +1307,7 @@ body.is-about .footer-note a { display: none; }
    dimatikan otomatis untuk pengguna "kurangi gerak"
    ========================================================= */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes sheetIn { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes menuIn { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
@@ -1298,6 +1400,28 @@ body.is-about .footer-note a { display: none; }
     .examples { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 2px; scrollbar-width: none; }
     .examples::-webkit-scrollbar { display: none; }
     .examples > * { flex-shrink: 0; }
+    .format-popover {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: auto;
+        max-height: 80dvh;
+        overflow-y: auto;
+        border-radius: 18px 18px 0 0;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        animation: sheetIn 0.25s var(--ease-out) both;
+    }
+    .format-list > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .format-backdrop:not([hidden]) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1150;
+        background: rgba(15, 29, 53, 0.35);
+        animation: fadeIn 0.2s ease-out both;
+    }
     .tab-prefix { display: none; }
     .tab-btn { padding: 7px 14px; }
 

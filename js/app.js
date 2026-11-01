@@ -251,6 +251,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Panel "Format yang dikenali"
+    const formatInfoBtn = document.getElementById('formatInfoBtn');
+    const formatPopover = document.getElementById('formatPopover');
+    const formatBackdrop = document.querySelector('.format-backdrop');
+    const formatHome = formatPopover ? formatPopover.parentElement : null;
+    const mobileSheet = window.matchMedia('(max-width: 768px)');
+    function setFormatOpen(open) {
+        if (!formatPopover) return;
+        if (open) {
+            // HP: lembar bawah harus menempel ke layar, jadi keluarkan dari bagian yang beranimasi
+            const target = mobileSheet.matches ? document.body : formatHome;
+            if (formatBackdrop && formatBackdrop.parentElement !== target) target.appendChild(formatBackdrop);
+            if (formatPopover.parentElement !== target) target.appendChild(formatPopover);
+        }
+        formatPopover.hidden = !open;
+        if (formatBackdrop) formatBackdrop.hidden = !open;
+        formatInfoBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    if (formatInfoBtn && formatPopover) {
+        formatInfoBtn.addEventListener('click', (e) => { e.stopPropagation(); setFormatOpen(formatPopover.hidden); });
+        formatPopover.querySelector('.format-popover-close').addEventListener('click', () => { setFormatOpen(false); formatInfoBtn.focus({ preventScroll: true }); });
+        if (formatBackdrop) formatBackdrop.addEventListener('click', () => setFormatOpen(false));
+        document.addEventListener('click', (e) => {
+            if (!formatPopover.hidden && !formatPopover.contains(e.target) && e.target !== formatInfoBtn) setFormatOpen(false);
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !formatPopover.hidden) { setFormatOpen(false); formatInfoBtn.focus({ preventScroll: true }); }
+        });
+        formatPopover.querySelectorAll('.format-try').forEach(b => b.addEventListener('click', () => {
+            setFormatOpen(false);
+            coordInput.value = b.dataset.coord;
+            processInput(coordInput.value);
+        }));
+    }
+
     // Lokasi saya (GPS perangkat)
     const locateBtn = document.getElementById('locateBtn');
     if (locateBtn) {
@@ -336,17 +371,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Keterangan "Dirapikan otomatis" di bawah kotak pencarian
+    const coordNote = document.getElementById('coordNote');
+    function showCoordNote(parsed, original) {
+        if (!coordNote) return;
+        const why = parsed && parsed.converted ? describeFixes(parsed.fixes) : '';
+        if (!why) { coordNote.hidden = true; return; }
+        document.getElementById('coordNoteText').textContent = `Dirapikan otomatis: ${why}.`;
+        document.getElementById('coordNoteOrig').textContent = original.trim();
+        coordNote.hidden = false;
+    }
+    coordInput.addEventListener('input', () => { if (coordNote) coordNote.hidden = true; });
+
     function processInput(inputStr) {
         const parsed = parseCoordinates(inputStr);
         if (!parsed.valid) {
+            showCoordNote(null);
             showError(parsed.error);
             return;
         }
+        showCoordNote(parsed, inputStr);
         if (parsed.converted) {
             setInputValue(parsed.lat, parsed.lon);
         }
         updateMapMarker(parsed.lat, parsed.lon);
-        doGeocode(parsed.lat, parsed.lon);
+        doGeocode(parsed.lat, parsed.lon, true);
     }
 
     let singleRequestSeq = 0; // token untuk membuang respons pencarian lama (race condition)
@@ -356,8 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
         searchBtn.querySelector('.btn-label').textContent = on ? 'Mencari…' : 'Cari kecamatan';
     }
 
-    async function doGeocode(lat, lon) {
+    async function doGeocode(lat, lon, keepNote = false) {
         const reqId = ++singleRequestSeq;
+        // Titik dari peta, lokasi perangkat, atau riwayat: keterangan koreksi sebelumnya tidak berlaku lagi
+        if (!keepNote && coordNote) coordNote.hidden = true;
         lastResult = null;
         // Alamat di bilah browser selalu memuat titik terakhir → siap disalin
         lastSingleCoords = { lat, lon };
@@ -711,6 +762,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     processTask(task).then(result => {
                         if (isStale()) return;
                         if (result.inputText === undefined) result.inputText = task.originalText.trim();
+                        // Catat bila koordinat dirapikan otomatis (untuk penanda & filter)
+                        if (task.parsed && task.parsed.valid && task.parsed.converted && typeof result.lat === 'number') {
+                            result.fixNote = describeFixes(task.parsed.fixes);
+                        }
                         batchData.push(result);
                         renderBatchRow(result, true);
                         // addBatchMarker terima, hanya jika lat/lon adalah angka valid
@@ -909,7 +964,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tr.dataset.group = group;
         tr.classList.add('row-' + group);
         if (animate) tr.classList.add('row-new');
-        if (batchFilter !== 'all' && batchFilter !== group) tr.classList.add('row-filtered');
+        if (data.fixNote) tr.dataset.fixed = '1';
+        if (!rowMatchesFilter(tr)) tr.classList.add('row-filtered');
         if (data.errorMsg) tr.title = data.errorMsg;
 
         const td = (text, cls, colspan) => {
@@ -925,7 +981,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const coordText = hasCoord ? `${data.lat}, ${data.lon}` : (data.inputText || '');
 
         td(data.id, 'col-no');
-        td(coordText, 'col-coord');
+        const coordTd = td(coordText, 'col-coord');
+        if (data.fixNote) {
+            const mark = document.createElement('span');
+            mark.className = 'fix-mark';
+            const tip = `Dirapikan otomatis: ${data.fixNote}. Masukan asli: ${data.inputText}`;
+            mark.title = tip;
+            mark.setAttribute('aria-label', tip);
+            mark.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+            coordTd.appendChild(mark);
+        }
         if (group === 'success') {
             td(data.desaKel || '-');
             td(data.kecamatan, 'col-kec');
@@ -965,6 +1030,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'error';
     }
 
+    // Filter: semua, per status, atau baris yang dirapikan otomatis
+    function rowMatchesFilter(tr) {
+        if (batchFilter === 'all') return true;
+        if (batchFilter === 'fixed') return tr.dataset.fixed === '1';
+        return tr.dataset.group === batchFilter;
+    }
+
     function updateBatchSummary() {
         // Tombol Salin/Unduh/Perbesar baru tampil bila tabel sudah berisi
         document.querySelector('.batch-result-section')?.classList.toggle('is-empty', batchData.length === 0);
@@ -974,8 +1046,8 @@ document.addEventListener('DOMContentLoaded', () => {
             batchSummary.innerHTML = '';
             return;
         }
-        const counts = { success: 0, warning: 0, error: 0, empty: 0 };
-        batchData.forEach(d => counts[batchStatusGroup(d.status)]++);
+        const counts = { success: 0, warning: 0, error: 0, empty: 0, fixed: 0 };
+        batchData.forEach(d => { counts[batchStatusGroup(d.status)]++; if (d.fixNote) counts.fixed++; });
         if (batchFilter !== 'all' && counts[batchFilter] === 0) batchFilter = 'all';
 
         batchSummary.innerHTML = '';
@@ -996,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(BATCH_GROUP_LABELS).forEach(k => {
             if (counts[k] > 0) makeChip(k, BATCH_GROUP_LABELS[k], counts[k]);
         });
+        if (counts.fixed > 0) makeChip('fixed', 'Dirapikan otomatis', counts.fixed);
         batchSummary.classList.remove('hidden');
     }
 
@@ -1004,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ...batchTableBody.querySelectorAll('tr[data-group]'),
             ...tableModalBody.querySelectorAll('tr[data-group]')
         ];
-        rows.forEach(r => r.classList.toggle('row-filtered', batchFilter !== 'all' && r.dataset.group !== batchFilter));
+        rows.forEach(r => r.classList.toggle('row-filtered', !rowMatchesFilter(r)));
     }
 
     if (batchSummary) {
