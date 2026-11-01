@@ -580,9 +580,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const a = e.target.closest('a[href]');
         if (!a) return;
         const href = a.getAttribute('href');
-        if (href === '/tentang') {
+        if (href === '/tentang' || href === '/tentang#kontak') {
             e.preventDefault();
-            if (!aboutPane.classList.contains('active')) showAbout(true);
+            const toContact = href.endsWith('#kontak');
+            const scrollToContact = () => {
+                const el = aboutPane.querySelector(".about-contact");
+                if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+            };
+            if (aboutPane.classList.contains('active')) { if (toContact) scrollToContact(); return; }
+            showAbout(true).then(() => { if (toContact) requestAnimationFrame(scrollToContact); });
             return;
         }
         if (aboutPane && aboutPane.contains(a) && (href === '/' || href === '/tunggal' || href === '/massal')) {
