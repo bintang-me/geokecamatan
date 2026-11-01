@@ -6,13 +6,13 @@
     <title>Cari Kecamatan — Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261105">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261106">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=20261105">
-    <link rel="stylesheet" href="css/map.css?v=20261105">
+    <link rel="stylesheet" href="css/style.css?v=20261106">
+    <link rel="stylesheet" href="css/map.css?v=20261106">
 </head>
 <body>
 
@@ -57,7 +57,7 @@
                 <button type="button" class="tab-btn active" data-tab="tab-tunggal" aria-pressed="true"><span class="tab-prefix">Cari </span>Tunggal</button>
                 <button type="button" class="tab-btn" data-tab="tab-massal" aria-pressed="false"><span class="tab-prefix">Cari </span>Massal</button>
             </nav>
-            <a href="#tentang" class="header-link" id="aboutLink">Tentang &amp; sumber data</a>
+            <a href="tentang.html" class="header-link">Tentang &amp; sumber data</a>
         </div>
     </header>
 
@@ -331,38 +331,15 @@
         </div>
     </main>
 
-    <footer class="site-footer" id="tentang">
+    <footer class="site-footer">
         <div class="container footer-inner">
-            <p class="footer-note">Hasil bersifat informatif, bukan untuk keperluan hukum atau penetapan batas wilayah.
-                <button type="button" class="btn-link" id="toggleDisclaimerBtn" aria-expanded="false" aria-controls="disclaimerPanel">Baca disclaimer</button>
-            </p>
+            <p class="footer-note">Hasil bersifat informatif, bukan untuk keperluan hukum atau penetapan batas wilayah. <a href="tentang.html">Selengkapnya di Tentang &amp; Sumber Data</a></p>
             <p class="footer-credit">Proyek oleh <strong>Bintang Bayu K. P.</strong></p>
-        </div>
-        <div class="container">
-            <div class="disclaimer-content-wrapper" id="disclaimerPanel">
-                <div class="disclaimer-body">
-                    <p><em>Website</em> Cari Kecamatan merupakan alat bantu pencarian data administrasi nama kecamatan di Negara Republik Indonesia berdasarkan titik koordinat yang bersifat informatif.</p>
-                    <h3>Sumber data</h3>
-                    <ul>
-                        <li><strong>Primer:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG) — poligon batas wilayah administrasi dan identifikasi lokasi.</li>
-                        <li><strong>Sekunder:</strong> ArcGIS Esri dan OpenStreetMap (Nominatim).</li>
-                        <li><strong>Deteksi perairan:</strong> Is On Water API.</li>
-                    </ul>
-                    <h3>Batasan dan risiko</h3>
-                    <ul>
-                        <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari masing-masing layanan pihak ketiga saat permintaan dilakukan.</li>
-                        <li>Tidak semua layanan merespons setiap saat. Gangguan layanan dapat menyebabkan hasil kosong atau berasal dari sumber cadangan.</li>
-                        <li>Koordinat di luar wilayah Negara Republik Indonesia tidak dapat diproses untuk pencarian kecamatan.</li>
-                        <li>Jangan gunakan untuk penetapan batas wilayah, sengketa perbatasan, sengketa pertanahan, maupun keperluan hukum lain yang bersifat mengikat.</li>
-                    </ul>
-                    <p class="muted-sm">Dibuat dengan Vanilla JS, HTML5, CSS3, dan Leaflet.js.</p>
-                </div>
-            </div>
         </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script src="js/bundle.js?v=20261105"></script>
+    <script src="js/bundle.js?v=20261106"></script>
 </body>
 </html>

@@ -202,15 +202,28 @@ function formatWilayahName(str, isProvinsi = false) {
     }).join(' ');
 }
 
-function parseBIGResponse(data) {
+// Ambil atribut BIG tanpa peduli huruf besar/kecil nama field (WADMKC / wadmkc)
+function bigAttr(attr, ...names) {
+    if (!attr) return null;
+    const upper = {};
+    Object.keys(attr).forEach(k => { upper[k.toUpperCase()] = attr[k]; });
+    for (const n of names) {
+        const v = upper[n];
+        if (typeof v === 'string' && v.trim() !== '' && v.trim() !== '-') return v.trim();
+    }
+    return null;
+}
+
+// level: 'kec' (layer 3 — kecamatan) atau 'desa' (layer 4 — desa/kelurahan)
+function parseBIGResponse(data, level = 'desa') {
     if (!data || !data.features || data.features.length === 0) return null;
     const attr = data.features[0].attributes || data.features[0].properties;
     if (!attr) return null;
 
-    let provinsi = formatWilayahName(attr.WADMPR, true);
-    let kabKota = formatWilayahName(attr.WADMKK);
-    let kecamatan = formatWilayahName(attr.WADMKC);
-    let desaKel = formatWilayahName(attr.WADMKD || attr.WADMKD_HTML || attr.WADMKP || "-");
+    const provinsi = formatWilayahName(bigAttr(attr, 'WADMPR'), true);
+    const kabKota = formatWilayahName(bigAttr(attr, 'WADMKK'));
+    const kecamatan = formatWilayahName(level === 'kec' ? bigAttr(attr, 'WADMKC', 'NAMOBJ') : bigAttr(attr, 'WADMKC'));
+    const desaKel = level === 'desa' ? formatWilayahName(bigAttr(attr, 'WADMKD', 'WADMKD_HTML', 'NAMOBJ', 'WADMKP')) : '-';
 
     return { provinsi, kabKota, kecamatan, desaKel, alamat: "-" };
 }
@@ -369,20 +382,31 @@ async function reverseGeocode(lat, lon) {
     if (cached) return cached;
 
     // --- FASE 1: BIG, ArcGIS, IsOnWater paralel ---
-    const bigUrl = `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/4/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson`;
+    // BIG: layer 3 (kecamatan) = sumber utama nama wilayah — layer yang sama dengan poligon batas di peta;
+    // layer 4 (desa/kelurahan) dicoba paralel untuk nama desa.
+    const bigQuery = (layer) => `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/${layer}/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json`;
     const arcgisUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lon},${lat}&f=pjson&langCode=id`;
     // zoom=14 (tingkat Kecamatan/Suburb) di OSM
     const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=14`;
     const waterUrl = `https://is-on-water.balbona.me/api/v1/get/${lat}/${lon}`;
 
     try {
-        const [bigData, arcData, waterData] = await Promise.all([
-            fetchWithTimeout(bigUrl, {}, 8000), // server BIG relatif lambat
+        const [bigKecData, bigDesaData, arcData, waterData] = await Promise.all([
+            fetchWithTimeout(bigQuery(3), {}, 8000), // server BIG relatif lambat
+            fetchWithTimeout(bigQuery(4), {}, 8000),
             fetchWithTimeout(arcgisUrl),
             fetchWithTimeout(waterUrl, {}, 3000) // batas timeout 3 detik agar tidak memblokir jika API mati
         ]);
 
-        const bigResult = bigData ? parseBIGResponse(bigData) : null;
+        const bigKec = bigKecData ? parseBIGResponse(bigKecData, 'kec') : null;
+        const bigDesa = bigDesaData ? parseBIGResponse(bigDesaData, 'desa') : null;
+        const bigData = bigKecData || bigDesaData;
+        let bigResult = null;
+        if (bigKec && bigKec.kecamatan !== '-') {
+            bigResult = { ...bigKec, desaKel: bigDesa && bigDesa.desaKel !== '-' ? bigDesa.desaKel : '-' };
+        } else if (bigDesa && bigDesa.kecamatan !== '-') {
+            bigResult = bigDesa;
+        }
         const arcResult = arcData ? parseArcGISResponse(arcData) : null;
         const bigFound = !!(bigResult && bigResult.kecamatan !== '-');
 
@@ -427,6 +451,11 @@ async function reverseGeocode(lat, lon) {
 
         if (bigFound) {
             finalResult = { ...bigResult };
+            // Desa/kelurahan: dari BIG bila ada, jika tidak dari ArcGIS/OSM
+            if (!finalResult.desaKel || finalResult.desaKel === '-') {
+                finalResult.desaKel = (arcResult && arcResult.desaKel !== '-' && arcResult.desaKel)
+                    || (osmResult && osmResult.desaKel !== '-' && osmResult.desaKel) || '-';
+            }
             if (arcResult && arcResult.alamat !== '-') {
                 finalResult.alamat = arcResult.alamat;
             } else if (osmResult && osmResult.alamat !== '-') {
@@ -485,33 +514,54 @@ let marker;
 let boundaryLayers = []; // Array layer batas administratif
 let singleSearchCoords = null; // Menyimpan koordinat aktif untuk mencegah race condition pencarian cepat
 
-// Konfigurasi style per level administratif
-const BOUNDARY_STYLES = {
-    provinsi: {
-        color: '#0F1D35',   // Navy tipis
-        weight: 1.5,
-        opacity: 0.35,
-        fillColor: '#0F1D35',
-        fillOpacity: 0,
-        dashArray: '2, 6'
+// Tema garis batas per jenis basemap.
+// Teori warna: kecamatan = emas/amber (warna identitas), kab/kota = ungu (komplementer kuning)
+// sehingga keduanya tidak tertukar. Setiap garis punya "casing" (garis bawah kontras):
+// navy/putih di peta terang, hitam di citra satelit yang gelap — garis tetap tegas di latar apa pun.
+const BOUNDARY_THEMES = {
+    map: {
+        kecamatan: { casing: { color: '#0F1D35', weight: 7, opacity: 0.55 }, core: { color: '#E08A00', weight: 3.5, opacity: 1, fillColor: '#EEA201', fillOpacity: 0.12 } },
+        kabKota:   { casing: { color: '#FFFFFF', weight: 6, opacity: 0.95 }, core: { color: '#6D28D9', weight: 2.75, opacity: 0.95, dashArray: '10, 6', fillColor: '#6D28D9', fillOpacity: 0.03 } },
+        provinsi:  { casing: null, core: { color: '#0F1D35', weight: 1.75, opacity: 0.45, dashArray: '2, 6' } }
     },
-    kabKota: {
-        color: '#7C8BA1',   // Abu-biru putus-putus
-        weight: 2.0,
-        opacity: 0.9,
-        fillColor: '#7C8BA1',
-        fillOpacity: 0.03,
-        dashArray: '8, 6'
-    },
-    kecamatan: {
-        color: '#EEA201',   // Emas — identitas website
-        weight: 3,
-        opacity: 1,
-        fillColor: '#EEA201',
-        fillOpacity: 0.12,
-        dashArray: null
+    sat: {
+        kecamatan: { casing: { color: '#000000', weight: 7.5, opacity: 0.6 }, core: { color: '#FFC233', weight: 3.5, opacity: 1, fillColor: '#FFC233', fillOpacity: 0.10 } },
+        kabKota:   { casing: { color: '#000000', weight: 6, opacity: 0.55 }, core: { color: '#F0ABFC', weight: 2.75, opacity: 1, dashArray: '10, 6', fillColor: '#F0ABFC', fillOpacity: 0.04 } },
+        provinsi:  { casing: null, core: { color: '#FFFFFF', weight: 1.75, opacity: 0.75, dashArray: '2, 6' } }
     }
 };
+
+function boundaryCasingStyle(t) {
+    return t.casing ? { ...t.casing, fill: false, lineJoin: 'round', lineCap: 'round' } : { opacity: 0, weight: 0, fill: false };
+}
+function boundaryCoreStyle(t) {
+    return { ...t.core, fill: !!t.core.fillColor, lineJoin: 'round' };
+}
+
+// Buat layer batas (casing + garis inti) mengikuti mode basemap peta tersebut
+function makeBoundaryLayer(geojson, type, pane, mapObj) {
+    const t = BOUNDARY_THEMES[mapObj._ckMode || 'map'][type];
+    const casing = L.geoJSON(geojson, { pane, interactive: false, style: boundaryCasingStyle(t) });
+    const core = L.geoJSON(geojson, { pane, style: boundaryCoreStyle(t) });
+    const group = L.featureGroup([casing, core]);
+    group.ckType = type;
+    group.ckCasing = casing;
+    group.ckCore = core;
+    return group;
+}
+
+// Terapkan ulang warna batas saat pengguna berganti Peta ↔ Satelit
+function applyBoundaryTheme(mapObj) {
+    const mode = mapObj._ckMode || 'map';
+    mapObj.eachLayer(l => {
+        if (!l.ckType) return;
+        const t = BOUNDARY_THEMES[mode][l.ckType];
+        l.ckCasing.setStyle(boundaryCasingStyle(t));
+        l.ckCore.setStyle(boundaryCoreStyle(t));
+    });
+    const wrapper = mapObj.getContainer().closest('.map-wrapper') || document.querySelector('.map-wrapper');
+    if (mapObj === map && wrapper) wrapper.classList.toggle('is-satellite', mode === 'sat');
+}
 
 /**
  * Hapus semua layer batas dari peta
@@ -579,7 +629,7 @@ async function fetchOSMProvinsiBoundary(namaProvinsi) {
     return null;
 }
 
-async function fetchAndDrawBoundaries(adminData, lat, lon) {
+async function fetchAndDrawBoundaries(adminData, lat, lon, onKecamatanFeature) {
     clearBoundaryLayers();
     if (!map || !adminData || lat == null || lon == null) return;
 
@@ -590,10 +640,7 @@ async function fetchAndDrawBoundaries(adminData, lat, lon) {
     const namaProv = adminData.provinsi;
     fetchOSMProvinsiBoundary(namaProv).then(provGeoJSON => {
         if (provGeoJSON && map && singleSearchCoords && singleSearchCoords.lat === lat && singleSearchCoords.lon === lon) {
-            const layer = L.geoJSON(provGeoJSON, { 
-                style: BOUNDARY_STYLES.provinsi,
-                pane: 'provPane'
-            })
+            const layer = makeBoundaryLayer(provGeoJSON, 'provinsi', 'provPane', map)
                 .bindTooltip(`Batas Provinsi: ${namaProv}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(map);
             boundaryLayers.push(layer);
@@ -603,11 +650,8 @@ async function fetchAndDrawBoundaries(adminData, lat, lon) {
     // 2. Gambar Kab/Kota (BIG) secara independen (zIndex 420)
     fetchBIGBoundary(BIG_URLS.kabKota, lat, lon).then(kabFeature => {
         if (kabFeature && map && singleSearchCoords && singleSearchCoords.lat === lat && singleSearchCoords.lon === lon) {
-            const name = kabFeature.properties.WADMKK || kabFeature.properties.wadmkk || adminData.kabKota;
-            const layer = L.geoJSON(kabFeature, { 
-                style: BOUNDARY_STYLES.kabKota,
-                pane: 'kabPane'
-            })
+            const name = formatWilayahName(bigAttr(kabFeature.properties, 'WADMKK')) !== '-' ? formatWilayahName(bigAttr(kabFeature.properties, 'WADMKK')) : adminData.kabKota;
+            const layer = makeBoundaryLayer(kabFeature, 'kabKota', 'kabPane', map)
                 .bindTooltip(`Kab/Kota: ${name}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(map);
             boundaryLayers.push(layer);
@@ -617,14 +661,20 @@ async function fetchAndDrawBoundaries(adminData, lat, lon) {
     // 3. Gambar Kecamatan (BIG) secara independen (zIndex 430)
     fetchBIGBoundary(BIG_URLS.kecamatan, lat, lon).then(kecFeature => {
         if (kecFeature && map && singleSearchCoords && singleSearchCoords.lat === lat && singleSearchCoords.lon === lon) {
-            const name = kecFeature.properties.WADMKC || kecFeature.properties.wadmkc || adminData.kecamatan;
-            const layer = L.geoJSON(kecFeature, { 
-                style: BOUNDARY_STYLES.kecamatan,
-                pane: 'kecPane'
-            })
+            const props = kecFeature.properties || {};
+            const bigKecName = formatWilayahName(bigAttr(props, 'WADMKC', 'NAMOBJ'));
+            const name = bigKecName !== '-' ? bigKecName : adminData.kecamatan;
+            const layer = makeBoundaryLayer(kecFeature, 'kecamatan', 'kecPane', map)
                 .bindTooltip(`Kecamatan: ${name}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(map);
             boundaryLayers.push(layer);
+            if (onKecamatanFeature && bigKecName !== '-') {
+                onKecamatanFeature({
+                    kecamatan: bigKecName,
+                    kabKota: formatWilayahName(bigAttr(props, 'WADMKK')),
+                    provinsi: formatWilayahName(bigAttr(props, 'WADMPR'), true)
+                });
+            }
         }
     }).catch(e => console.warn('Gagal memuat batas kecamatan', e));
 }
@@ -674,6 +724,8 @@ function addBasemapSwitch(mapObj, layers) {
                     mapObj.removeLayer(layers.standardMap);
                     mapObj.removeLayer(layers.satelliteHybrid);
                     layer.addTo(mapObj);
+                    mapObj._ckMode = layer === layers.satelliteHybrid ? 'sat' : 'map';
+                    applyBoundaryTheme(mapObj);
                     box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
                 });
             };
@@ -924,10 +976,7 @@ async function showBatchBoundaries(data) {
     // 1. Gambar Kab/Kota (BIG) secara independen (zIndex 420)
     fetchBIGBoundary(BIG_URLS.kabKota, data.lat, data.lon).then(kabFeature => {
         if (kabFeature && batchMap && activeBatchCoords && activeBatchCoords.lat === data.lat && activeBatchCoords.lon === data.lon) {
-            const kabLayer = L.geoJSON(kabFeature, { 
-                style: BOUNDARY_STYLES.kabKota,
-                pane: 'kabPane'
-            })
+            const kabLayer = makeBoundaryLayer(kabFeature, 'kabKota', 'kabPane', batchMap)
                 .bindTooltip(`Kab/Kota: ${data.kabKota}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(batchMap);
             batchBoundaryLayers.push(kabLayer);
@@ -937,10 +986,7 @@ async function showBatchBoundaries(data) {
     // 2. Gambar Kecamatan (BIG) secara independen (zIndex 430)
     fetchBIGBoundary(BIG_URLS.kecamatan, data.lat, data.lon).then(kecFeature => {
         if (kecFeature && batchMap && activeBatchCoords && activeBatchCoords.lat === data.lat && activeBatchCoords.lon === data.lon) {
-            const kecLayer = L.geoJSON(kecFeature, { 
-                style: BOUNDARY_STYLES.kecamatan,
-                pane: 'kecPane'
-            })
+            const kecLayer = makeBoundaryLayer(kecFeature, 'kecamatan', 'kecPane', batchMap)
                 .bindTooltip(`Kecamatan: ${data.kecamatan}`, { sticky: true, className: 'boundary-tooltip' })
                 .addTo(batchMap);
             batchBoundaryLayers.push(kecLayer);
@@ -1052,6 +1098,9 @@ function setBadge(text, kind) {
     if (!text) { badge.classList.add('hidden'); return; }
     badge.textContent = text;
     badge.className = `badge badge-${kind}`;
+    badge.title = kind === 'success'
+        ? 'Nama wilayah dari poligon batas resmi Badan Informasi Geospasial (BIG).'
+        : kind === 'neutral' ? 'Layanan BIG belum merespons; nama wilayah dari layanan peta Esri/OpenStreetMap.' : '';
 }
 
 function showLoading() {
@@ -1114,7 +1163,7 @@ function showResult(data, lat, lon) {
     if (kec === '(Luar RI)') setBadge('Di luar wilayah RI', 'danger');
     else if (kec === '-' || kec === '') setBadge('Kecamatan tidak terdeteksi', 'danger');
     else if (data.source === 'BIG') setBadge('Sumber resmi · BIG', 'success');
-    else setBadge('Sumber cadangan · cek ulang', 'warning');
+    else setBadge('Sumber: Esri/OSM', 'neutral');
 
     // Update modal info box jika aktif (tidak disembunyikan)
     const modalBox = document.getElementById('mapSingleInfoBox');
@@ -1321,6 +1370,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderHistory();
 
+    // Tautan langsung ke tab Cari Massal (#massal), mis. dari halaman Tentang
+    if (location.hash === '#massal') {
+        setTimeout(() => document.querySelector('.tab-btn[data-tab="tab-massal"]')?.click(), 0);
+    }
+
     // Tautan berbagi: ?q=lat,lon langsung mencari titik tersebut
     try {
         const q = new URLSearchParams(location.search).get('q');
@@ -1504,7 +1558,18 @@ document.addEventListener('DOMContentLoaded', () => {
             lastResult = { lat, lon, admin: result.administrative };
             saveToHistory(lat, lon, result.administrative);
             // Fetch dan gambar batas administratif di background (non-blocking)
-            fetchAndDrawBoundaries(result.administrative, lat, lon);
+            fetchAndDrawBoundaries(result.administrative, lat, lon, (big) => {
+                // Poligon kecamatan BIG berhasil dimuat: pastikan panel memakai nama resmi BIG
+                if (reqId !== singleRequestSeq || result.source === 'BIG') return;
+                const admin = { ...result.administrative, kecamatan: big.kecamatan };
+                if (big.kabKota !== '-') admin.kabKota = big.kabKota;
+                if (big.provinsi !== '-') admin.provinsi = big.provinsi;
+                result.administrative = admin;
+                result.source = 'BIG';
+                showResult(result, lat, lon);
+                lastResult = { lat, lon, admin };
+                saveToHistory(lat, lon, admin);
+            });
         } else {
             showError(result.error);
         }
@@ -2293,29 +2358,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-
-    // Disclaimer Toggle (Mobile Only)
-    const toggleDisclaimerBtn = document.getElementById('toggleDisclaimerBtn');
-    const disclaimerWrapper = document.querySelector('.disclaimer-content-wrapper');
-    const aboutLink = document.getElementById('aboutLink');
-    if (aboutLink && toggleDisclaimerBtn && disclaimerWrapper) {
-        aboutLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!disclaimerWrapper.classList.contains('expanded')) toggleDisclaimerBtn.click();
-            document.getElementById('tentang').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    }
-    if (toggleDisclaimerBtn && disclaimerWrapper) {
-        toggleDisclaimerBtn.addEventListener('click', () => {
-            if (disclaimerWrapper.classList.contains('expanded')) {
-                disclaimerWrapper.classList.remove('expanded');
-                toggleDisclaimerBtn.setAttribute('aria-expanded', 'false');
-                toggleDisclaimerBtn.textContent = 'Baca disclaimer';
-            } else {
-                disclaimerWrapper.classList.add('expanded');
-                toggleDisclaimerBtn.setAttribute('aria-expanded', 'true');
-                toggleDisclaimerBtn.textContent = 'Tutup disclaimer';
-            }
-        });
-    }
 });
