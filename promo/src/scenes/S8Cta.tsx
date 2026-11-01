@@ -27,9 +27,9 @@ export const S8Cta: React.FC = () => {
                         <path d="M5 3l14 8-6 1.5L10 19z" fill="#fff" stroke={C.ink} strokeWidth="1.4" strokeLinejoin="round" />
                     </svg>
                 </div>
-                <div style={{ marginTop: 34, fontSize: 28, color: C.dMuted, ...rise(f, 20) }}>Gratis · Tanpa daftar · Langsung di peramban</div>
+                <div style={{ marginTop: 34, fontSize: 28, color: C.dMuted, ...rise(f, 20) }}>Gratis, tanpa daftar, pakai langsung di browser</div>
             </div>
-            <div style={{ position: 'absolute', bottom: 54, fontSize: 24, color: '#8592A8', ...rise(f, 18, 12, 8) }}>Acuan informatif, bukan untuk keperluan hukum yang mengikat.</div>
+            <div style={{ position: 'absolute', bottom: 54, fontSize: 24, color: '#8592A8', ...rise(f, 18, 12, 8) }}>Acuan informatif, bukan untuk keperluan hukum yang mengikat</div>
         </AbsoluteFill>
     );
 };

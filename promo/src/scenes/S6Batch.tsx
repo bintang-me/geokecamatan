@@ -24,8 +24,8 @@ export const S6Batch: React.FC = () => {
     return (
         <AbsoluteFill style={{ fontFamily: FONT }}>
             <div style={{ position: 'absolute', left: 120, top: 70 }}>
-                <div style={{ fontSize: 66, fontWeight: 700, color: C.ink, letterSpacing: -1.1, ...rise(f, 2) }}>Ratusan titik sekaligus.</div>
-                <div style={{ fontSize: 34, color: C.muted, marginTop: 10, ...rise(f, 12) }}>Setiap baris boleh berbeda format. Salin atau unduh hasilnya.</div>
+                <div style={{ fontSize: 66, fontWeight: 700, color: C.ink, letterSpacing: -1.1, ...rise(f, 2) }}>Ratusan titik sekaligus</div>
+                <div style={{ fontSize: 34, color: C.muted, marginTop: 10, ...rise(f, 12) }}>Setiap baris boleh berbeda format, hasilnya bisa disalin atau diunduh</div>
             </div>
             {/* kartu tabel */}
             <div style={{ position: 'absolute', left: 120, top: 270, width: 1060, padding: '28px 34px', borderRadius: 30, background: C.surface, border: `1.5px solid ${C.line}`, boxShadow: '0 20px 50px rgba(15,29,53,.10)', ...rise(f, 6, 14, 30) }}>
