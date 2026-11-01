@@ -18,7 +18,7 @@ export const S1Hook: React.FC = () => {
     return (
         <AbsoluteFill style={{ fontFamily: FONT, alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'absolute', top: 210, width: '100%', textAlign: 'center' }}>
-                <div style={{ fontSize: 30, fontWeight: 500, color: C.dMuted, letterSpacing: 0.3, marginBottom: 26, ...rise(f, 0, 10, 12) }}>Data survei lapangan · Titik pelanggan · Lokasi aset</div>
+                <div style={{ fontSize: 30, fontWeight: 500, color: C.dMuted, letterSpacing: 0.3, marginBottom: 26, ...rise(f, 0, 10, 12) }}>Data survei lapangan · Titik infrastruktur · Lokasi aset · Titik pelanggan</div>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, ...rise(f, 4) }}>Punya titik koordinat,</div>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, marginTop: 6, ...rise(f, 16) }}>tapi harus tahu kecamatannya?</div>
             </div>
