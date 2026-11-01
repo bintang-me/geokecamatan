@@ -312,6 +312,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Riwayat dilipat secara bawaan; dibuka lewat tombol panah di pojok kanan atas
+    const historyCard = document.querySelector('.history-card');
+    const historyToggle = document.getElementById('historyToggle');
+    const historyListEl = document.getElementById('historyList');
+    function setHistoryOpen(open) {
+        historyCard.classList.toggle('is-open', open);
+        historyListEl.hidden = !open;
+        historyToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        historyToggle.setAttribute('aria-label', open ? 'Sembunyikan riwayat' : 'Tampilkan riwayat');
+    }
+    if (historyCard && historyToggle && historyListEl) {
+        historyToggle.addEventListener('click', () => setHistoryOpen(historyListEl.hidden));
+        // Klik judul juga membuka/menutup
+        document.getElementById('historyTitle').addEventListener('click', () => setHistoryOpen(historyListEl.hidden));
+    }
+
     clearHistoryBtn.addEventListener('click', () => {
         if (getHistory().length === 0) return;
         if (confirm("Hapus semua riwayat pencarian?")) {
@@ -861,6 +877,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateBatchSummary() {
+        // Tombol Salin/Unduh/Perbesar baru tampil bila tabel sudah berisi
+        document.querySelector('.batch-result-section')?.classList.toggle('is-empty', batchData.length === 0);
         if (!batchSummary) return;
         if (batchData.length === 0) {
             batchSummary.classList.add('hidden');
@@ -1116,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (expandSingleMapBtn) {
         expandSingleMapBtn.addEventListener('click', function() {
             activeExpandedMap = 'single';
-            document.getElementById('mapModalTitle').textContent = 'Peta lokasi';
+            document.getElementById('mapModalTitle').textContent = 'Peta Lokasi';
             document.getElementById('mapModalLegend').style.display = 'none';
             
             // Ambil data terbaru dari panel hasil Cari Tunggal
@@ -1170,7 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     expandMapBtn.addEventListener('click', function() {
         activeExpandedMap = 'batch';
-        document.getElementById('mapModalTitle').textContent = 'Peta sebaran titik';
+        document.getElementById('mapModalTitle').textContent = 'Peta Sebaran Titik';
         document.getElementById('mapModalLegend').style.display = 'flex';
         document.getElementById('mapModal').classList.add('active');
         document.getElementById('mapModalBody').appendChild(document.getElementById('batchMap'));

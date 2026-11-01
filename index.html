@@ -6,13 +6,13 @@
     <title>Cari Kecamatan | Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261120">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261121">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="/css/style.css?v=20261120">
-    <link rel="stylesheet" href="/css/map.css?v=20261120">
+    <link rel="stylesheet" href="/css/style.css?v=20261121">
+    <link rel="stylesheet" href="/css/map.css?v=20261121">
     <script>
         // Transisi antarhalaman bisa dibatalkan peramban (mis. saat alamat diperbarui); abaikan tanpa galat
         ['pageswap', 'pagereveal'].forEach(function (ev) {
@@ -38,7 +38,7 @@
         </svg>
         <div class="splash-text">
             <span class="wordmark wordmark-lg"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>
-            <span class="splash-tagline">Berdasarkan titik koordinat</span>
+            <span class="splash-tagline">Berdasarkan Titik Koordinat</span>
         </div>
         <div class="splash-progress">
             <div class="splash-bar" aria-hidden="true"><span></span></div>
@@ -75,7 +75,7 @@
         <!-- ================= Tab 1: Cari Tunggal ================= -->
         <div id="tab-tunggal" class="tab-pane active">
             <section class="hero" aria-labelledby="heroTitle">
-                <h1 id="heroTitle">Temukan kecamatan dari titik koordinat</h1>
+                <h1 id="heroTitle">Temukan Kecamatan dari Titik Koordinat</h1>
                 <p class="hero-sub">Masukkan koordinat dalam format desimal atau DMS, atau tempel langsung dari Excel.</p>
                 <form class="search-form" id="searchForm" autocomplete="off">
                     <div class="search-field">
@@ -165,10 +165,15 @@
 
                     <section class="card history-card" aria-labelledby="historyTitle">
                         <div class="history-header">
-                            <h2 id="historyTitle">Riwayat</h2>
-                            <button type="button" id="clearHistoryBtn" class="btn-text">Hapus semua</button>
+                            <h2 id="historyTitle">Riwayat <span class="history-count" id="historyCount"></span></h2>
+                            <div class="history-tools">
+                                <button type="button" id="clearHistoryBtn" class="btn-text">Hapus semua</button>
+                                <button type="button" id="historyToggle" class="icon-btn icon-btn-sm history-toggle" aria-expanded="false" aria-controls="historyList" aria-label="Tampilkan riwayat">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                            </div>
                         </div>
-                        <div class="history-list" id="historyList">
+                        <div class="history-list" id="historyList" hidden>
                             <p class="history-empty">Belum ada riwayat pencarian.</p>
                         </div>
                     </section>
@@ -193,14 +198,14 @@
         <!-- ================= Tab 2: Cari Massal ================= -->
         <div id="tab-massal" class="tab-pane">
             <section class="hero">
-                <h1>Cari massal</h1>
+                <h1>Cari Massal</h1>
                 <p class="hero-sub">Proses banyak titik sekaligus, lalu salin atau unduh hasilnya.</p>
             </section>
 
             <div class="batch-layout-grid">
                 <section class="card batch-input-card" aria-labelledby="batchInputLabel">
                     <div class="batch-input-head">
-                        <label id="batchInputLabel" for="batchInput">Daftar koordinat</label>
+                        <label id="batchInputLabel" for="batchInput">Daftar Koordinat</label>
                         <span class="muted-sm">Satu titik per baris</span>
                     </div>
                     <div class="batch-editor">
@@ -240,7 +245,7 @@
                 </section>
             </div>
 
-            <section class="card batch-result-section" aria-labelledby="batchResultTitle">
+            <section class="card batch-result-section is-empty" aria-labelledby="batchResultTitle">
                 <div class="batch-result-header">
                     <div class="batch-result-title">
                         <h2 id="batchResultTitle">Hasil</h2>
@@ -351,11 +356,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script src="/js/parser.js?v=20261120"></script>
-    <script src="/js/geocoder.js?v=20261120"></script>
-    <script src="/js/map.js?v=20261120"></script>
-    <script src="/js/ui.js?v=20261120"></script>
-    <script src="/js/router.js?v=20261120"></script>
-    <script src="/js/app.js?v=20261120"></script>
+    <script src="/js/parser.js?v=20261121"></script>
+    <script src="/js/geocoder.js?v=20261121"></script>
+    <script src="/js/map.js?v=20261121"></script>
+    <script src="/js/ui.js?v=20261121"></script>
+    <script src="/js/router.js?v=20261121"></script>
+    <script src="/js/app.js?v=20261121"></script>
 </body>
 </html>

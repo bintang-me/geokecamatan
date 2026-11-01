@@ -551,7 +551,27 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     margin-bottom: 4px;
 }
 .history-header h2 { font-size: var(--fs-title); font-weight: 600; line-height: var(--lh-tight); color: var(--ink); }
-.history-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
+.history-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; margin-top: 4px; }
+.history-list[hidden] { display: none; }
+.history-card { padding: 14px 16px 14px 24px; }
+.history-card.is-open { padding-bottom: 20px; }
+.history-header { margin-bottom: 0; }
+.history-header h2 { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 8px; }
+.history-count:not(:empty) {
+    min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--line-soft); color: var(--muted);
+    font-size: var(--fs-micro); font-weight: 600;
+}
+.history-tools { display: flex; align-items: center; gap: 4px; }
+.history-card:not(.is-open) #clearHistoryBtn { display: none; }
+.history-toggle { border-color: transparent; }
+.history-toggle svg { transition: transform 0.25s var(--ease-out, ease); }
+.history-card.is-open .history-toggle svg { transform: rotate(180deg); }
+.history-card.is-open .history-list { animation: fadeUp 0.3s var(--ease-out, ease) both; }
+
+/* Tabel massal kosong: sembunyikan Salin/Unduh/Perbesar */
+.batch-result-section.is-empty .batch-actions { display: none; }
 .history-empty { font-size: 13px; color: var(--muted); padding: 10px 0; border-top: 1px solid var(--line-soft); }
 
 .history-item {

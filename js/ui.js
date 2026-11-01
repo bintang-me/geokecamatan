@@ -185,6 +185,8 @@ function formatHistoryTime(iso) {
 function renderHistory() {
     const history = getHistory();
     const historyList = document.getElementById('historyList');
+    const countEl = document.getElementById('historyCount');
+    if (countEl) countEl.textContent = history.length ? String(history.length) : '';
 
     if (history.length === 0) {
         historyList.innerHTML = '<p class="history-empty">Belum ada riwayat pencarian.</p>';
