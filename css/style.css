@@ -23,7 +23,8 @@
     --danger-bg: #FBE4E2;
     --danger-text: #9B1C12;
 
-    --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --r-sm: 10px;
     --r-md: 12px;
@@ -37,7 +38,11 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; padding: 0; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+/* Transisi halus antarhalaman (index ↔ Tentang) — didukung peramban modern, tanpa JS */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.25s; }
 
 body {
     background: var(--canvas);
@@ -45,6 +50,7 @@ body {
     font-family: var(--font);
     font-size: 15px;
     line-height: 1.5;
+    word-spacing: 0.06em; /* Plus Jakarta Sans memiliki spasi antarkata yang sempit */
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
     display: flex;
@@ -72,7 +78,7 @@ button { font-family: inherit; }
     border: 0;
 }
 
-.mono { font-family: var(--mono); }
+.mono { font-family: var(--mono); word-spacing: 0; }
 .muted-sm { font-size: 13px; color: var(--muted); }
 
 .container {
@@ -84,10 +90,10 @@ button { font-family: inherit; }
 }
 
 /* ---------- Wordmark ---------- */
-.wordmark { font-size: 17px; letter-spacing: -0.3px; white-space: nowrap; }
+.wordmark { font-size: 17px; letter-spacing: 0; white-space: nowrap; }
 .wordmark .wm-light { font-weight: 500; }
 .wordmark .wm-strong { font-weight: 700; border-bottom: 2px solid var(--gold); }
-.wordmark-lg { font-size: 30px; letter-spacing: -0.5px; }
+.wordmark-lg { font-size: 30px; letter-spacing: -0.2px; }
 .wordmark-lg .wm-strong { border-bottom-width: 3px; }
 
 /* ---------- Header ---------- */
@@ -193,7 +199,7 @@ button { font-family: inherit; }
     font-size: 30px;
     line-height: 1.2;
     font-weight: 600;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.2px;
 }
 .hero-sub { color: var(--muted); font-size: 15px; }
 
@@ -449,7 +455,7 @@ button { font-family: inherit; }
     font-size: 34px;
     line-height: 1.1;
     font-weight: 600;
-    letter-spacing: -0.6px;
+    letter-spacing: -0.3px;
     overflow-wrap: anywhere;
 }
 
@@ -1071,12 +1077,76 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes barSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
 
+/* =========================================================
+   Animasi mikro — hanya transform & opacity (ringan, akselerasi GPU),
+   dimatikan otomatis untuk pengguna "kurangi gerak"
+   ========================================================= */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes menuIn { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes pinDropIn {
+    0% { transform: translateY(-18px); opacity: 0; }
+    60% { transform: translateY(2px); opacity: 1; }
+    100% { transform: none; }
+}
+
+/* Masuk halaman: hero & kartu muncul berurutan */
+.tab-pane.active > *, .about-page > * { animation: fadeUp 0.5s var(--ease-out) both; }
+.tab-pane.active > *:nth-child(2), .about-page > *:nth-child(2) { animation-delay: 0.06s; }
+.tab-pane.active > *:nth-child(3), .about-page > *:nth-child(3) { animation-delay: 0.12s; }
+.about-page > *:nth-child(4) { animation-delay: 0.18s; }
+.about-grid > .card { animation: fadeUp 0.5s var(--ease-out) both; }
+.about-grid > .card:nth-child(2) { animation-delay: 0.08s; }
+
+/* Hasil pencarian: baris detail muncul berurutan setiap kali hasil baru tampil */
+.result-content > *, .detail-list > div { animation: fadeUp 0.4s var(--ease-out) both; }
+.result-content > *:nth-child(2) { animation-delay: 0.05s; }
+.detail-list > div:nth-child(1) { animation-delay: 0.08s; }
+.detail-list > div:nth-child(2) { animation-delay: 0.12s; }
+.detail-list > div:nth-child(3) { animation-delay: 0.16s; }
+.detail-list > div:nth-child(4) { animation-delay: 0.20s; }
+.result-content > *:nth-child(3) { animation-delay: 0.22s; }
+.result-content > *:nth-child(4) { animation-delay: 0.26s; }
+.loading-state, .empty-state, .error-state { animation: fadeIn 0.3s ease-out both; }
+.badge { animation: popIn 0.3s var(--ease-out) both; }
+
+/* Umpan balik tekan pada tombol */
+.btn, .icon-btn, .example-chip, .summary-chip, .tab-btn, .map-float-btn, .mini-copy, .delete-item-btn {
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s var(--ease-out), opacity 0.2s ease;
+}
+.btn:active:not(:disabled), .icon-btn:active, .example-chip:active, .summary-chip:active,
+.map-float-btn:active, .mini-copy:active { transform: scale(0.97); }
+.btn-primary:hover:not(:disabled) { box-shadow: 0 6px 16px rgba(238, 162, 1, 0.28); }
+.card { transition: box-shadow 0.25s ease, border-color 0.25s ease; }
+.history-item { transition: background 0.2s ease, padding 0.2s var(--ease-out); }
+.history-item:hover { background: var(--canvas); padding-left: 6px; padding-right: 6px; border-radius: 8px; }
+
+/* Menu salin & modal */
+.copy-menu-list:not([hidden]) { animation: menuIn 0.18s var(--ease-out) both; transform-origin: top right; }
+.table-modal.active, .map-modal.active { animation: fadeIn 0.2s ease-out both; }
+.table-modal.active .table-modal-content, .map-modal.active .map-modal-content { animation: popIn 0.25s var(--ease-out) both; }
+
+/* Baris tabel massal yang baru masuk saat diproses */
+.batch-table tbody tr.row-new { animation: fadeIn 0.35s ease-out both; }
+
+/* Tooltip "Tersalin!" sedikit memantul */
+.copy-tooltip.show { transition: opacity 0.2s ease, transform 0.25s var(--ease-out); }
+
+/* Pin utama jatuh halus saat lokasi berganti */
+.ck-pin.is-dropping svg { animation: pinDropIn 0.45s var(--ease-out) both; transform-origin: bottom center; }
+
+/* Indikator memuat peta memudar keluar */
+.map-loading { transition: opacity 0.3s ease; }
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        animation-delay: 0s !important;
     }
+    html { scroll-behavior: auto; }
     .splash-ring { stroke-dashoffset: 0; }
     .splash-equator { opacity: 0.5; }
 }
