@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tentang &amp; Sumber Data | Cari Kecamatan</title>
-    <meta name="description" content="Tentang Cari Kecamatan: informasi situs, sumber data, batasan dan risiko, serta privasi.">
+    <title>Tentang &amp; Privasi | Cari Kecamatan</title>
+    <meta name="description" content="Tentang Cari Kecamatan: informasi situs, sumber data, batasan serta risiko, dan privasi.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261111">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261112">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=20261111">
+    <link rel="stylesheet" href="css/style.css?v=20261112">
 </head>
 <body>
     <header class="site-header">
@@ -29,54 +29,56 @@
                 <a class="tab-btn" href="./"><span class="tab-prefix">Cari </span>Tunggal</a>
                 <a class="tab-btn" href="./#massal"><span class="tab-prefix">Cari </span>Massal</a>
             </nav>
-            <a href="tentang.html" class="header-link" aria-current="page">Tentang &amp; Sumber Data</a>
+            <a href="tentang.html" class="header-link" aria-current="page">Tentang &amp; Privasi</a>
         </div>
     </header>
 
     <main class="container main-content about-page">
         <section class="hero">
-            <h1>Tentang &amp; Sumber Data</h1>
-            <p class="hero-sub">Mengenal Cari Kecamatan, sumber datanya, batasan penggunaannya, dan komitmen privasinya.</p>
+            <h1>Tentang &amp; Privasi</h1>
+            <p class="hero-sub">Mengenal Cari Kecamatan, sumber datanya, batasan serta risikonya, dan komitmen privasinya.</p>
         </section>
 
         <section class="card about-card is-notice" aria-labelledby="tentang-situs">
             <h2 id="tentang-situs">Tentang</h2>
             <p><strong>Cari Kecamatan</strong> adalah situs web untuk mencari nama wilayah administrasi (kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi) di Indonesia berdasarkan titik koordinat. Hasil pencarian bersifat informatif.</p>
             <p>Hasil pencarian tidak dapat dijadikan dasar penetapan batas wilayah, penyelesaian sengketa perbatasan atau pertanahan, serta keperluan hukum lain yang bersifat mengikat.</p>
+
+            <div class="about-subgrid">
+                <section class="about-sub" aria-labelledby="sumber">
+                    <h3 id="sumber">Sumber data</h3>
+                    <ul>
+                        <li><strong>Sumber utama:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG), untuk poligon batas wilayah administrasi dan identifikasi lokasi.</li>
+                        <li><strong>Sumber pendukung:</strong> ArcGIS (Esri) dan OpenStreetMap (Nominatim), untuk alamat lengkap, nama desa/kelurahan, serta cadangan apabila layanan BIG tidak merespons.</li>
+                        <li><strong>Deteksi perairan:</strong> Is On Water API.</li>
+                        <li><strong>Peta dasar:</strong> Esri World Street Map dan Esri World Imagery.</li>
+                    </ul>
+                </section>
+
+                <section class="about-sub" aria-labelledby="batasan">
+                    <h3 id="batasan">Batasan serta risiko</h3>
+                    <ul>
+                        <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari tiap layanan pihak ketiga saat permintaan dilakukan, sehingga kesalahan dapat terjadi.</li>
+                        <li>Layanan pihak ketiga tidak selalu tersedia. Gangguan layanan atau pembatasan akses lintas domain (<em>Cross-Origin Resource Sharing</em>/CORS) dapat menyebabkan hasil kosong atau berasal dari sumber pendukung.</li>
+                        <li>Koordinat di luar wilayah Negara Kesatuan Republik Indonesia tidak dapat diproses.</li>
+                    </ul>
+                </section>
+            </div>
         </section>
 
-        <div class="about-grid">
-            <section class="card about-card" aria-labelledby="sumber">
-                <h2 id="sumber">Sumber data</h2>
-                <ul>
-                    <li><strong>Sumber utama:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG), untuk poligon batas wilayah administrasi dan identifikasi lokasi.</li>
-                    <li><strong>Sumber pendukung:</strong> ArcGIS (Esri) dan OpenStreetMap (Nominatim), untuk alamat lengkap, nama desa/kelurahan, serta cadangan apabila layanan BIG tidak merespons.</li>
-                    <li><strong>Deteksi perairan:</strong> Is On Water API.</li>
-                    <li><strong>Peta dasar:</strong> Esri World Street Map dan Esri World Imagery.</li>
-                </ul>
-            </section>
-
-            <section class="card about-card" aria-labelledby="batasan">
-                <h2 id="batasan">Batasan dan risiko</h2>
-                <ul>
-                    <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari tiap layanan pihak ketiga saat permintaan dilakukan, sehingga kesalahan dapat terjadi.</li>
-                    <li>Layanan pihak ketiga tidak selalu tersedia. Gangguan layanan atau pembatasan akses lintas domain (<em>Cross-Origin Resource Sharing</em>/CORS) dapat menyebabkan hasil kosong atau berasal dari sumber pendukung.</li>
-                    <li>Koordinat di luar wilayah Negara Kesatuan Republik Indonesia tidak dapat diproses.</li>
-                </ul>
-            </section>
-        </div>
-
-        <section class="card about-card" aria-labelledby="privasi">
+        <section class="card about-card is-notice" aria-labelledby="privasi">
             <h2 id="privasi">Privasi</h2>
             <p>Cari Kecamatan tidak mengumpulkan, menyimpan, ataupun memperjualbelikan data pribadi Anda.</p>
-            <ul class="privacy-list">
-                <li><strong>Tanpa akun.</strong> Semua fitur dapat digunakan langsung tanpa mendaftar, masuk, atau memberikan identitas apa pun.</li>
-                <li><strong>Tanpa pelacak.</strong> Situs ini tidak memasang <em>cookie</em>, alat analitik, maupun iklan.</li>
-                <li><strong>Tanpa basis data pengguna.</strong> Koordinat dan berkas CSV/TXT yang Anda masukkan diolah langsung di peramban Anda, tidak disimpan di server Cari Kecamatan.</li>
-                <li><strong>Riwayat tetap di perangkat Anda.</strong> Riwayat pencarian hanya tersimpan di peramban perangkat yang Anda gunakan dan dapat dihapus kapan saja melalui tombol "Hapus semua".</li>
-                <li><strong>Lokasi hanya dengan izin Anda.</strong> Fitur "Lokasi saya" membaca lokasi perangkat hanya setelah Anda memberikan izin, dan hanya untuk pencarian saat itu.</li>
-                <li><strong>Transparansi.</strong> Untuk menemukan nama wilayah, koordinat (tanpa identitas Anda) dikirim ke layanan yang tercantum pada bagian Sumber data. Seperti situs web pada umumnya, layanan tersebut dan penyedia <em>hosting</em> dapat mencatat informasi teknis standar, seperti alamat IP, sesuai kebijakan privasi masing-masing.</li>
-            </ul>
+            <div class="about-sub">
+                <ul class="privacy-list">
+                    <li><strong>Tanpa akun.</strong> Semua fitur dapat digunakan langsung tanpa mendaftar, masuk, atau memberikan identitas apa pun.</li>
+                    <li><strong>Tanpa pelacak.</strong> Situs ini tidak memasang <em>cookie</em>, alat analitik, maupun iklan.</li>
+                    <li><strong>Tanpa basis data pengguna.</strong> Koordinat dan berkas CSV/TXT yang Anda masukkan diolah langsung di peramban Anda, tidak disimpan di server Cari Kecamatan.</li>
+                    <li><strong>Riwayat tetap di perangkat Anda.</strong> Riwayat pencarian hanya tersimpan di peramban perangkat yang Anda gunakan dan dapat dihapus kapan saja melalui tombol "Hapus semua".</li>
+                    <li><strong>Lokasi hanya dengan izin Anda.</strong> Fitur "Lokasi saya" membaca lokasi perangkat hanya setelah Anda memberikan izin, dan hanya untuk pencarian saat itu.</li>
+                    <li><strong>Transparansi.</strong> Untuk menemukan nama wilayah, koordinat (tanpa identitas Anda) dikirim ke layanan yang tercantum pada bagian Sumber data. Seperti situs web pada umumnya, layanan tersebut dan penyedia <em>hosting</em> dapat mencatat informasi teknis standar, seperti alamat IP, sesuai kebijakan privasi masing-masing.</li>
+                </ul>
+            </div>
         </section>
 
         <a href="./" class="about-back">
