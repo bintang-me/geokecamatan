@@ -195,7 +195,6 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     display: flex;
     flex-direction: column;
     gap: 28px;
-    animation: paneIn 0.25s ease-out;
 }
 
 @keyframes paneIn {
@@ -433,8 +432,16 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .sk {
     display: block;
     border-radius: 6px;
-    background: linear-gradient(90deg, #EEF0F3 0%, #F7F8FA 50%, #EEF0F3 100%);
-    background-size: 800px 100%;
+    position: relative;
+    overflow: hidden;
+    background: #EEF0F3;
+}
+.sk::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    transform: translateX(-100%);
     animation: shimmer 1.4s linear infinite;
 }
 .sk-line { height: 12px; }
@@ -448,8 +455,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 .loading-text { font-size: 13px; color: var(--muted); }
 @keyframes shimmer {
-    0% { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
+    to { transform: translateX(100%); }
 }
 
 .error-state {
@@ -582,7 +588,9 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 0;
+    padding: 10px 6px;
+    margin: 0 -6px;
+    border-radius: 8px;
     border-top: 1px solid var(--line-soft);
     cursor: pointer;
 }
@@ -781,7 +789,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .batch-progress-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .batch-progress-row strong { color: var(--ink); font-weight: 600; }
 .progress-bar-bg { height: 6px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
-.progress-bar-fill { height: 100%; width: 0%; background: var(--ink); transition: width 0.3s ease; }
+.progress-bar-fill { height: 100%; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left center; transition: transform 0.3s var(--ease-out, ease); will-change: transform; }
 
 .batch-controls { display: flex; gap: 10px; }
 .batch-controls .btn { height: 48px; }
@@ -894,7 +902,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 .copy-menu-list button:hover { background: var(--canvas); }
 
-.table-container { overflow-x: auto; max-height: 560px; overflow-y: auto; }
+.table-container { overflow-x: auto; max-height: 560px; overflow-y: auto; contain: layout paint; }
 .batch-table {
     width: 100%;
     min-width: 860px;
@@ -967,8 +975,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 29, 53, 0.45);
-    backdrop-filter: blur(2px);
+    background: rgba(15, 29, 53, 0.5);
 }
 .table-modal.active, .map-modal.active { display: flex; }
 
@@ -1232,8 +1239,8 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 .map-float-btn:active, .mini-copy:active { transform: scale(0.97); }
 .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 16px rgba(238, 162, 1, 0.28); }
 .card { transition: box-shadow 0.25s ease, border-color 0.25s ease; }
-.history-item { transition: background 0.2s ease, padding 0.2s var(--ease-out); }
-.history-item:hover { background: var(--canvas); padding-left: 6px; padding-right: 6px; border-radius: 8px; }
+.history-item { transition: background 0.2s ease; }
+.history-item:hover { background: var(--canvas); }
 
 /* Menu salin & modal */
 .copy-menu-list:not([hidden]) { animation: menuIn 0.18s var(--ease-out) both; transform-origin: top right; }
