@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tentang &amp; Privasi | Cari Kecamatan</title>
-    <meta name="description" content="Tentang Cari Kecamatan: informasi situs, sumber data, batasan serta risiko, dan privasi.">
+    <meta name="description" content="Tentang Cari Kecamatan: cara kerja, sumber data resmi BIG, koreksi otomatis, batasan serta risiko, ketentuan penggunaan, dan privasi.">
     <meta name="theme-color" content="#0F1D35">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261129">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,31 +45,57 @@
     <main class="container main-content about-page">
         <section class="hero">
             <h1>Tentang &amp; Privasi</h1>
-            <p class="hero-sub">Mengenal <span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>, sumber datanya, batasan serta risikonya, dan komitmen privasinya.</p>
+            <p class="hero-sub">Mengenal <span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>, cara kerjanya, sumber datanya, batasan serta risikonya, dan komitmen privasinya.</p>
         </section>
 
         <section class="card about-card is-notice" aria-labelledby="tentang-situs">
             <h2 id="tentang-situs">Tentang</h2>
-            <p><span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span> adalah situs web untuk mencari nama wilayah administrasi (kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi) di Indonesia berdasarkan titik koordinat. Hasil pencarian bersifat informatif.</p>
-            <p>Hasil pencarian tidak dapat dijadikan dasar penetapan batas wilayah, penyelesaian sengketa perbatasan atau pertanahan, serta keperluan hukum lain yang bersifat mengikat.</p>
+            <p><span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span> adalah situs web untuk menemukan nama wilayah administrasi (kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi) di Indonesia dari titik koordinat dalam hitungan detik, baik untuk satu titik maupun ratusan titik sekaligus.</p>
+            <p>Setiap titik dicocokkan langsung dengan poligon batas wilayah administrasi dari Badan Informasi Geospasial (BIG), lembaga pemerintah penyelenggara informasi geospasial dasar di Indonesia. Sumber setiap hasil selalu ditampilkan, sehingga Anda dapat membedakan hasil dari data resmi BIG dan hasil dari sumber pendukung.</p>
+            <p>Dengan cara ini, <span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span> dapat diandalkan sebagai acuan informatif untuk pekerjaan sehari-hari, seperti pendataan lapangan, pemetaan, analisis wilayah, dan pemeriksaan alamat.</p>
 
             <div class="about-subgrid">
                 <section class="about-sub" aria-labelledby="sumber">
                     <h3 id="sumber">Sumber Data</h3>
                     <ul>
-                        <li><strong>Sumber utama:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG), untuk poligon batas wilayah administrasi dan identifikasi lokasi.</li>
+                        <li><strong>Sumber utama:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG), untuk poligon batas wilayah administrasi dan identifikasi lokasi. Hasil dari sumber ini diberi label "Sumber resmi · BIG".</li>
                         <li><strong>Sumber pendukung:</strong> ArcGIS (Esri) dan OpenStreetMap (Nominatim), untuk alamat lengkap, nama desa/kelurahan, serta cadangan apabila layanan BIG tidak merespons.</li>
                         <li><strong>Deteksi perairan:</strong> Is On Water API.</li>
                         <li><strong>Peta dasar:</strong> Esri World Street Map dan Esri World Imagery.</li>
                     </ul>
                 </section>
 
+                <section class="about-sub" aria-labelledby="koreksi">
+                    <h3 id="koreksi">Koreksi Otomatis</h3>
+                    <p>Koordinat sering ditulis dengan cara yang berbeda atau terbawa keliru dari Excel. <span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span> mengenali dan merapikannya sebelum mencari:</p>
+                    <ul>
+                        <li>Koma desimal diubah menjadi titik, misalnya -6,2088 menjadi -6.2088.</li>
+                        <li>Titik desimal yang hilang dipulihkan, misalnya -62088 menjadi -6.2088.</li>
+                        <li>Urutan bujur dan lintang yang terbalik ditukar.</li>
+                        <li>Format DMS dan arah mata angin (LS, LU, BT, BB) dikonversi ke desimal.</li>
+                        <li>Salinan kolom Excel atau CSV yang dipisah tab, titik koma, atau bertanda kutip langsung terbaca.</li>
+                    </ul>
+                    <p>Setiap koreksi diberitahukan secara terbuka beserta masukan aslinya, sehingga Anda selalu dapat memeriksanya.</p>
+                </section>
+
                 <section class="about-sub" aria-labelledby="batasan">
                     <h3 id="batasan">Batasan serta Risiko</h3>
                     <ul>
-                        <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari tiap layanan pihak ketiga saat permintaan dilakukan, sehingga kesalahan dapat terjadi.</li>
+                        <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari tiap layanan saat pencarian dilakukan. Titik yang sangat dekat dengan garis batas dapat terbaca masuk ke wilayah tetangga akibat perbedaan ketelitian data.</li>
                         <li>Layanan pihak ketiga tidak selalu tersedia. Gangguan layanan atau pembatasan akses lintas domain (<em>Cross-Origin Resource Sharing</em>/CORS) dapat menyebabkan hasil kosong atau berasal dari sumber pendukung.</li>
+                        <li>Koreksi otomatis bekerja berdasarkan pola penulisan yang umum. Pada penulisan yang tidak lazim, misalnya angka tanpa titik desimal yang sekaligus urutannya terbalik, hasil koreksi dapat keliru. Periksa kembali koordinat yang ditandai "Dirapikan otomatis".</li>
+                        <li>Pada Cari Massal, nama desa/kelurahan yang tidak tersedia di BIG maupun ArcGIS ditampilkan kosong (-).</li>
                         <li>Koordinat di luar wilayah Negara Kesatuan Republik Indonesia tidak dapat diproses.</li>
+                    </ul>
+                </section>
+
+                <section class="about-sub" aria-labelledby="ketentuan">
+                    <h3 id="ketentuan">Ketentuan Penggunaan</h3>
+                    <ul>
+                        <li><span class="wordmark-inline"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span> disediakan sebagai acuan informatif. Hasil pencarian bukan dokumen resmi dan tidak memiliki kekuatan hukum.</li>
+                        <li>Hasil pencarian tidak boleh dijadikan dasar penetapan atau penegasan batas wilayah, penyelesaian sengketa perbatasan atau pertanahan, alat bukti, maupun keperluan hukum lain yang bersifat formal dan mengikat.</li>
+                        <li>Untuk keperluan tersebut, rujuklah dokumen resmi dari instansi yang berwenang serta putusan lembaga peradilan.</li>
+                        <li>Segala keputusan yang diambil berdasarkan hasil pencarian menjadi tanggung jawab pengguna.</li>
                     </ul>
                 </section>
             </div>
