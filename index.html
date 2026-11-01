@@ -6,13 +6,13 @@
     <title>Cari Kecamatan | Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261112">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261113">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=20261112">
-    <link rel="stylesheet" href="css/map.css?v=20261112">
+    <link rel="stylesheet" href="/css/style.css?v=20261113">
+    <link rel="stylesheet" href="/css/map.css?v=20261113">
 </head>
 <body>
 
@@ -43,7 +43,7 @@
 
     <header class="site-header">
         <div class="container header-inner">
-            <a href="./" class="brand" aria-label="Beranda Cari Kecamatan">
+            <a href="/" class="brand" aria-label="Beranda Cari Kecamatan">
                 <svg class="brand-logo" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
                     <rect width="64" height="64" rx="16" fill="#0F1D35"/>
                     <ellipse cx="32" cy="38" rx="19" ry="5.5" fill="none" stroke="#EEA201" stroke-width="2" opacity="0.5"/>
@@ -57,7 +57,7 @@
                 <button type="button" class="tab-btn active" data-tab="tab-tunggal" aria-pressed="true"><span class="tab-prefix">Cari </span>Tunggal</button>
                 <button type="button" class="tab-btn" data-tab="tab-massal" aria-pressed="false"><span class="tab-prefix">Cari </span>Massal</button>
             </nav>
-            <a href="tentang.html" class="header-link">Tentang &amp; Privasi</a>
+            <a href="/tentang" class="header-link">Tentang &amp; Privasi</a>
         </div>
     </header>
 
@@ -248,6 +248,7 @@
                                 <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
                                 <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
                                 <button type="button" role="menuitem" data-copy="coord">Koordinat (lintang, bujur)</button>
+                                <button type="button" role="menuitem" data-copy="link">Tautan daftar ini</button>
                             </div>
                         </div>
                         <button type="button" class="btn btn-dark btn-sm download-csv-btn">
@@ -296,6 +297,7 @@
                                 <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
                                 <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
                                 <button type="button" role="menuitem" data-copy="coord">Koordinat (lintang, bujur)</button>
+                                <button type="button" role="menuitem" data-copy="link">Tautan daftar ini</button>
                             </div>
                         </div>
                         <button type="button" class="btn btn-dark btn-sm download-csv-btn">Unduh CSV</button>
@@ -333,13 +335,18 @@
 
     <footer class="site-footer">
         <div class="container footer-inner">
-            <p class="footer-note">Hasil bersifat informatif, bukan untuk keperluan hukum atau penetapan batas wilayah. <a href="tentang.html">Selengkapnya di Tentang &amp; Privasi</a></p>
+            <p class="footer-note">Hasil bersifat informatif, bukan untuk keperluan hukum atau penetapan batas wilayah. <a href="/tentang">Selengkapnya di Tentang &amp; Privasi</a></p>
             <p class="footer-credit">Dikembangkan oleh <strong>Bintang Bayu K. P.</strong></p>
         </div>
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script src="js/bundle.js?v=20261112"></script>
+    <script src="/js/parser.js?v=20261113"></script>
+    <script src="/js/geocoder.js?v=20261113"></script>
+    <script src="/js/map.js?v=20261113"></script>
+    <script src="/js/ui.js?v=20261113"></script>
+    <script src="/js/router.js?v=20261113"></script>
+    <script src="/js/app.js?v=20261113"></script>
 </body>
 </html>
