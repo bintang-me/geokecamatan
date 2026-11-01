@@ -538,7 +538,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     margin-bottom: 4px;
 }
-.history-header h2 { font-size: 15px; font-weight: 600; }
+.history-header h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
 .history-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
 .history-empty { font-size: 13px; color: var(--muted); padding: 10px 0; border-top: 1px solid var(--line-soft); }
 
@@ -573,7 +573,11 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .map-section {
     flex: 999 1 560px;
     min-width: 0;
-    min-height: 600px;
+    /* Tinggi tetap & sama dengan peta Cari Massal; menempel saat halaman digulir */
+    height: 600px;
+    align-self: flex-start;
+    position: sticky;
+    top: 88px;
     display: flex;
 }
 .map-wrapper {
@@ -657,11 +661,11 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .map-float-btn:hover { background: var(--canvas); }
 
 /* ---------- Cari Massal ---------- */
-.hero-compact { gap: 6px; }
 
 .batch-layout-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    /* Sama dengan Cari Tunggal: kolom kiri ±400px, peta mengisi sisanya */
+    grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
     gap: 24px;
     align-items: stretch;
 }
@@ -673,7 +677,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     justify-content: space-between;
     gap: 12px;
 }
-.batch-input-head label { font-size: 15px; font-weight: 600; }
+.batch-input-head label { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
 
 .batch-editor {
     flex: 1;
@@ -747,15 +751,17 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 .batch-controls .btn { height: 48px; }
 
 .batch-map-section {
-    position: relative;
-    min-height: 520px;
+    position: sticky;
+    top: 88px;
+    align-self: start;
+    height: 600px;
     display: flex;
     border-radius: var(--r-xl);
     overflow: hidden;
     border: 1px solid var(--line);
     background: #E9EEF1;
 }
-.batch-map-container { flex: 1; min-height: 520px; }
+.batch-map-container { flex: 1; min-height: 0; }
 
 .batch-map-legend, .map-modal-legend {
     display: flex;
@@ -791,7 +797,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     gap: 12px;
 }
 .batch-result-title { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.batch-result-title h2 { font-size: 17px; font-weight: 600; }
+.batch-result-title h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
 .batch-actions { display: flex; align-items: center; gap: 8px; }
 
 .batch-summary { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1185,7 +1191,9 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 /* ---------- Responsif ---------- */
 @media (max-width: 900px) {
     .batch-layout-grid { grid-template-columns: minmax(0, 1fr); }
-    .batch-map-section, .batch-map-container { min-height: 380px; }
+    .batch-map-section, .batch-map-container { min-height: 0; }
+    .batch-map-section { height: clamp(320px, 52vh, 480px); position: relative; top: auto; }
+    .batch-map-legend { right: 68px; gap: 6px 12px; font-size: 11px; padding: 6px 10px; }
     .header-link { display: none; }
 }
 
@@ -1215,7 +1223,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 
     /* Peta besar; panel hasil "naik" menutupi bawah peta seperti bottom sheet */
     .single-layout { flex-direction: column; flex-wrap: nowrap; gap: 0; }
-    .map-section { order: 1; min-height: 0; height: clamp(320px, 52vh, 480px); flex: none; }
+    .map-section { order: 1; min-height: 0; height: clamp(320px, 52vh, 480px); flex: none; position: relative; top: auto; align-self: stretch; }
     .single-side { order: 2; max-width: none; min-width: 0; flex: none; gap: 20px; }
     .map-section .leaflet-bottom { bottom: 28px; } /* atribusi di atas tepi panel hasil */
     .result-card {

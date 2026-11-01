@@ -70,7 +70,7 @@
 
 @media (max-width: 768px) {
     .leaflet-control-attribution {
-        max-width: calc(100% - 60px);
+        max-width: calc(100vw - 110px); /* % tidak berlaku di kontainer kontrol Leaflet */
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
