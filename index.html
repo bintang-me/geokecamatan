@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cari Kecamatan — Berdasarkan Titik Koordinat</title>
+    <title>Cari Kecamatan | Berdasarkan Titik Koordinat</title>
     <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
     <meta name="theme-color" content="#0F1D35">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261108">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261109">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css?v=20261108">
-    <link rel="stylesheet" href="css/map.css?v=20261108">
+    <link rel="stylesheet" href="css/style.css?v=20261109">
+    <link rel="stylesheet" href="css/map.css?v=20261109">
 </head>
 <body>
 
@@ -37,13 +37,13 @@
         </div>
     </div>
     <script>
-        // Splash hanya sekali per sesi — kunjungan berikutnya langsung ke halaman
+        // Splash hanya sekali per sesi; kunjungan berikutnya langsung ke halaman
         try { if (sessionStorage.getItem('ck_splash_seen')) { document.getElementById('introSplash').remove(); } } catch (e) {}
     </script>
 
     <header class="site-header">
         <div class="container header-inner">
-            <a href="./" class="brand" aria-label="Cari Kecamatan — beranda">
+            <a href="./" class="brand" aria-label="Beranda Cari Kecamatan">
                 <svg class="brand-logo" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
                     <rect width="64" height="64" rx="16" fill="#0F1D35"/>
                     <ellipse cx="32" cy="38" rx="19" ry="5.5" fill="none" stroke="#EEA201" stroke-width="2" opacity="0.5"/>
@@ -322,7 +322,7 @@
                     <div id="mapSingleInfoBox" class="map-single-info-box hidden">
                         <div class="info-row"><strong>Desa/Kelurahan</strong> <span id="modalInfoDesaKel">-</span></div>
                         <div class="info-row"><strong>Kecamatan</strong> <span id="modalInfoKecamatan">-</span></div>
-                        <div class="info-row"><strong>Kab/Kota</strong> <span id="modalInfoKabKota">-</span></div>
+                        <div class="info-row"><strong>Kabupaten/Kota</strong> <span id="modalInfoKabKota">-</span></div>
                         <div class="info-row"><strong>Provinsi</strong> <span id="modalInfoProvinsi">-</span></div>
                         <div class="info-row"><strong>Status</strong> <span id="modalInfoStatus">-</span></div>
                     </div>
@@ -340,6 +340,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    <script src="js/bundle.js?v=20261108"></script>
+    <script src="js/bundle.js?v=20261109"></script>
 </body>
 </html>
