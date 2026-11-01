@@ -98,19 +98,21 @@ const INDONESIA_BOUNDS = {
     lonMin: 94.5, lonMax: 141.5
 };
 
-// Cache LRU untuk reverse geocode — 50 entri, TTL 5 menit
+// Cache LRU untuk reverse geocode — 1000 entri (cukup untuk satu daftar Cari Massal), TTL 30 menit
 const geocodeCache = new Map();
-const CACHE_MAX = 50;
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_MAX = 1000;
+const CACHE_TTL = 30 * 60 * 1000;
 
 function getCacheKey(lat, lon) {
     return `${lat.toFixed(5)},${lon.toFixed(5)}`;
 }
 
-function getFromCache(lat, lon) {
+// needDetail: Cari Tunggal butuh alamat lengkap; hasil ringkas dari Cari Massal tidak cukup
+function getFromCache(lat, lon, needDetail = true) {
     const key = getCacheKey(lat, lon);
     const entry = geocodeCache.get(key);
     if (!entry) return null;
+    if (needDetail && !entry.detail) return null;
     if (Date.now() - entry.timestamp > CACHE_TTL) {
         geocodeCache.delete(key);
         return null;
@@ -121,13 +123,14 @@ function getFromCache(lat, lon) {
     return entry.data;
 }
 
-function setToCache(lat, lon, data) {
+function setToCache(lat, lon, data, detail = true) {
     const key = getCacheKey(lat, lon);
+    geocodeCache.delete(key);
     if (geocodeCache.size >= CACHE_MAX) {
         const oldest = geocodeCache.keys().next().value;
         geocodeCache.delete(oldest);
     }
-    geocodeCache.set(key, { data, timestamp: Date.now() });
+    geocodeCache.set(key, { data, detail, timestamp: Date.now() });
 }
 
 // Helper: fetch dengan timeout (AbortController) - cegah hang saat API tidak merespons
@@ -154,12 +157,25 @@ function nominatimFetch(url, timeoutMs = 4000) {
     return run;
 }
 
-async function reverseGeocode(lat, lon) {
-    // Cek cache terlebih dahulu
-    const cached = getFromCache(lat, lon);
-    if (cached) return cached;
+// Permintaan yang sedang berjalan untuk titik yang sama dipakai bersama (mis. titik ganda di Cari Massal)
+const geocodeInflight = new Map();
 
-    // --- FASE 1: BIG, ArcGIS, IsOnWater paralel ---
+/**
+ * opts.detail (bawaan true): sertakan alamat lengkap (Cari Tunggal).
+ * detail=false (Cari Massal): cukup nama wilayah — tanpa menunggu layanan alamat/perairan bila BIG sudah menemukan.
+ */
+function reverseGeocode(lat, lon, opts = {}) {
+    const detail = opts.detail !== false;
+    const cached = getFromCache(lat, lon, detail);
+    if (cached) return Promise.resolve(cached);
+    const key = getCacheKey(lat, lon) + (detail ? '|d' : '|r');
+    if (geocodeInflight.has(key)) return geocodeInflight.get(key);
+    const p = reverseGeocodeFresh(lat, lon, detail).finally(() => geocodeInflight.delete(key));
+    geocodeInflight.set(key, p);
+    return p;
+}
+
+async function reverseGeocodeFresh(lat, lon, detail) {
     // BIG: layer 3 (kecamatan) = sumber utama nama wilayah — layer yang sama dengan poligon batas di peta;
     // layer 4 (desa/kelurahan) dicoba paralel untuk nama desa.
     const bigQuery = (layer) => `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/${layer}/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json`;
@@ -168,13 +184,17 @@ async function reverseGeocode(lat, lon) {
     const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=14`;
     const waterUrl = `https://is-on-water.balbona.me/api/v1/get/${lat}/${lon}`;
 
+    // --- FASE 1: BIG selalu; ArcGIS & deteksi perairan dimulai bersamaan untuk Cari Tunggal,
+    //     atau hanya bila dibutuhkan untuk Cari Massal (hemat permintaan & tidak menunggu yang lambat) ---
+    const bigKecP = fetchWithTimeout(bigQuery(3), {}, 8000); // server BIG relatif lambat
+    const bigDesaP = fetchWithTimeout(bigQuery(4), {}, 8000);
+    let arcP = null, waterP = null;
+    const getArc = () => arcP || (arcP = fetchWithTimeout(arcgisUrl));
+    const getWater = () => waterP || (waterP = fetchWithTimeout(waterUrl, {}, 3000)); // 3 detik agar tidak memblokir
+    if (detail) { getArc(); getWater(); }
+
     try {
-        const [bigKecData, bigDesaData, arcData, waterData] = await Promise.all([
-            fetchWithTimeout(bigQuery(3), {}, 8000), // server BIG relatif lambat
-            fetchWithTimeout(bigQuery(4), {}, 8000),
-            fetchWithTimeout(arcgisUrl),
-            fetchWithTimeout(waterUrl, {}, 3000) // batas timeout 3 detik agar tidak memblokir jika API mati
-        ]);
+        const [bigKecData, bigDesaData] = await Promise.all([bigKecP, bigDesaP]);
 
         const bigKec = bigKecData ? parseBIGResponse(bigKecData, 'kec') : null;
         const bigDesa = bigDesaData ? parseBIGResponse(bigDesaData, 'desa') : null;
@@ -185,13 +205,21 @@ async function reverseGeocode(lat, lon) {
         } else if (bigDesa && bigDesa.kecamatan !== '-') {
             bigResult = bigDesa;
         }
-        const arcResult = arcData ? parseArcGISResponse(arcData) : null;
         const bigFound = !!(bigResult && bigResult.kecamatan !== '-');
 
-        // --- FASE 2: Nominatim (dibatasi 1 req/detik) hanya bila dibutuhkan:
-        //     BIG tidak menemukan poligon, atau ArcGIS tidak memberi alamat lengkap ---
+        // --- FASE 2: tunggu sumber pendukung hanya yang memang diperlukan ---
+        let arcData = null, waterData = null;
+        if (!bigFound) {
+            [arcData, waterData] = await Promise.all([getArc(), getWater()]);
+        } else if (detail || bigResult.desaKel === '-') {
+            arcData = await getArc(); // alamat lengkap (Cari Tunggal) atau nama desa yang belum ada dari BIG
+        }
+        const arcResult = arcData ? parseArcGISResponse(arcData) : null;
+
+        // --- FASE 3: Nominatim (dibatasi 1 req/detik) hanya bila dibutuhkan:
+        //     BIG tidak menemukan poligon, atau (Cari Tunggal) ArcGIS tidak memberi alamat lengkap ---
         let osmData = null;
-        if (!bigFound || !arcResult || arcResult.alamat === '-') {
+        if (!bigFound || (detail && (!arcResult || arcResult.alamat === '-'))) {
             osmData = await nominatimFetch(osmUrl);
         }
         const osmResult = (osmData && !osmData.error) ? parseNominatimResponse(osmData) : null;
@@ -271,7 +299,7 @@ async function reverseGeocode(lat, lon) {
 
             const result = { success: true, administrative: finalResult, outsideIndonesia, source: bigFound ? 'BIG' : 'fallback' };
             // Hasil cadangan saat BIG gagal merespons tidak di-cache, agar pencarian ulang bisa mendapat data BIG
-            if (bigData || outsideIndonesia) setToCache(lat, lon, result);
+            if (bigData || outsideIndonesia) setToCache(lat, lon, result, detail || outsideIndonesia);
             return result;
         }
 
