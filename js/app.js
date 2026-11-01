@@ -29,8 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(dismissSplash, wait);
         };
 
-        if (document.readyState === 'complete') dismissWhenReady();
-        else window.addEventListener('load', dismissWhenReady, { once: true });
+        dismissWhenReady(); // skrip & DOM sudah siap; ubin peta dimuat di belakang
         setTimeout(dismissSplash, MAX_MS);
         splash.addEventListener('click', dismissSplash);
         document.addEventListener('keydown', dismissSplash, { once: true });
@@ -106,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         batchProgressContainer.classList.remove('hidden');
         const label = document.getElementById('batchProgressLabel');
         if (label) label.textContent = 'Selesai';
-        batchProgressBar.style.width = '100%';
+        setBatchProgress(100);
         batchProgressText.textContent = `${batchData.length} / ${batchData.length}`;
         setTimeout(() => { batchMap.invalidateSize(); fitBatchMapBounds(); }, 150);
         return true;
@@ -603,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressLabel = document.getElementById('batchProgressLabel');
         const progressTrack = document.getElementById('batchProgressTrack');
         if (progressLabel) progressLabel.textContent = 'Memproses';
-        batchProgressBar.style.width = '0%';
+        setBatchProgress(0);
         batchProgressText.textContent = `0 / ${lines.length}`;
 
         // Create tasks
@@ -666,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         completed++;
                         const percent = (completed / tasks.length) * 100;
-                        batchProgressBar.style.width = `${percent}%`;
+                        setBatchProgress(percent);
                         if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(Math.round(percent)));
                         batchProgressText.textContent = `${completed} / ${tasks.length}`;
                         next();
@@ -682,8 +681,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Ensure final render is sorted by original ID
         batchData.sort((a, b) => a.id - b.id);
-        batchTableBody.innerHTML = '';
-        batchData.forEach(item => renderBatchRow(item));
         fitBatchMapBounds();
 
         // Simpan hasil di tab ini agar bisa dikembalikan tanpa diproses ulang
@@ -815,8 +812,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncMsgColspans = () => document.querySelectorAll('.batch-table td.col-msg').forEach(td => { td.colSpan = batchMsgColspan(); });
     if (mobileTableMq.addEventListener) mobileTableMq.addEventListener('change', syncMsgColspans);
 
+    // Lebar bilah kemajuan lewat transform (tanpa hitung ulang tata letak)
+    function setBatchProgress(percent) {
+        batchProgressBar.style.transform = `scaleX(${Math.max(0, Math.min(100, percent)) / 100})`;
+    }
+
+    // Ringkasan cukup diperbarui sekali per frame, bukan per baris
+    let summaryFrame = 0;
+    function scheduleBatchSummary() {
+        if (summaryFrame) return;
+        summaryFrame = requestAnimationFrame(() => { summaryFrame = 0; updateBatchSummary(); });
+    }
+
     function renderBatchRow(data, animate = false) {
         const tr = document.createElement('tr');
+        tr.dataset.id = data.id;
         tr.title = 'Klik untuk melihat titik pada peta';
 
         const group = batchStatusGroup(data.status);
@@ -855,8 +865,11 @@ document.addEventListener('DOMContentLoaded', () => {
         pill.textContent = statusLabel(data.status);
         statusTd.appendChild(pill);
 
-        batchTableBody.appendChild(tr);
-        updateBatchSummary();
+        // Sisipkan sesuai nomor urut (hasil paralel bisa tiba tidak berurutan)
+        let after = batchTableBody.lastElementChild;
+        while (after && after.dataset.id && Number(after.dataset.id) > Number(data.id)) after = after.previousElementSibling;
+        batchTableBody.insertBefore(tr, after ? after.nextSibling : batchTableBody.firstChild);
+        scheduleBatchSummary();
     }
 
     // ---- Ringkasan & filter status hasil batch ----
