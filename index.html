@@ -22,6 +22,11 @@
             });
         });
     </script>
+    <script>
+        // Rute /massal: sembunyikan isi utama sampai tab Massal dipasang, agar tab Tunggal tidak sempat tampil
+        if (/^\/massal\/?$/.test(location.pathname) || location.hash === '#massal') document.documentElement.classList.add('boot-massal');
+    </script>
+    <style>.boot-massal .main-content { visibility: hidden; }</style>
 </head>
 <body>
 
@@ -346,6 +351,20 @@
             </div>
         </div>
     </main>
+    <script>
+        // Pasang tab Massal sebelum halaman pertama kali digambar
+        (function () {
+            var root = document.documentElement;
+            if (!root.classList.contains('boot-massal')) return;
+            document.querySelectorAll('.tab-btn').forEach(function (b) {
+                var on = b.dataset.tab === 'tab-massal';
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.toggle('active', p.id === 'tab-massal'); });
+            root.classList.remove('boot-massal');
+        })();
+    </script>
 
     <footer class="site-footer">
         <div class="container footer-inner">
