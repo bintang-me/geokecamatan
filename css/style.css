@@ -286,6 +286,7 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 }
 .example-chip:hover { border-color: var(--line-strong); background: var(--canvas); }
 
+
 /* Keterangan koreksi otomatis (muncul hanya bila masukan dirapikan) */
 .coord-note {
     display: flex;
@@ -332,31 +333,39 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     position: absolute;
     top: calc(100% + 10px);
     left: 0;
+    right: 0;
     z-index: 1200;
-    width: min(460px, 100%);
-    padding: 18px 20px 20px;
+    padding: 20px 24px 24px;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--r-lg);
     box-shadow: var(--shadow-md);
     animation: menuIn 0.18s var(--ease-out) both;
-    transform-origin: top left;
+    transform-origin: top center;
 }
 .format-popover[hidden] { display: none; }
 .format-backdrop { display: none; }
 .format-popover-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .format-popover-head h2 { font-size: var(--fs-h3); font-weight: var(--fw-subtitle); line-height: var(--lh-tight); color: var(--ink); }
-.format-popover-intro { margin: 6px 0 12px; font-size: var(--fs-small); line-height: 1.5; color: var(--muted); }
-.format-list { display: flex; flex-direction: column; margin: 0; }
-.format-list > div {
+.format-popover-intro { margin: 4px 0 16px; font-size: var(--fs-small); line-height: 1.5; color: var(--muted); }
+.format-list {
     display: grid;
-    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 12px;
-    padding: 9px 0;
-    border-top: 1px solid var(--line-soft);
+    margin: 0;
 }
-.format-list dt { font-size: var(--fs-small); font-weight: 500; color: var(--ink); padding-top: 3px; }
-.format-list dd { margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.format-list > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--canvas);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-md, 12px);
+}
+.format-list > div:last-child { grid-column: span 2; } /* 7 butir: baris terakhir tetap penuh */
+.format-list dt { font-size: var(--fs-small); font-weight: 600; color: var(--ink); }
+.format-list dd { margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .format-list small { font-size: var(--fs-micro); line-height: 1.45; color: var(--muted); }
 .format-try {
     padding: 3px 9px;
@@ -1413,7 +1422,9 @@ body.is-about .footer-note a { display: none; }
         padding-bottom: calc(20px + env(safe-area-inset-bottom));
         animation: sheetIn 0.25s var(--ease-out) both;
     }
-    .format-list > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .format-list { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .format-list > div { padding: 12px 14px; gap: 6px; }
+    .format-list > div:last-child { grid-column: auto; }
     .format-backdrop:not([hidden]) {
         display: block;
         position: fixed;
