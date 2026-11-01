@@ -377,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showLoading();
         setSearching(true);
+        prefetchBoundaries(lat, lon); // poligon batas diunduh sambil menunggu nama wilayah
 
         const result = await reverseGeocode(lat, lon);
         if (reqId !== singleRequestSeq) return; // sudah ada pencarian yang lebih baru
@@ -617,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Konkurensi 3 request bersamaan
-        const concurrencyLimit = 3;
+        const concurrencyLimit = 4; // BIG cukup 2 permintaan per titik, jadi 4 titik paralel tetap ringan
         let activeCount = 0;
         let index = 0;
         let completed = 0;
@@ -726,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            const result = await reverseGeocode(lat, lon);
+            const result = await reverseGeocode(lat, lon, { detail: false });
 
             if (result.success) {
                 const adm = result.administrative;

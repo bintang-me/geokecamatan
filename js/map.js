@@ -80,7 +80,28 @@ const BIG_URLS = {
  * Menggunakan esri-leaflet untuk menembak koordinat ke peladen BIG
  * dan mengembalikan satu poligon GeoJSON.
  */
+// Hasil per titik disimpan sebentar, agar unduhan yang dimulai lebih awal (prefetchBoundaries) dipakai ulang
+const bigBoundaryMemo = new Map();
 function fetchBIGBoundary(url, lat, lon) {
+    const key = `${url}|${lat},${lon}`;
+    if (bigBoundaryMemo.has(key)) return bigBoundaryMemo.get(key);
+    const p = queryBIGBoundary(url, lat, lon).then(f => {
+        if (!f) bigBoundaryMemo.delete(key); // gagal: boleh dicoba lagi
+        return f;
+    });
+    bigBoundaryMemo.set(key, p);
+    if (bigBoundaryMemo.size > 8) bigBoundaryMemo.delete(bigBoundaryMemo.keys().next().value);
+    return p;
+}
+
+// Mulai unduh poligon batas bersamaan dengan pencarian nama wilayah (tidak menunggu hasilnya)
+function prefetchBoundaries(lat, lon) {
+    if (lat == null || lon == null) return;
+    fetchBIGBoundary(BIG_URLS.kecamatan, lat, lon);
+    fetchBIGBoundary(BIG_URLS.kabKota, lat, lon);
+}
+
+function queryBIGBoundary(url, lat, lon) {
     return new Promise((resolve) => {
         if (typeof L.esri === 'undefined') {
             console.warn('esri-leaflet belum termuat!');
@@ -89,6 +110,7 @@ function fetchBIGBoundary(url, lat, lon) {
         }
         L.esri.query({ url: url })
             .intersects(L.latLng(lat, lon))
+            .precision(5) // ±1 m: cukup untuk garis batas, ukuran unduhan jauh lebih kecil
             .run(function (error, featureCollection) {
                 if (error || !featureCollection || !featureCollection.features || featureCollection.features.length === 0) {
                     resolve(null);
