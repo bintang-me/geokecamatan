@@ -38,7 +38,7 @@ export const S4Single: React.FC = () => {
     return (
         <AbsoluteFill style={{ fontFamily: FONT }}>
             <div style={{ position: 'absolute', left: 160, top: 96 }}>
-                <div style={{ fontSize: 66, fontWeight: 700, color: C.ink, letterSpacing: -1.1, ...rise(f, 2) }}>Ketik apa adanya.</div>
+                <div style={{ fontSize: 66, fontWeight: 700, color: C.ink, letterSpacing: -1.1, ...rise(f, 2) }}>Ketik apa adanya</div>
             </div>
             {/* kotak pencarian + tombol */}
             <div style={{ position: 'absolute', left: 160, top: 300, width: 1600, display: 'flex', gap: 20, ...rise(f, 0, 12, 18) }}>
@@ -56,7 +56,8 @@ export const S4Single: React.FC = () => {
             {/* keterangan koreksi otomatis */}
             <div style={{ position: 'absolute', left: 170, top: 426, display: 'flex', alignItems: 'center', gap: 14, fontSize: 27, color: C.muted, ...rise(f, S4_CUES.fix + 4, 12, 10) }}>
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke={C.success} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                <span>Dirapikan otomatis: koma desimal diubah menjadi titik.</span>
+                <span>Dirapikan otomatis: koma desimal diubah menjadi titik</span>
+                <span style={{ color: C.lineStrong }}>·</span>
                 <span style={{ color: '#626B7E' }}>Masukan asli:</span>
                 <span style={{ fontFamily: MONO, fontSize: 24, padding: '3px 12px', borderRadius: 8, background: C.canvas, border: `1.5px solid ${C.lineSoft}`, color: C.ink }}>{RAW}</span>
             </div>

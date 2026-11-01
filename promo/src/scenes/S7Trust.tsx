@@ -40,7 +40,7 @@ export const S7Trust: React.FC = () => {
                 </div>
                 <div style={{ padding: '64px 70px' }}>
                     <div style={{ fontSize: 58, fontWeight: 700, color: col(C.ink, C.dInk), letterSpacing: -1 }}>Temukan Kecamatan dari Titik Koordinat</div>
-                    <div style={{ fontSize: 26, color: col(C.muted, C.dMuted), marginTop: 16 }}>Ketik atau tempel koordinat dalam format desimal maupun DMS.</div>
+                    <div style={{ fontSize: 26, color: col(C.muted, C.dMuted), marginTop: 16 }}>Ketik atau tempel koordinat dalam format desimal maupun DMS</div>
                     <div style={{ display: 'flex', gap: 18, marginTop: 44 }}>
                         <div style={{ flex: 1, height: 92, borderRadius: 20, background: col(C.surface, C.dSurface), border: `2px solid ${col(C.line, C.dLine)}`, display: 'flex', alignItems: 'center', padding: '0 30px', fontFamily: MONO, fontSize: 34, color: col(C.ink, C.dInk) }}>-6.1754, 106.8272</div>
                         <div style={{ height: 92, padding: '0 40px', borderRadius: 20, background: col(C.gold, C.dGold), color: C.ink, fontSize: 30, fontWeight: 600, display: 'flex', alignItems: 'center' }}>Cari kecamatan</div>
