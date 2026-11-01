@@ -804,6 +804,7 @@ function initMap(containerId, onLocationSelected) {
     map.on('click', function (e) {
         const pos = normalizeLatLng(e.latlng);
         marker.setLatLng(pos);
+        dropMainPin();
         map.setView(pos, map.getZoom());
         onLocationSelected(pos.lat, pos.lng);
     });
@@ -861,10 +862,20 @@ function initMap(containerId, onLocationSelected) {
     }
 }
 
+// Animasi pin jatuh singkat (CSS) setiap kali titik berpindah
+function dropMainPin() {
+    const icon = marker && marker.getElement && marker.getElement();
+    if (!icon) return;
+    icon.classList.remove('is-dropping');
+    void icon.offsetWidth; // mulai ulang animasi
+    icon.classList.add('is-dropping');
+}
+
 function updateMapMarker(lat, lon) {
     if (!map || !marker) return;
     const latlng = L.latLng(lat, lon);
     marker.setLatLng(latlng);
+    dropMainPin();
     // Zoom ke tingkat kecamatan agar titik & poligon terlihat (jangan zoom-out bila pengguna sudah lebih dekat)
     map.setView(latlng, Math.max(map.getZoom(), 13));
 }
@@ -1784,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (isStale()) return;
                         if (result.inputText === undefined) result.inputText = task.originalText.trim();
                         batchData.push(result);
-                        renderBatchRow(result);
+                        renderBatchRow(result, true);
                         // addBatchMarker terima, hanya jika lat/lon adalah angka valid
                         if (typeof result.lat === 'number' && typeof result.lon === 'number' &&
                             isFinite(result.lat) && isFinite(result.lon)) {
@@ -1800,7 +1811,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             status: 'Error'
                         };
                         batchData.push(fallback);
-                        renderBatchRow(fallback);
+                        renderBatchRow(fallback, true);
                     }).finally(() => {
                         // KRITIS: selalu jalankan apapun yang terjadi
                         activeCount--;
@@ -1956,13 +1967,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncMsgColspans = () => document.querySelectorAll('.batch-table td.col-msg').forEach(td => { td.colSpan = batchMsgColspan(); });
     if (mobileTableMq.addEventListener) mobileTableMq.addEventListener('change', syncMsgColspans);
 
-    function renderBatchRow(data) {
+    function renderBatchRow(data, animate = false) {
         const tr = document.createElement('tr');
         tr.title = 'Klik untuk melihat titik pada peta';
 
         const group = batchStatusGroup(data.status);
         tr.dataset.group = group;
         tr.classList.add('row-' + group);
+        if (animate) tr.classList.add('row-new');
         if (batchFilter !== 'all' && batchFilter !== group) tr.classList.add('row-filtered');
         if (data.errorMsg) tr.title = data.errorMsg;
 
