@@ -1207,7 +1207,7 @@ a.footer-credit:hover { color: var(--gold-text); }
 .about-contact { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 0; scroll-margin-top: 88px; }
 .about-contact h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
 .about-contact p { font-size: var(--fs-body); line-height: var(--lh-body); color: #334155; }
-.about-contact p a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
+.about-contact p a { color: var(--ink); font-weight: 600; text-decoration: none; }
 .about-contact p a:hover { color: var(--gold-text); }
 
 /* ---------- Halaman Tentang & Sumber Data ---------- */
