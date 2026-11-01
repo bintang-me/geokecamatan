@@ -1012,6 +1012,9 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 .about-card ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 .about-card strong { color: var(--ink); font-weight: 600; }
 .about-card.is-notice { border-color: #F3D9A4; background: #FFFBF2; }
+/* Daftar privasi: dua kolom di desktop */
+.about-card ul.privacy-list { display: block; columns: 2; column-gap: 40px; }
+.privacy-list li { break-inside: avoid; margin-bottom: 8px; }
 .about-back {
     align-self: flex-start;
     display: inline-flex;
@@ -1100,6 +1103,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 .tab-pane.active > *:nth-child(2), .about-page > *:nth-child(2) { animation-delay: 0.06s; }
 .tab-pane.active > *:nth-child(3), .about-page > *:nth-child(3) { animation-delay: 0.12s; }
 .about-page > *:nth-child(4) { animation-delay: 0.18s; }
+.about-page > *:nth-child(5) { animation-delay: 0.24s; }
 .about-grid > .card { animation: fadeUp 0.5s var(--ease-out) both; }
 .about-grid > .card:nth-child(2) { animation-delay: 0.08s; }
 
@@ -1227,6 +1231,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .footer-inner { flex-direction: column; }
     .footer-note { flex: none; }
     .about-grid { grid-template-columns: minmax(0, 1fr); }
+    .about-card ul.privacy-list { columns: 1; }
     .about-card p, .about-card li { font-size: 14px; }
     .wordmark-lg { font-size: 24px; }
     /* Jendela perbesar memenuhi area layar yang terlihat (bukan 100vh), agar tombol tutup
