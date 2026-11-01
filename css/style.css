@@ -1332,9 +1332,7 @@ a.footer-credit { color: var(--ink); font-weight: 500; text-decoration: none; }
 a.footer-credit:hover { color: var(--gold-text); }
 
 /* Kontak di halaman Tentang: sederhana, tanpa kotak */
-.about-contact { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 0; scroll-margin-top: 88px; }
-.about-contact h2 { font-size: var(--fs-h2); font-weight: var(--fw-title); line-height: var(--lh-tight); }
-.about-contact p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-body); }
+.about-contact { scroll-margin-top: 88px; } /* judul & teks mengikuti .about-card */
 .about-contact p a { color: var(--ink); font-weight: 600; text-decoration: none; }
 .about-contact p a:hover { color: var(--gold-text); }
 
@@ -1347,7 +1345,7 @@ a.tab-btn { text-decoration: none; display: inline-block; }
 .about-pane .hero { margin-bottom: 4px; }
 .about-pane > *:nth-child(4) { animation-delay: 0.18s; }
 .about-pane > *:nth-child(5) { animation-delay: 0.24s; }
-body.is-about .footer-note a { display: none; }
+body.is-about .footer-note a, body.is-about .footer-credit { display: none; }
 .about-page .hero { margin-bottom: 4px; }
 .about-grid {
     display: grid;
