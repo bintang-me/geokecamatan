@@ -1,47 +1,99 @@
-/* map.css */
-.map-section {
-    display: flex;
-    flex-direction: column;
-    min-height: 600px;
-}
-
+/* =========================================================
+   Leaflet — disesuaikan dengan sistem desain
+   ========================================================= */
 .map-container {
-    width: 100%;
     flex: 1;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    border: 1px solid var(--color-border);
+    width: 100%;
+    min-height: 100%;
     position: relative;
 }
 
-.map-hint {
-    margin-top: 0.75rem;
-    font-size: 0.82rem;
-    color: var(--color-text-muted);
-    text-align: center;
-}
-
-/* Leaflet dark background before tiles load — navy hangat */
 .leaflet-container {
-    background: #0F1D35;
-    font-family: inherit;
+    background: #E9EEF1;
+    font-family: var(--font);
 }
 
+/* Kontrol zoom & autozoom: tumpukan tombol putih membulat */
+.leaflet-touch .leaflet-bar,
+.leaflet-bar {
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.15) !important;
+    overflow: hidden;
+}
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    color: var(--ink) !important;
+    background: #FFFFFF !important;
+    border-bottom: 1px solid var(--line-soft) !important;
+    font-size: 18px !important;
+}
+.leaflet-bar a:last-child { border-bottom: none !important; }
+.leaflet-bar a:hover { background: var(--canvas) !important; }
+.leaflet-custom-autozoom a { display: flex !important; align-items: center; justify-content: center; }
+.leaflet-control-zoom, .leaflet-custom-autozoom { margin-left: 12px !important; }
+.leaflet-top .leaflet-control { margin-top: 12px; }
 
+/* Pemilih Peta / Satelit */
+.basemap-switch {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 29, 53, 0.15);
+    margin-right: 12px !important;
+}
+.basemap-switch button {
+    border: none;
+    background: transparent;
+    padding: 7px 12px;
+    border-radius: 9px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+}
+.basemap-switch button[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; }
 
-/* Boundary tooltip — navy transparan dengan aksen emas */
+.leaflet-control-attribution {
+    font-size: 10px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    color: var(--muted) !important;
+    border-top-left-radius: 6px;
+}
+.leaflet-control-attribution a { color: var(--muted) !important; }
+
+@media (max-width: 768px) {
+    .leaflet-control-attribution {
+        max-width: calc(100% - 60px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .leaflet-control-attribution:hover { white-space: normal; }
+}
+
+/* Popup & tooltip */
+.leaflet-popup-content-wrapper {
+    border-radius: 12px !important;
+    box-shadow: var(--shadow-md) !important;
+}
+.leaflet-popup-content { margin: 12px 14px !important; font-family: var(--font); }
+
 .boundary-tooltip {
-    background: rgba(15, 29, 53, 0.92);
+    background: var(--ink);
     color: #FFFFFF;
-    border: 1px solid rgba(238, 162, 1, 0.35);
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: var(--font);
+    font-size: 12px;
     font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: var(--shadow-md);
 }
-
-.boundary-tooltip::before {
-    border-top-color: rgba(15, 29, 53, 0.92);
-}
+.boundary-tooltip::before { border-top-color: var(--ink) !important; }

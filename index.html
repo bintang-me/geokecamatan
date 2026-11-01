@@ -3,384 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cari Kecamatan - Berdasarkan Titik Koordinat</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="css/style.css?v=20261102">
-    <link rel="stylesheet" href="css/map.css?v=20261102">
+    <title>Cari Kecamatan — Berdasarkan Titik Koordinat</title>
+    <meta name="description" content="Temukan nama kecamatan, desa/kelurahan, kabupaten/kota, dan provinsi di Indonesia dari titik koordinat.">
+    <meta name="theme-color" content="#0F1D35">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20261104">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=20261104">
+    <link rel="stylesheet" href="css/map.css?v=20261104">
 </head>
 <body>
 
-    <!-- ===== INTRO SPLASH ===== -->
-    <div id="introSplash" class="intro-splash">
-        <div class="intro-content">
-            <!-- Globe (besar, sama persis dengan globe spinner) -->
-            <div class="intro-globe">
-                <svg class="globe-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Globe outline saja -->
-                    <circle cx="40" cy="40" r="35" fill="rgba(238,162,1,0.04)" stroke="#EEA201" stroke-width="1.8"/>
-                    <!-- Map pin (melayang atas-bawah) -->
-                    <g class="globe-pin">
-                        <path d="M40,51 C37,45 32,41 32,36 C32,29 36,25 40,25 C44,25 48,29 48,36 C48,41 43,45 40,51 Z" fill="#EEA201"/>
-                        <circle cx="40" cy="33" r="3.5" fill="rgba(15,29,53,0.85)"/>
-                    </g>
-                    <!-- Pin shadow -->
-                    <ellipse class="globe-pin-shadow" cx="40" cy="53" rx="5.5" ry="2" fill="#EEA201" opacity="0.28"/>
-                </svg>
-            </div>
-            <!-- Teks -->
-            <div class="intro-title-wrap">
-                <h1 class="intro-title"><span class="highlight">Cari Kecamatan</span></h1>
-                <p class="intro-subtitle">Berdasarkan Titik Koordinat</p>
-            </div>
+    <!-- ===== LOADING AWAL (splash) ===== -->
+    <div id="introSplash" class="intro-splash" role="status" aria-live="polite">
+        <svg class="splash-logo" viewBox="0 0 64 64" width="96" height="96" aria-hidden="true">
+            <rect width="64" height="64" rx="16" fill="#0F1D35"/>
+            <ellipse class="splash-equator" cx="32" cy="38" rx="19" ry="5.5" fill="none" stroke="#EEA201" stroke-width="2"/>
+            <circle class="splash-ring" cx="32" cy="34" r="19" fill="none" stroke="#EEA201" stroke-width="3" stroke-linecap="round"/>
+            <g class="splash-pin-drop"><g class="splash-pin-bob">
+                <path d="M32 47 C27 40 20.5 34 20.5 25.5 A11.5 11.5 0 0 1 43.5 25.5 C43.5 34 37 40 32 47 Z" fill="#EEA201" stroke="#0F1D35" stroke-width="3" paint-order="stroke"/>
+                <path d="M27 23 L31 20 L36.5 21.5 L38 26 L34.5 30 L28.5 29.2 Z" fill="#0F1D35"/>
+            </g></g>
+        </svg>
+        <div class="splash-text">
+            <span class="wordmark wordmark-lg"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>
+            <span class="splash-tagline">Berdasarkan titik koordinat</span>
+        </div>
+        <div class="splash-progress">
+            <div class="splash-bar" aria-hidden="true"><span></span></div>
+            <span class="splash-label">Menyiapkan peta…</span>
         </div>
     </div>
+    <script>
+        // Splash hanya sekali per sesi — kunjungan berikutnya langsung ke halaman
+        try { if (sessionStorage.getItem('ck_splash_seen')) { document.getElementById('introSplash').remove(); } } catch (e) {}
+    </script>
 
-    <div class="app-container">
-        <header class="app-header">
-            <h1 class="intro-title"><span class="highlight">Cari Kecamatan</span></h1>
-            <p>Berdasarkan Titik Koordinat</p>
-        </header>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="./" class="brand" aria-label="Cari Kecamatan — beranda">
+                <svg class="brand-logo" viewBox="0 0 64 64" width="34" height="34" aria-hidden="true">
+                    <rect width="64" height="64" rx="16" fill="#0F1D35"/>
+                    <ellipse cx="32" cy="38" rx="19" ry="5.5" fill="none" stroke="#EEA201" stroke-width="2" opacity="0.5"/>
+                    <circle cx="32" cy="34" r="19" fill="none" stroke="#EEA201" stroke-width="3"/>
+                    <path d="M32 47 C27 40 20.5 34 20.5 25.5 A11.5 11.5 0 0 1 43.5 25.5 C43.5 34 37 40 32 47 Z" fill="#EEA201" stroke="#0F1D35" stroke-width="3" paint-order="stroke"/>
+                    <path d="M27 23 L31 20 L36.5 21.5 L38 26 L34.5 30 L28.5 29.2 Z" fill="#0F1D35"/>
+                </svg>
+                <span class="wordmark"><span class="wm-light">Cari </span><span class="wm-strong">Kecamatan</span></span>
+            </a>
+            <nav class="tabs-nav" aria-label="Mode pencarian">
+                <button type="button" class="tab-btn active" data-tab="tab-tunggal" aria-pressed="true"><span class="tab-prefix">Cari </span>Tunggal</button>
+                <button type="button" class="tab-btn" data-tab="tab-massal" aria-pressed="false"><span class="tab-prefix">Cari </span>Massal</button>
+            </nav>
+            <a href="#tentang" class="header-link" id="aboutLink">Tentang &amp; sumber data</a>
+        </div>
+    </header>
 
-        <main class="main-content">
-            <!-- Tabs Navigation -->
-            <div class="tabs-nav">
-                <button class="tab-btn active" data-tab="tab-tunggal">Cari Tunggal</button>
-                <button class="tab-btn" data-tab="tab-massal">Cari Massal</button>
-            </div>
+    <main class="container main-content">
 
-
-            <!-- Tab 1: Cari Tunggal -->
-            <div id="tab-tunggal" class="tab-pane active">
-                <section class="input-section glass-panel">
-                <div class="input-group">
-                    <label for="coordInput">Masukkan Koordinat (Lat, Long)</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="coordInput" placeholder="Contoh: -6.2088, 106.8456" autocomplete="off">
-                        <button id="searchBtn" class="btn-primary">Cari Lokasi</button>
+        <!-- ================= Tab 1: Cari Tunggal ================= -->
+        <div id="tab-tunggal" class="tab-pane active">
+            <section class="hero" aria-labelledby="heroTitle">
+                <h1 id="heroTitle">Temukan kecamatan dari titik koordinat</h1>
+                <p class="hero-sub">Tempel koordinat desimal, DMS, atau salinan langsung dari Excel.</p>
+                <form class="search-form" id="searchForm" autocomplete="off">
+                    <div class="search-field">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <label for="coordInput" class="sr-only">Koordinat (lintang, bujur)</label>
+                        <input type="text" id="coordInput" placeholder="-6.2088, 106.8456" inputmode="text" spellcheck="false">
                     </div>
-                    <small class="helper-text">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>
-                        <span class="text-short">Pencarian Cerdas: Mendukung format Desimal, DMS, dan Excel/Spreadsheet...</span>
-                        <span class="text-full hidden">Pencarian Cerdas: Mendukung format Desimal (cth: -6.2088, 106.8456), DMS (cth: 6°14'52.1"S 106°52'40.0"E), serta perapian otomatis salinan koordinat langsung dari Excel/Spreadsheet.</span>
-                        <a href="#" class="toggle-text-link">Selengkapnya</a>
-                    </small>
+                    <button type="button" id="locateBtn" class="btn btn-secondary btn-lg">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                        <span>Lokasi saya</span>
+                    </button>
+                    <button type="submit" id="searchBtn" class="btn btn-primary btn-lg">
+                        <span class="btn-spinner" aria-hidden="true"></span>
+                        <span class="btn-label">Cari lokasi</span>
+                    </button>
+                </form>
+                <div class="examples">
+                    <span>Contoh:</span>
+                    <button type="button" class="example-chip" data-coord="-6.2088, 106.8456">-6.2088, 106.8456</button>
+                    <button type="button" class="example-chip" data-coord="6°14'52&quot;S 106°52'40&quot;E">6°14'52"S 106°52'40"E</button>
+                    <button type="button" class="example-chip" data-coord="6.9175 LS, 107.6191 BT">6.9175 LS, 107.6191 BT</button>
                 </div>
             </section>
 
-            <div class="content-grid">
-                <section class="result-section glass-panel">
-                    <h2>Hasil Pencarian</h2>
-                    <div id="loadingIndicator" class="loading-state hidden">
-                        <!-- Globe Spinner -->
-                        <div class="globe-spinner">
-                            <svg class="globe-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Globe outline saja -->
-                                <circle cx="40" cy="40" r="35" fill="rgba(238,162,1,0.04)" stroke="#EEA201" stroke-width="1.8"/>
-                                <!-- Map pin (melayang atas-bawah) -->
-                                <g class="globe-pin">
-                                    <path d="M40,51 C37,45 32,41 32,36 C32,29 36,25 40,25 C44,25 48,29 48,36 C48,41 43,45 40,51 Z" fill="#EEA201"/>
-                                    <circle cx="40" cy="33" r="3.5" fill="rgba(15,29,53,0.85)"/>
-                                </g>
-                                <!-- Pin shadow -->
-                                <ellipse class="globe-pin-shadow" cx="40" cy="53" rx="5.5" ry="2" fill="#EEA201" opacity="0.28"/>
-                            </svg>
+            <div class="single-layout">
+                <div class="single-side">
+                    <section class="card result-card" aria-labelledby="resultTitle">
+                        <div class="card-head">
+                            <h2 id="resultTitle" class="eyebrow">Hasil</h2>
+                            <span class="badge hidden" id="confidenceBadge"></span>
                         </div>
-                        <p class="globe-loading-text">Mencari data lokasi...</p>
-                    </div>
-                    
-                    <div id="errorState" class="error-state hidden">
-                        <span class="error-icon">⚠️</span>
-                        <p id="errorMessage">Koordinat tidak valid.</p>
-                    </div>
 
-                    <div id="resultContent" class="result-content hidden">
-                        <div class="result-header">
-                            <span class="badge" id="confidenceBadge">Akurasi: Tinggi</span>
+                        <div id="emptyState" class="empty-state">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                            <p>Masukkan koordinat di atas, atau klik langsung di peta.</p>
                         </div>
-                        
-                        <div class="admin-hierarchy">
-                            <div class="admin-item">
-                                <span class="label">Provinsi</span>
-                                <span class="value" id="resProvinsi">-</span>
+
+                        <div id="loadingIndicator" class="loading-state hidden" role="status" aria-label="Memuat hasil">
+                            <span class="sk sk-line" style="width: 90px"></span>
+                            <span class="sk sk-title"></span>
+                            <div class="sk-rows">
+                                <div><span class="sk sk-line" style="width: 110px"></span><span class="sk sk-line" style="width: 70px"></span></div>
+                                <div><span class="sk sk-line" style="width: 70px"></span><span class="sk sk-line" style="width: 160px"></span></div>
+                                <div><span class="sk sk-line" style="width: 60px"></span><span class="sk sk-line" style="width: 100px"></span></div>
                             </div>
-                            <div class="admin-item">
-                                <span class="label">Kabupaten/Kota</span>
-                                <span class="value" id="resKabKota">-</span>
-                            </div>
-                            <div class="admin-item highlight-item">
-                                <span class="label">Kecamatan</span>
-                                <div class="copy-wrapper" id="copyKecamatanContainer" title="Klik untuk salin">
-                                    <span class="value" id="resKecamatan">-</span>
-                                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
+                            <p class="loading-text">Mencocokkan titik dengan batas wilayah BIG…</p>
+                        </div>
+
+                        <div id="errorState" class="error-state hidden" role="alert">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>
+                            <p id="errorMessage">Koordinat tidak valid.</p>
+                        </div>
+
+                        <div id="resultContent" class="result-content hidden" aria-live="polite">
+                            <div class="kec-row">
+                                <div class="kec-text">
+                                    <span class="label">Kecamatan</span>
+                                    <span class="kec-value" id="resKecamatan">-</span>
+                                </div>
+                                <button type="button" class="icon-btn copy-btn" id="copyKecamatanContainer" aria-label="Salin nama kecamatan">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
                                     <span class="copy-tooltip" id="copyTooltip">Tersalin!</span>
-                                </div>
+                                </button>
                             </div>
-                            <div class="admin-item">
-                                <span class="label">Desa/Kelurahan</span>
-                                <div class="copy-wrapper" id="copyDesaKelContainer" title="Klik untuk salin">
-                                    <span class="value" id="resDesaKel">-</span>
-                                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                    <span class="copy-tooltip" id="copyDesaKelTooltip">Tersalin!</span>
+                            <dl class="detail-list">
+                                <div>
+                                    <dt>Desa/Kelurahan</dt>
+                                    <dd>
+                                        <span id="resDesaKel">-</span>
+                                        <button type="button" class="mini-copy" id="copyDesaKelContainer" aria-label="Salin nama desa/kelurahan">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+                                            <span class="copy-tooltip" id="copyDesaKelTooltip">Tersalin!</span>
+                                        </button>
+                                    </dd>
                                 </div>
-                            </div>
-                            <div class="admin-item full-address">
-                                <span class="label">Alamat Lengkap</span>
-                                <span class="value" id="resAlamat">-</span>
+                                <div><dt>Kab/Kota</dt><dd id="resKabKota">-</dd></div>
+                                <div><dt>Provinsi</dt><dd id="resProvinsi">-</dd></div>
+                                <div><dt>Koordinat</dt><dd class="mono" id="resKoordinat">-</dd></div>
+                            </dl>
+                            <p class="address" id="resAlamat">-</p>
+                            <div class="result-actions">
+                                <button type="button" class="btn btn-secondary" id="copyAllBtn">Salin semua</button>
+                                <button type="button" class="btn btn-secondary" id="shareBtn">Bagikan tautan</button>
                             </div>
                         </div>
+                    </section>
+
+                    <section class="card history-card" aria-labelledby="historyTitle">
+                        <div class="history-header">
+                            <h2 id="historyTitle">Riwayat</h2>
+                            <button type="button" id="clearHistoryBtn" class="btn-text">Hapus semua</button>
+                        </div>
+                        <div class="history-list" id="historyList">
+                            <p class="history-empty">Belum ada riwayat pencarian.</p>
+                        </div>
+                    </section>
+                </div>
+
+                <section class="map-section" aria-label="Peta lokasi">
+                    <div class="map-wrapper">
+                        <div id="map" class="map-container"></div>
+                        <div class="map-legend" aria-hidden="true">
+                            <span><i class="lg-line lg-kec"></i>Kecamatan</span>
+                            <span><i class="lg-line lg-kab"></i>Kab/Kota</span>
+                        </div>
+                        <div class="map-loading" id="mapLoading" role="status"><span class="spinner-sm" aria-hidden="true"></span>Memuat peta…</div>
+                        <button type="button" id="expandSingleMapBtn" class="map-float-btn" title="Perbesar peta" aria-label="Perbesar peta">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ================= Tab 2: Cari Massal ================= -->
+        <div id="tab-massal" class="tab-pane">
+            <section class="hero hero-compact">
+                <h1>Cari massal</h1>
+                <p class="hero-sub">Proses banyak titik sekaligus, lalu salin atau unduh hasilnya.</p>
+            </section>
+
+            <div class="batch-layout-grid">
+                <section class="card batch-input-card" aria-labelledby="batchInputLabel">
+                    <div class="batch-input-head">
+                        <label id="batchInputLabel" for="batchInput">Daftar koordinat</label>
+                        <span class="muted-sm">Satu titik per baris</span>
+                    </div>
+                    <div class="batch-editor">
+                        <div class="line-gutter" id="batchGutter" aria-hidden="true">1</div>
+                        <textarea id="batchInput" class="batch-textarea" spellcheck="false" placeholder="-6.2088, 106.8456&#10;-6.9175, 107.6191&#10;6°14'52.1&quot;S 106°52'40.0&quot;E"></textarea>
+                    </div>
+                    <label class="drop-zone" id="batchDrop" for="batchFile">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                        <span>Seret file CSV/TXT ke sini · <u>pilih file</u></span>
+                        <input type="file" id="batchFile" accept=".csv,.txt,.tsv,text/csv,text/plain" class="sr-only">
+                    </label>
+                    <div id="batchProgressContainer" class="batch-progress hidden">
+                        <div class="batch-progress-row">
+                            <span id="batchProgressLabel">Memproses</span>
+                            <strong id="batchProgressText">0 / 0</strong>
+                        </div>
+                        <div class="progress-bar-bg" role="progressbar" aria-label="Kemajuan proses" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="batchProgressTrack">
+                            <div id="batchProgressBar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div class="batch-controls">
+                        <button type="button" id="clearBatchBtn" class="btn btn-secondary">Bersihkan</button>
+                        <button type="button" id="processBatchBtn" class="btn btn-primary btn-grow">Mulai proses</button>
                     </div>
                 </section>
 
-                <section class="map-section glass-panel">
-                    <div class="map-wrapper" style="position: relative; flex: 1; display: flex; flex-direction: column;">
-                        <div id="map" class="map-container"></div>
-                        <button id="expandSingleMapBtn" class="btn-map-expand" title="Perbesar Peta" aria-label="Perbesar peta">⛶</button>
+                <section class="batch-map-section" aria-label="Peta sebaran titik">
+                    <div id="batchMap" class="batch-map-container"></div>
+                    <div class="batch-map-legend">
+                        <span><i class="dot dot-success"></i>Sukses</span>
+                        <span><i class="dot dot-warning"></i>Perairan / luar RI</span>
+                        <span><i class="dot dot-error"></i>Gagal</span>
                     </div>
-                    <p class="map-hint">💡 Anda bisa menggeser marker atau klik di peta untuk melihat wilayah lain.</p>
+                    <button type="button" id="expandMapBtn" class="map-float-btn" title="Perbesar peta" aria-label="Perbesar peta">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                    </button>
                 </section>
             </div>
 
-            <section class="history-section glass-panel">
-                <div class="history-header">
-                    <h2>Riwayat Pencarian</h2>
-                    <button id="clearHistoryBtn" class="btn-secondary btn-small">Hapus Semua</button>
+            <section class="card batch-result-section" aria-labelledby="batchResultTitle">
+                <div class="batch-result-header">
+                    <div class="batch-result-title">
+                        <h2 id="batchResultTitle">Hasil</h2>
+                        <div id="batchSummary" class="batch-summary hidden" role="group" aria-label="Filter status"></div>
+                    </div>
+                    <div class="batch-actions">
+                        <div class="copy-menu">
+                            <button type="button" class="btn btn-secondary btn-sm copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                            <div class="copy-menu-list" role="menu" hidden>
+                                <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
+                                <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
+                                <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
+                                <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
+                                <button type="button" role="menuitem" data-copy="coord">Koordinat (lintang, bujur)</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-dark btn-sm download-csv-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>
+                            Unduh CSV
+                        </button>
+                        <button type="button" id="expandTableBtn" class="icon-btn icon-btn-sm" title="Perbesar tabel" aria-label="Perbesar tabel">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="history-list" id="historyList">
-                    <p class="history-empty">Belum ada histori pencarian.</p>
+                <div class="table-container">
+                    <table id="batchTable" class="batch-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">No</th>
+                                <th scope="col">Koordinat</th>
+                                <th scope="col">Desa/Kel.</th>
+                                <th scope="col">Kecamatan</th>
+                                <th scope="col">Kab/Kota</th>
+                                <th scope="col">Provinsi</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchTableBody">
+                            <tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
-            </div> <!-- End of Tab 1 -->
+        </div>
 
-            <!-- Tab 2: Cari Massal -->
-            <div id="tab-massal" class="tab-pane">
-                <div class="batch-layout-grid">
-                    <!-- Kolom Kiri: Input + Tabel -->
-                    <div class="batch-left">
-                        <section class="batch-section glass-panel">
-                            <div class="batch-header">
-                                <h2>Batch Geocoding (Cari Massal)</h2>
-                                <p class="helper-text">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin-right: 4px; margin-top: -2px;"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .5 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg>
-                                    <span class="text-short">Pencarian Cerdas Massal: Masukkan daftar koordinat, satu per baris (mendukung Excel/Spreadsheet)...</span>
-                                    <span class="text-full hidden">Pencarian Cerdas Massal: Masukkan (paste) daftar koordinat (satu lat dan long per baris). Mendukung format Desimal (cth: -6.2088, 106.8456), DMS (cth: 6°14'52.1"S 106°52'40.0"E), serta perapian otomatis salinan koordinat langsung dari Excel/Spreadsheet.</span>
-                                    <a href="#" class="toggle-text-link">Selengkapnya</a>
-                                </p>
+        <!-- Modal perbesar tabel hasil -->
+        <div id="tableModal" class="table-modal" role="dialog" aria-modal="true" aria-labelledby="tableModalTitle">
+            <div class="table-modal-content">
+                <div class="table-modal-header">
+                    <h2 id="tableModalTitle">Hasil</h2>
+                    <div class="table-modal-actions">
+                        <div class="copy-menu">
+                            <button type="button" class="btn btn-secondary btn-sm copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                            </button>
+                            <div class="copy-menu-list" role="menu" hidden>
+                                <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
+                                <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
+                                <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
+                                <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
+                                <button type="button" role="menuitem" data-copy="coord">Koordinat (lintang, bujur)</button>
                             </div>
-                            
-                            <textarea id="batchInput" class="batch-textarea" placeholder="-6.2088, 106.8456&#10;-6.9175, 107.6191&#10;6°14'52.1&quot;S 106°52'40.0&quot;E"></textarea>
-                            
-                            <div class="batch-controls">
-                                <button id="processBatchBtn" class="btn-primary">Mulai Proses</button>
-                                <button id="clearBatchBtn" class="btn-secondary">Hapus Input</button>
-                                <div id="batchProgressContainer" class="batch-progress hidden">
-                                    <span id="batchProgressText">Memproses: 0 / 0</span>
-                                    <div class="progress-bar-bg">
-                                        <div id="batchProgressBar" class="progress-bar-fill"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-
-
-                    </div>
-
-                    <!-- Kolom Kanan: Peta Batch -->
-                    <div class="batch-right">
-                        <section class="batch-map-section glass-panel">
-                            <div class="batch-map-header">
-                                <div class="batch-map-header-row">
-                                    <h2>Peta Sebaran Titik</h2>
-                                    <button id="expandMapBtn" class="btn-secondary btn-small" title="Perbesar Peta" aria-label="Perbesar peta">⛶</button>
-                                </div>
-                                <p class="helper-text">Klik marker untuk melihat info titik.</p>
-                            </div>
-                            <div id="batchMap" class="batch-map-container"></div>
-                            <div class="batch-map-legend">
-                                <span class="legend-item">
-                                    <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
-                                        <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#10B981" stroke="#fff" stroke-width="1.5"/>
-                                        <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
-                                    </svg>
-                                    Sukses
-                                </span>
-                                <span class="legend-item">
-                                    <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
-                                        <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#EEA201" stroke="#fff" stroke-width="1.5"/>
-                                        <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
-                                    </svg>
-                                    Wilayah Perairan/Luar RI
-                                </span>
-                            </div>
-                        </section>
-
+                        </div>
+                        <button type="button" class="btn btn-dark btn-sm download-csv-btn">Unduh CSV</button>
+                        <button type="button" id="closeTableModalBtn" class="icon-btn icon-btn-sm" aria-label="Tutup">&times;</button>
                     </div>
                 </div>
-                <section class="batch-result-section glass-panel batch-result-full">
-                    <div class="batch-result-header">
-                        <h2>Tabel Hasil</h2>
-                        <div class="batch-actions">
-                                    <div class="copy-menu">
-                                        <button type="button" class="btn-secondary btn-small copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin <span aria-hidden="true">▾</span></button>
-                                        <div class="copy-menu-list" role="menu" hidden>
-                                            <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
-                                            <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
-                                            <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
-                                            <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
-                                            <button type="button" role="menuitem" data-copy="coord">Koordinat (Lintang, Bujur)</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-primary btn-small download-csv-btn">Unduh CSV</button>
-                                    <button id="expandTableBtn" class="btn-secondary btn-small" title="Perbesar Tabel" aria-label="Perbesar tabel">⛶</button>
-                        </div>
-                    </div>
-                    <div id="batchSummary" class="batch-summary hidden" role="toolbar" aria-label="Filter status"></div>
-                    <div class="table-container">
-                        <table id="batchTable" class="batch-table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Lintang</th>
-                                    <th>Bujur</th>
-                                    <th>Desa/Kel.</th>
-                                    <th>Kecamatan</th>
-                                    <th>Kab/Kota</th>
-                                    <th>Provinsi</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="batchTableBody">
-                                <tr class="empty-row"><td colspan="8">Belum ada data diproses.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div> <!-- End of Tab 2 -->
-
-            <!-- Modal perbesar tabel hasil -->
-            <div id="tableModal" class="table-modal">
-                <div class="table-modal-content">
-                    <div class="table-modal-header">
-                        <h2>Tabel Hasil</h2>
-                        <div class="table-modal-actions">
-                            <div class="copy-menu">
-                                        <button type="button" class="btn-secondary btn-small copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin <span aria-hidden="true">▾</span></button>
-                                        <div class="copy-menu-list" role="menu" hidden>
-                                            <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
-                                            <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
-                                            <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
-                                            <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
-                                            <button type="button" role="menuitem" data-copy="coord">Koordinat (Lintang, Bujur)</button>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn-primary btn-small download-csv-btn">Unduh CSV</button>
-                            <button id="closeTableModalBtn" class="modal-close-btn" aria-label="Tutup">&times;</button>
-                        </div>
-                    </div>
-                    <div class="table-modal-body"></div>
-                </div>
+                <div class="table-modal-body"></div>
             </div>
+        </div>
 
-            <!-- Modal perbesar peta -->
-            <div id="mapModal" class="map-modal">
-                <div class="map-modal-content">
-                    <div class="map-modal-header">
-                        <h2 id="mapModalTitle">Peta Sebaran Titik</h2>
-                        <button id="closeMapModalBtn" class="modal-close-btn" aria-label="Tutup">&times;</button>
-                    </div>
-                    <div id="mapModalLegend" class="map-modal-legend">
-                        <span class="legend-item">
-                            <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
-                                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#10B981" stroke="#fff" stroke-width="1.5"/>
-                                <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
-                            </svg>
-                            Sukses
-                        </span>
-                        <span class="legend-item">
-                            <svg class="legend-pin" viewBox="0 0 24 36" width="14" height="21">
-                                <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24C24 5.373 18.627 0 12 0z" fill="#EEA201" stroke="#fff" stroke-width="1.5"/>
-                                <circle cx="12" cy="12" r="5" fill="rgba(255,255,255,0.9)"/>
-                            </svg>
-                            Wilayah Perairan/Luar RI
-                        </span>
-                    </div>
-                    <div id="mapModalBody" class="map-modal-body">
-                        <!-- Box informasi khusus peta tunggal (hanya tampil saat diperbesar) -->
-                        <div id="mapSingleInfoBox" class="map-single-info-box hidden">
-                            <div class="info-row"><strong>Desa/Kelurahan:</strong> <span id="modalInfoDesaKel">-</span></div>
-                            <div class="info-row"><strong>Kecamatan:</strong> <span id="modalInfoKecamatan">-</span></div>
-                            <div class="info-row"><strong>Kab/Kota:</strong> <span id="modalInfoKabKota">-</span></div>
-                            <div class="info-row"><strong>Provinsi:</strong> <span id="modalInfoProvinsi">-</span></div>
-                            <div class="info-row"><strong>Status:</strong> <span id="modalInfoStatus">-</span></div>
-                        </div>
+        <!-- Modal perbesar peta -->
+        <div id="mapModal" class="map-modal" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle">
+            <div class="map-modal-content">
+                <div class="map-modal-header">
+                    <h2 id="mapModalTitle">Peta</h2>
+                    <button type="button" id="closeMapModalBtn" class="icon-btn icon-btn-sm" aria-label="Tutup">&times;</button>
+                </div>
+                <div id="mapModalLegend" class="map-modal-legend">
+                    <span><i class="dot dot-success"></i>Sukses</span>
+                    <span><i class="dot dot-warning"></i>Perairan / luar RI</span>
+                    <span><i class="dot dot-error"></i>Gagal</span>
+                </div>
+                <div id="mapModalBody" class="map-modal-body">
+                    <div id="mapSingleInfoBox" class="map-single-info-box hidden">
+                        <div class="info-row"><strong>Desa/Kelurahan</strong> <span id="modalInfoDesaKel">-</span></div>
+                        <div class="info-row"><strong>Kecamatan</strong> <span id="modalInfoKecamatan">-</span></div>
+                        <div class="info-row"><strong>Kab/Kota</strong> <span id="modalInfoKabKota">-</span></div>
+                        <div class="info-row"><strong>Provinsi</strong> <span id="modalInfoProvinsi">-</span></div>
+                        <div class="info-row"><strong>Status</strong> <span id="modalInfoStatus">-</span></div>
                     </div>
                 </div>
             </div>
+        </div>
+    </main>
 
-        </main>
-
-        <footer class="app-footer">
-            <div class="footer-content">
-                <!-- Announcement Banner -->
-                <div class="announcement-banner">
-                    <span class="announcement-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
-                            <circle cx="12" cy="12" r="11" fill="var(--color-accent)"/>
-                            <path d="M16 13c0-.8-.4-1.5-1-1.9v3.8c.6-.4 1-1.1 1-1.9zm2.5 0c0-1.9-1-3.6-2.5-4.4v8.8c1.5-.8 2.5-2.5 2.5-4.4zM6 10v6h3l4 4V6l-4 4H6z" fill="#FFFFFF"/>
-                        </svg>
-                    </span>
-                    <div class="announcement-content">
-                        <span class="text-short"><b>Pembaruan Sistem</b>: Sumber data primer kini dialihkan ke Geoportal Kebijakan Satu Peta BIG...</span>
-                        <span class="text-full hidden"><b>Pembaruan Sistem</b>: Sumber data primer untuk identifikasi batas administrasi kecamatan kini dialihkan ke Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG). Pembaruan ini bertujuan untuk meningkatkan akurasi, kesesuaian, dan keandalan pencarian nama kecamatan.</span>
-                        <a href="#" class="toggle-text-link">Selengkapnya</a>
-                    </div>
-                </div>
-
-                <div class="footer-disclaimer" id="footerDisclaimer">
-                    <p><strong><em>Disclaimer</em>/Penafian:</strong> <span class="disclaimer-summary">Hasil bersifat informatif dan tidak dapat digunakan untuk keperluan hukum maupun penetapan batas wilayah.</span></p>
-                    <div class="disclaimer-content-wrapper">
-                        <p><em>Website</em> <span class="highlight-inline">Cari Kecamatan</span> merupakan alat bantu pencarian data administrasi nama kecamatan di Negara Republik Indonesia berdasarkan titik koordinat yang bersifat informatif.</p>
-                        <p><strong>Sumber Data:</strong></p>
-                        <ul>
-                            <li><strong>Primer:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG) &mdash; poligon batas wilayah administrasi dan identifikasi lokasi.</li>
-                            <li><strong>Sekunder:</strong> ArcGIS Esri, OpenStreetMap (Nominatim), BigDataCloud.</li>
-                            <li><strong>Deteksi Perairan:</strong> Is On Water API (NASA ASTER Water Body Database).</li>
-                        </ul>
-                        <p><strong>Batasan dan Risiko:</strong></p>
-                        <ul>
-                            <li>Akurasi hasil sangat bergantung pada ketersediaan dan ketepatan data dari masing-masing API pihak ketiga pada saat permintaan dilakukan dan terkadang terjadi kesalahan.</li>
-                            <li>Tidak semua API merespons setiap saat. Gangguan layanan atau <em>Cross-Origin Resource Sharing</em> (CORS) dapat menyebabkan hasil salah atau kosong.</li>
-                            <li>Koordinat di luar batas wilayah Negara Republik Indonesia tidak dapat diproses untuk pencarian kecamatan.</li>
-                            <li>Jangan gunakan untuk penetapan batas wilayah, sengketa perbatasan, sengketa pertanahan, maupun segala keperluan hukum dan putusan lainnya yang bersifat mengikat.</li>
-                        </ul>
-                    </div>
-                    <button class="toggle-disclaimer-btn" id="toggleDisclaimerBtn" aria-expanded="false">Lihat Disclaimer Selengkapnya</button>
-                </div>
-                <div class="footer-credits">
-                    <p>Proyek oleh <strong>Bintang Bayu K. P.</strong></p>
-                    <p class="framework-info">Dibuat dengan Vanilla JS, HTML5, CSS3, dan Leaflet.js</p>
+    <footer class="site-footer" id="tentang">
+        <div class="container footer-inner">
+            <p class="footer-note">Hasil bersifat informatif, bukan untuk keperluan hukum atau penetapan batas wilayah.
+                <button type="button" class="btn-link" id="toggleDisclaimerBtn" aria-expanded="false" aria-controls="disclaimerPanel">Baca disclaimer</button>
+            </p>
+            <p class="footer-credit">Proyek oleh <strong>Bintang Bayu K. P.</strong></p>
+        </div>
+        <div class="container">
+            <div class="disclaimer-content-wrapper" id="disclaimerPanel">
+                <div class="disclaimer-body">
+                    <p><em>Website</em> Cari Kecamatan merupakan alat bantu pencarian data administrasi nama kecamatan di Negara Republik Indonesia berdasarkan titik koordinat yang bersifat informatif.</p>
+                    <h3>Sumber data</h3>
+                    <ul>
+                        <li><strong>Primer:</strong> Geoportal Kebijakan Satu Peta, Badan Informasi Geospasial (BIG) — poligon batas wilayah administrasi dan identifikasi lokasi.</li>
+                        <li><strong>Sekunder:</strong> ArcGIS Esri dan OpenStreetMap (Nominatim).</li>
+                        <li><strong>Deteksi perairan:</strong> Is On Water API.</li>
+                    </ul>
+                    <h3>Batasan dan risiko</h3>
+                    <ul>
+                        <li>Akurasi hasil bergantung pada ketersediaan dan ketepatan data dari masing-masing layanan pihak ketiga saat permintaan dilakukan.</li>
+                        <li>Tidak semua layanan merespons setiap saat. Gangguan layanan dapat menyebabkan hasil kosong atau berasal dari sumber cadangan.</li>
+                        <li>Koordinat di luar wilayah Negara Republik Indonesia tidak dapat diproses untuk pencarian kecamatan.</li>
+                        <li>Jangan gunakan untuk penetapan batas wilayah, sengketa perbatasan, sengketa pertanahan, maupun keperluan hukum lain yang bersifat mengikat.</li>
+                    </ul>
+                    <p class="muted-sm">Dibuat dengan Vanilla JS, HTML5, CSS3, dan Leaflet.js.</p>
                 </div>
             </div>
-        </footer>
-    </div>
+        </div>
+    </footer>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
-    
-    <!-- App Scripts (Bundled) -->
-    <script src="js/bundle.js?v=20261102"></script>
+    <script src="js/bundle.js?v=20261104"></script>
 </body>
 </html>
-
-
-
-

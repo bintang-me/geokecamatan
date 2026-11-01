@@ -488,27 +488,27 @@ let singleSearchCoords = null; // Menyimpan koordinat aktif untuk mencegah race 
 // Konfigurasi style per level administratif
 const BOUNDARY_STYLES = {
     provinsi: {
-        color: '#FFFFFF',   // Putih
-        weight: 2.5,
-        opacity: 0.6,
-        fillColor: '#FFFFFF',
-        fillOpacity: 0.02,
-        dashArray: '10, 6'
+        color: '#0F1D35',   // Navy tipis
+        weight: 1.5,
+        opacity: 0.35,
+        fillColor: '#0F1D35',
+        fillOpacity: 0,
+        dashArray: '2, 6'
     },
     kabKota: {
-        color: '#3B82F6',   // Biru
+        color: '#7C8BA1',   // Abu-biru putus-putus
         weight: 2.0,
-        opacity: 0.75,
-        fillColor: '#3B82F6',
+        opacity: 0.9,
+        fillColor: '#7C8BA1',
         fillOpacity: 0.03,
-        dashArray: '6, 4'
+        dashArray: '8, 6'
     },
     kecamatan: {
         color: '#EEA201',   // Emas — identitas website
-        weight: 2.5,
-        opacity: 0.95,
+        weight: 3,
+        opacity: 1,
         fillColor: '#EEA201',
-        fillOpacity: 0.10,
+        fillOpacity: 0.12,
         dashArray: null
     }
 };
@@ -653,6 +653,58 @@ function createMapLayers() {
     return { standardMap, esriSatellite, labelsMap, satelliteHybrid };
 }
 
+// Pemilih basemap "Peta | Satelit" (segmented control)
+function addBasemapSwitch(mapObj, layers) {
+    const Switch = L.Control.extend({
+        options: { position: 'topright' },
+        onAdd: function () {
+            const box = L.DomUtil.create('div', 'leaflet-control basemap-switch');
+            box.setAttribute('role', 'group');
+            box.setAttribute('aria-label', 'Jenis peta');
+            const make = (label, layer, active) => {
+                const b = L.DomUtil.create('button', '', box);
+                b.type = 'button';
+                b.textContent = label;
+                b.setAttribute('aria-pressed', active ? 'true' : 'false');
+                L.DomEvent.on(b, 'click', (e) => {
+                    L.DomEvent.stop(e);
+                    if (mapObj.hasLayer(layer)) return;
+                    mapObj.removeLayer(layers.standardMap);
+                    mapObj.removeLayer(layers.satelliteHybrid);
+                    layer.addTo(mapObj);
+                    box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+                });
+            };
+            make('Peta', layers.standardMap, true);
+            make('Satelit', layers.satelliteHybrid, false);
+            L.DomEvent.disableClickPropagation(box);
+            return box;
+        }
+    });
+    mapObj.addControl(new Switch());
+}
+
+// Pin lokasi utama: navy dengan titik emas (selaras logo)
+function createMainPinIcon() {
+    return L.divIcon({
+        className: 'ck-pin',
+        html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 46" width="34" height="43" aria-hidden="true"><path d="M18 45C18 45 3 28 3 17a15 15 0 0 1 30 0c0 11-15 28-15 28z" fill="#0F1D35" stroke="#FFFFFF" stroke-width="2"/><circle cx="18" cy="17" r="6" fill="#EEA201"/></svg>',
+        iconSize: [34, 43],
+        iconAnchor: [17, 43],
+        popupAnchor: [0, -40]
+    });
+}
+
+// Sembunyikan indikator "Memuat peta…" saat tile pertama selesai dimuat
+function watchMapLoading(layers) {
+    const el = document.getElementById('mapLoading');
+    if (!el) return;
+    const hide = () => el.classList.add('hidden');
+    layers.standardMap.once('load', hide);
+    layers.esriSatellite.once('load', hide);
+    setTimeout(hide, 8000);
+}
+
 function initMap(containerId, onLocationSelected) {
     const initialLat = -2.5;
     const initialLon = 118.0;
@@ -673,20 +725,14 @@ function initMap(containerId, onLocationSelected) {
     map.createPane('kecPane');
     map.getPane('kecPane').style.zIndex = 430;
 
-    const { standardMap, satelliteHybrid } = createMapLayers();
+    const layers = createMapLayers();
+    watchMapLoading(layers);
 
-    // Set peta default saat halaman dimuat — Satellite Hybrid
-    satelliteHybrid.addTo(map);
+    // Peta default: standar (terang) — selaras tampilan; Satelit tersedia di pemilih
+    layers.standardMap.addTo(map);
+    addBasemapSwitch(map, layers);
 
-    // Tambahkan kontrol layer ke peta
-    const baseMaps = {
-        "Peta Standar": standardMap,
-        "Satelit Hybrid": satelliteHybrid
-    };
-
-    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-    marker = L.marker([initialLat, initialLon], { draggable: true }).addTo(map);
+    marker = L.marker([initialLat, initialLon], { draggable: true, icon: createMainPinIcon(), keyboard: true, title: 'Titik lokasi (bisa digeser)' }).addTo(map);
 
     // Normalisasi bujur ke -180..180 (peta bisa digeser melewati antimeridian) & bulatkan 6 desimal
     const normalizeLatLng = (latlng) => {
@@ -803,12 +849,9 @@ function initBatchMap() {
     batchMap.createPane('kecPane');
     batchMap.getPane('kecPane').style.zIndex = 430;
 
-    const { standardMap, satelliteHybrid } = createMapLayers();
-
-    // Set peta default batch — Satellite Hybrid
-    satelliteHybrid.addTo(batchMap);
-
-    L.control.layers({ "Peta Standar": standardMap, "Satelit Hybrid": satelliteHybrid }, null, { position: 'topright' }).addTo(batchMap);
+    const batchLayers = createMapLayers();
+    batchLayers.standardMap.addTo(batchMap);
+    addBasemapSwitch(batchMap, batchLayers);
 
     // Tambahkan kontrol Autozoom kustom di bawah kontrol zoom (+/-) bawaan Leaflet pada Peta Cari Massal
     const AutoZoomControlBatch = L.Control.extend({
@@ -914,13 +957,13 @@ function addBatchMarker(data) {
     // Tentukan warna berdasarkan status
     let pinColor;
     if (data.status === 'Sukses') {
-        pinColor = '#10B981'; // hijau
+        pinColor = '#0F7B4A'; // hijau
     } else if (data.status === 'Kosong') {
-        pinColor = '#6B7280'; // abu
+        pinColor = '#8A93A3'; // abu
     } else if (data.status === 'Luar Batas RI' || data.status === 'Wilayah Perairan') {
-        pinColor = '#EEA201'; // emas/warning
+        pinColor = '#B7791F'; // peringatan
     } else {
-        pinColor = '#EF4444'; // merah
+        pinColor = '#B42318'; // merah
     }
 
     // Buat custom SVG pin icon (mirip marker Leaflet asli tapi berwarna)
@@ -940,7 +983,7 @@ function addBatchMarker(data) {
 
     const popupContent = `
         <div style="font-family:inherit;min-width:160px;">
-            <div style="font-weight:700;margin-bottom:4px;color:#14305E;">No. ${escapeHtml(String(data.id))}</div>
+            <div style="font-weight:700;margin-bottom:4px;color:#0F1D35;">No. ${escapeHtml(String(data.id))}</div>
             <div style="font-size:0.85rem;color:#374151;">
                 <b>Desa/Kelurahan:</b> ${escapeHtml(data.desaKel || '-')}<br>
                 <b>Kecamatan:</b> ${escapeHtml(data.kecamatan)}<br>
@@ -992,53 +1035,60 @@ function fitBatchMapBounds() {
 // ==========================================
 // 6. UI
 // ==========================================
+const STATUS_COLORS = { success: '#0F6B41', warning: '#7A5200', error: '#9B1C12' };
+
+function setModalStatus(text, kind) {
+    const statusEl = document.getElementById('modalInfoStatus');
+    if (!statusEl) return;
+    statusEl.textContent = text;
+    statusEl.style.color = STATUS_COLORS[kind] || '';
+}
+
+function setBadge(text, kind) {
+    const badge = document.getElementById('confidenceBadge');
+    if (!badge) return;
+    if (!text) { badge.classList.add('hidden'); return; }
+    badge.textContent = text;
+    badge.className = `badge badge-${kind}`;
+}
+
 function showLoading() {
+    document.getElementById('emptyState')?.classList.add('hidden');
     document.getElementById('loadingIndicator').classList.remove('hidden');
     document.getElementById('errorState').classList.add('hidden');
     document.getElementById('resultContent').classList.add('hidden');
+    setBadge(null);
 
     const modalBox = document.getElementById('mapSingleInfoBox');
-    if (modalBox && !modalBox.classList.contains('hidden')) {
-        document.getElementById('modalInfoStatus').textContent = 'Memproses...';
-        document.getElementById('modalInfoStatus').style.color = '#F59E0B';
-    }
+    if (modalBox && !modalBox.classList.contains('hidden')) setModalStatus('Memproses…', 'warning');
 }
 
 function showError(message) {
+    document.getElementById('emptyState')?.classList.add('hidden');
     document.getElementById('loadingIndicator').classList.add('hidden');
     document.getElementById('resultContent').classList.add('hidden');
-    
+    setBadge(null);
+
     const errorState = document.getElementById('errorState');
     errorState.classList.remove('hidden');
     document.getElementById('errorMessage').textContent = message;
 
-    // Peringatan emas untuk: luar RI dan wilayah perairan
-    const isWarning = message === "Wilayah ini berada di luar batas Negara Republik Indonesia."
-        || message.startsWith("Wilayah ini terdeteksi berada di perairan");
-    if (isWarning) {
-        errorState.style.color = "#F59E0B";
-    } else {
-        errorState.style.color = ""; // Default bawaan CSS (Merah)
-    }
+    // Peringatan (kuning) untuk luar RI dan wilayah perairan; selain itu error (merah)
+    const isWater = message.startsWith("Wilayah ini terdeteksi berada di perairan");
+    const isWarning = message === "Wilayah ini berada di luar batas Negara Republik Indonesia." || isWater;
+    errorState.classList.toggle('is-warning', isWarning);
 
     const modalBox = document.getElementById('mapSingleInfoBox');
     if (modalBox && !modalBox.classList.contains('hidden')) {
-        document.getElementById('modalInfoDesaKel').textContent = '-';
-        document.getElementById('modalInfoKecamatan').textContent = '-';
-        document.getElementById('modalInfoKabKota').textContent = '-';
-        document.getElementById('modalInfoProvinsi').textContent = '-';
-        const statusEl = document.getElementById('modalInfoStatus');
-        if (isWarning) {
-            statusEl.textContent = message.startsWith('Wilayah ini terdeteksi berada di perairan') ? 'Di Perairan' : 'Luar RI';
-            statusEl.style.color = '#F59E0B';
-        } else {
-            statusEl.textContent = 'Gagal';
-            statusEl.style.color = '#EF4444';
-        }
+        ['modalInfoDesaKel', 'modalInfoKecamatan', 'modalInfoKabKota', 'modalInfoProvinsi']
+            .forEach(id => { document.getElementById(id).textContent = '-'; });
+        if (isWarning) setModalStatus(isWater ? 'Di perairan' : 'Luar RI', 'warning');
+        else setModalStatus('Gagal', 'error');
     }
 }
 
-function showResult(data) {
+function showResult(data, lat, lon) {
+    document.getElementById('emptyState')?.classList.add('hidden');
     document.getElementById('loadingIndicator').classList.add('hidden');
     document.getElementById('errorState').classList.add('hidden');
     document.getElementById('resultContent').classList.remove('hidden');
@@ -1049,64 +1099,31 @@ function showResult(data) {
     document.getElementById('resKabKota').textContent = admin.kabKota;
     document.getElementById('resKecamatan').textContent = admin.kecamatan;
     document.getElementById('resDesaKel').textContent = admin.desaKel || "-";
-    document.getElementById('resAlamat').textContent = admin.alamat;
+    document.getElementById('resAlamat').textContent = admin.alamat && admin.alamat !== '-' ? admin.alamat : '';
+    const coordEl = document.getElementById('resKoordinat');
+    if (coordEl) coordEl.textContent = (typeof lat === 'number' && typeof lon === 'number') ? `${lat.toFixed(6)}, ${lon.toFixed(6)}` : '-';
+
+    const kec = admin.kecamatan || '-';
+    let status = 'Tidak ada data', kind = 'error';
+    if (kec === '(Luar RI)') { status = 'Luar batas RI'; kind = 'warning'; }
+    else if (kec !== '-' && kec !== '') { status = 'Sukses'; kind = 'success'; }
+
+    // Badge sumber data
+    if (kec === '(Luar RI)') setBadge('Di luar wilayah RI', 'danger');
+    else if (kec === '-' || kec === '') setBadge('Kecamatan tidak terdeteksi', 'danger');
+    else if (data.source === 'BIG') setBadge('Sumber resmi · BIG', 'success');
+    else setBadge('Sumber cadangan · cek ulang', 'warning');
 
     // Update modal info box jika aktif (tidak disembunyikan)
     const modalBox = document.getElementById('mapSingleInfoBox');
     if (modalBox && !modalBox.classList.contains('hidden')) {
-        const desa = admin.desaKel || '-';
-        const kec = admin.kecamatan || '-';
-        const kab = admin.kabKota || '-';
-        const prov = admin.provinsi || '-';
-        
-        let status = 'Tidak Ada Data';
-        if (kec !== '-' && kec !== '') {
-            if (kec === '(Luar RI)' || kec.includes('Luar RI')) {
-                status = 'Luar Batas RI';
-            } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
-                status = 'Wilayah Perairan';
-            } else {
-                status = 'Sukses';
-            }
-        }
-        
-        document.getElementById('modalInfoDesaKel').textContent = desa;
+        document.getElementById('modalInfoDesaKel').textContent = admin.desaKel || '-';
         document.getElementById('modalInfoKecamatan').textContent = kec;
-        document.getElementById('modalInfoKabKota').textContent = kab;
-        document.getElementById('modalInfoProvinsi').textContent = prov;
-        document.getElementById('modalInfoStatus').textContent = status;
-        
-        const statusEl = document.getElementById('modalInfoStatus');
-        if (status === 'Sukses') {
-            statusEl.style.color = '#10B981';
-        } else if (status === 'Tidak Ada Data') {
-            statusEl.style.color = '#EF4444';
-        } else {
-            statusEl.style.color = '#F59E0B';
-        }
-    }
-
-    const badge = document.getElementById('confidenceBadge');
-    if (admin.kecamatan === '(Luar RI)') {
-        badge.textContent = "⚠ Lokasi di luar wilayah RI";
-        badge.style.color = "#FFFFFF";
-        badge.style.background = "var(--color-error)";
-    } else if (admin.kecamatan === '(Perairan)') {
-        badge.textContent = "⚠ Titik berada di perairan";
-        badge.style.color = "#000000";
-        badge.style.background = "var(--color-warning)";
-    } else if (admin.kecamatan !== '-') {
-        badge.textContent = "🟢 Kecamatan ditemukan";
-        badge.style.color = "#000000";
-        badge.style.background = "var(--color-accent)";
-    } else {
-        badge.textContent = "⚠ Kecamatan tidak terdeteksi";
-        badge.style.color = "#FFFFFF";
-        badge.style.background = "var(--color-error)";
+        document.getElementById('modalInfoKabKota').textContent = admin.kabKota || '-';
+        document.getElementById('modalInfoProvinsi').textContent = admin.provinsi || '-';
+        setModalStatus(status, kind);
     }
 }
-
-
 
 // Salin teks ke clipboard dengan fallback untuk konteks non-HTTPS (navigator.clipboard tidak tersedia)
 function copyText(text) {
@@ -1182,12 +1199,22 @@ function removeHistoryItem(coordStr) {
     renderHistory();
 }
 
+function formatHistoryTime(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    const diffMin = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'Baru saja';
+    const sameDay = new Date().toDateString() === d.toDateString();
+    const time = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    return sameDay ? time : `${d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}, ${time}`;
+}
+
 function renderHistory() {
     const history = getHistory();
     const historyList = document.getElementById('historyList');
 
     if (history.length === 0) {
-        historyList.innerHTML = '<p class="history-empty">Belum ada histori pencarian.</p>';
+        historyList.innerHTML = '<p class="history-empty">Belum ada riwayat pencarian.</p>';
         return;
     }
 
@@ -1196,36 +1223,32 @@ function renderHistory() {
     history.forEach(item => {
         const row = document.createElement('div');
         row.className = 'history-item';
+        row.setAttribute('role', 'button');
+        row.tabIndex = 0;
 
-        const dateObj = new Date(item.timestamp);
-        const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-            + ' · ' + dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-
-        // Left: coord + details
         const left = document.createElement('div');
         left.className = 'hist-left';
+
+        const details = document.createElement('span');
+        details.className = 'hist-details';
+        details.textContent = [item.kecamatan && item.kecamatan !== '-' ? item.kecamatan : null, item.kabKota && item.kabKota !== '-' ? item.kabKota : null]
+            .filter(Boolean).join(', ') || 'Tanpa data kecamatan';
 
         const coord = document.createElement('span');
         coord.className = 'hist-coord';
         coord.textContent = item.coord;
 
-        const details = document.createElement('span');
-        details.className = 'hist-details';
-        details.textContent = [item.kecamatan !== '-' ? item.kecamatan : null, item.kabKota]
-            .filter(Boolean).join(', ');
-
-        left.appendChild(coord);
         left.appendChild(details);
+        left.appendChild(coord);
 
-        // Right: timestamp
         const time = document.createElement('span');
         time.className = 'hist-time';
-        time.textContent = timeStr;
+        time.textContent = formatHistoryTime(item.timestamp);
 
-        // Delete button
         const delBtn = document.createElement('button');
+        delBtn.type = 'button';
         delBtn.className = 'delete-item-btn';
-        delBtn.title = 'Hapus riwayat ini';
+        delBtn.setAttribute('aria-label', `Hapus riwayat ${item.coord}`);
         delBtn.textContent = '×';
 
         delBtn.addEventListener('click', (e) => {
@@ -1233,10 +1256,14 @@ function renderHistory() {
             removeHistoryItem(item.coord);
         });
 
-        row.addEventListener('click', () => {
+        const open = () => {
             document.getElementById('coordInput').value = item.coord;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             document.getElementById('searchBtn').click();
+        };
+        row.addEventListener('click', open);
+        row.addEventListener('keydown', (e) => {
+            if (e.target === row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); }
         });
 
         row.appendChild(left);
@@ -1252,26 +1279,33 @@ function renderHistory() {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
-    // INTRO SPLASH — wajib setiap kali halaman dibuka
+    // LOADING AWAL (splash) — hanya selama memuat, maks ~1,2 detik, sekali per sesi
     // ==========================================
     (function() {
         const splash = document.getElementById('introSplash');
         if (!splash) return;
+        try { sessionStorage.setItem('ck_splash_seen', '1'); } catch (e) {}
 
-        const DISPLAY_MS = 2200; // durasi tampil (ms)
-        const EXIT_MS    = 550;  // durasi animasi fade-out (harus sama dengan CSS)
+        const MIN_MS = 700;   // cukup untuk animasi logo, tanpa kesan berkedip
+        const MAX_MS = 1200;  // batas atas: jangan menahan pengguna
+        const EXIT_MS = 400;  // sama dengan transisi CSS
+        const started = performance.now();
 
         function dismissSplash() {
-            if (splash.classList.contains('intro-exit') ||
-                splash.classList.contains('intro-hidden')) return;
+            if (splash.classList.contains('intro-exit')) return;
             splash.classList.add('intro-exit');
-            setTimeout(() => {
-                splash.classList.add('intro-hidden');
-            }, EXIT_MS);
+            setTimeout(() => splash.classList.add('intro-hidden'), EXIT_MS);
         }
+        const dismissWhenReady = () => {
+            const wait = Math.max(0, MIN_MS - (performance.now() - started));
+            setTimeout(dismissSplash, wait);
+        };
 
-        // Auto-dismiss — selalu tampil, tidak ada skip
-        setTimeout(dismissSplash, DISPLAY_MS);
+        if (document.readyState === 'complete') dismissWhenReady();
+        else window.addEventListener('load', dismissWhenReady, { once: true });
+        setTimeout(dismissSplash, MAX_MS);
+        splash.addEventListener('click', dismissSplash);
+        document.addEventListener('keydown', dismissSplash, { once: true });
     })();
 
     const searchBtn = document.getElementById('searchBtn');
@@ -1284,6 +1318,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderHistory();
+
+    // Tautan berbagi: ?q=lat,lon langsung mencari titik tersebut
+    try {
+        const q = new URLSearchParams(location.search).get('q');
+        if (q) {
+            coordInput.value = q;
+            setTimeout(() => processInput(q), 0);
+        }
+    } catch (e) {}
 
     // Copy to clipboard logic
     const copyKecamatanContainer = document.getElementById('copyKecamatanContainer');
@@ -1326,13 +1369,81 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    searchBtn.addEventListener('click', () => {
+    const searchForm = document.getElementById('searchForm');
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
         processInput(coordInput.value);
     });
 
-    coordInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') processInput(coordInput.value);
+    // Contoh format yang bisa diklik
+    document.querySelectorAll('.example-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            coordInput.value = chip.dataset.coord;
+            processInput(coordInput.value);
+        });
     });
+
+    // Lokasi saya (GPS perangkat)
+    const locateBtn = document.getElementById('locateBtn');
+    if (locateBtn) {
+        locateBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                showError('Browser ini tidak mendukung deteksi lokasi.');
+                return;
+            }
+            locateBtn.disabled = true;
+            navigator.geolocation.getCurrentPosition((pos) => {
+                locateBtn.disabled = false;
+                const lat = Math.round(pos.coords.latitude * 1e6) / 1e6;
+                const lon = Math.round(pos.coords.longitude * 1e6) / 1e6;
+                setInputValue(lat, lon);
+                updateMapMarker(lat, lon);
+                doGeocode(lat, lon);
+            }, (err) => {
+                locateBtn.disabled = false;
+                showError(err.code === 1
+                    ? 'Izin lokasi ditolak. Aktifkan izin lokasi di browser, atau masukkan koordinat secara manual.'
+                    : 'Lokasi perangkat tidak dapat ditentukan. Coba lagi atau masukkan koordinat secara manual.');
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+        });
+    }
+
+    // Salin semua & bagikan tautan
+    let lastResult = null; // { lat, lon, admin }
+    const flashLabel = (btn, text) => {
+        if (btn.dataset.flash) return;
+        btn.dataset.flash = '1';
+        const original = btn.textContent;
+        btn.textContent = text;
+        setTimeout(() => { btn.textContent = original; delete btn.dataset.flash; }, 2000);
+    };
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', () => {
+            if (!lastResult) return;
+            const a = lastResult.admin;
+            const text = [
+                `Desa/Kelurahan: ${a.desaKel || '-'}`,
+                `Kecamatan: ${a.kecamatan || '-'}`,
+                `Kab/Kota: ${a.kabKota || '-'}`,
+                `Provinsi: ${a.provinsi || '-'}`,
+                `Koordinat: ${lastResult.lat}, ${lastResult.lon}`
+            ].join('\n');
+            copyText(text).then(() => flashLabel(copyAllBtn, 'Tersalin!')).catch(err => console.error(err));
+        });
+    }
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async () => {
+            if (!lastResult) return;
+            const url = `${location.origin}${location.pathname}?q=${lastResult.lat},${lastResult.lon}`;
+            const title = `Kecamatan ${lastResult.admin.kecamatan} — Cari Kecamatan`;
+            if (navigator.share && window.matchMedia('(pointer: coarse)').matches) {
+                try { await navigator.share({ title, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
+            }
+            copyText(url).then(() => flashLabel(shareBtn, 'Tautan tersalin!')).catch(err => console.error(err));
+        });
+    }
 
     clearHistoryBtn.addEventListener('click', () => {
         if (getHistory().length === 0) return;
@@ -1356,8 +1467,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let singleRequestSeq = 0; // token untuk membuang respons pencarian lama (race condition)
 
+    function setSearching(on) {
+        searchBtn.classList.toggle('is-loading', on);
+        searchBtn.querySelector('.btn-label').textContent = on ? 'Mencari…' : 'Cari lokasi';
+    }
+
     async function doGeocode(lat, lon) {
         const reqId = ++singleRequestSeq;
+        lastResult = null;
+        setSearching(false);
         // Bersihkan batas lama & tandai koordinat aktif agar fetch batas lama tertolak
         clearBoundaryLayers();
         singleSearchCoords = { lat, lon };
@@ -1369,16 +1487,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         showLoading();
+        setSearching(true);
 
         const result = await reverseGeocode(lat, lon);
         if (reqId !== singleRequestSeq) return; // sudah ada pencarian yang lebih baru
+        setSearching(false);
         // Konfirmasi dari API: wilayah ini bukan Republik Indonesia
         if (result.outsideIndonesia) {
             showError("Wilayah ini berada di luar batas Negara Republik Indonesia.");
             return;
         }
         if (result.success) {
-            showResult(result);
+            showResult(result, lat, lon);
+            lastResult = { lat, lon, admin: result.administrative };
             saveToHistory(lat, lon, result.administrative);
             // Fetch dan gambar batas administratif di background (non-blocking)
             fetchAndDrawBoundaries(result.administrative, lat, lon);
@@ -1395,10 +1516,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
+            tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
             tabPanes.forEach(p => p.classList.remove('active'));
-            
+
             btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
             document.getElementById(btn.dataset.tab).classList.add('active');
             
             // Fix map rendering issue when switching tabs
@@ -1440,17 +1562,78 @@ document.addEventListener('DOMContentLoaded', () => {
     let isProcessing = false;
     let batchRunId = 0; // token untuk membatalkan proses batch yang sedang berjalan
 
+    // Label tombol proses mengikuti jumlah titik ("Proses 5 titik")
+    function countBatchLines() {
+        return batchInput.value.replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim() !== '').length;
+    }
+    function updateProcessLabel() {
+        if (isProcessing) return;
+        const n = countBatchLines();
+        processBatchBtn.textContent = n > 0 ? `Proses ${n} titik` : 'Mulai proses';
+    }
+
+    // Nomor baris di samping textarea
+    const batchGutter = document.getElementById('batchGutter');
+    function updateGutter() {
+        if (!batchGutter) return;
+        const n = Math.max(1, batchInput.value.replace(/\r\n?/g, '\n').split('\n').length);
+        let out = '';
+        for (let i = 1; i <= n; i++) out += i + (i < n ? '\n' : '');
+        batchGutter.textContent = out;
+        batchGutter.scrollTop = batchInput.scrollTop;
+    }
+    batchInput.addEventListener('input', () => { updateGutter(); updateProcessLabel(); });
+    batchInput.addEventListener('scroll', () => { if (batchGutter) batchGutter.scrollTop = batchInput.scrollTop; });
+
+    // Unggah / seret file CSV/TXT: ambil pasangan lintang-bujur dari tiap baris
+    function extractCoordLine(line) {
+        const fields = line.split(/[;\t,]/).map(f => f.trim().replace(/^"|"$/g, ''));
+        const num = (f) => /^[+-]?\d+(\.\d+)?$/.test(f) ? parseFloat(f) : NaN;
+        for (let i = 0; i < fields.length - 1; i++) {
+            const a = num(fields[i]), b = num(fields[i + 1]);
+            if (!isNaN(a) && !isNaN(b) && Math.abs(a) <= 90 && Math.abs(b) > 90 && Math.abs(b) <= 180) {
+                return `${fields[i]}, ${fields[i + 1]}`;
+            }
+        }
+        return line.trim();
+    }
+    function loadBatchFile(file) {
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('Ukuran file maksimal 5 MB.'); return; }
+        const reader = new FileReader();
+        reader.onload = () => {
+            const rows = String(reader.result).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
+            let lines = rows.map(extractCoordLine);
+            // Buang baris judul (mis. "lat,lon") di awal file
+            while (lines.length && lines[0] !== '' && !parseCoordinates(lines[0]).valid && /[a-z]/i.test(lines[0])) lines.shift();
+            batchInput.value = lines.join('\n').replace(/\n+$/, '');
+            updateGutter();
+            updateProcessLabel();
+        };
+        reader.readAsText(file);
+    }
+    const batchFile = document.getElementById('batchFile');
+    const batchDrop = document.getElementById('batchDrop');
+    if (batchFile) batchFile.addEventListener('change', () => { loadBatchFile(batchFile.files[0]); batchFile.value = ''; });
+    if (batchDrop) {
+        ['dragenter', 'dragover'].forEach(ev => batchDrop.addEventListener(ev, (e) => { e.preventDefault(); batchDrop.classList.add('is-dragover'); }));
+        ['dragleave', 'drop'].forEach(ev => batchDrop.addEventListener(ev, (e) => { e.preventDefault(); batchDrop.classList.remove('is-dragover'); }));
+        batchDrop.addEventListener('drop', (e) => loadBatchFile(e.dataTransfer.files[0]));
+    }
+
     function resetBatchButton() {
         isProcessing = false;
         processBatchBtn.disabled = false;
-        processBatchBtn.textContent = 'Mulai Proses';
+        updateProcessLabel();
     }
 
     clearBatchBtn.addEventListener('click', () => {
         batchRunId++; // batalkan proses yang sedang berjalan
         resetBatchButton();
         batchInput.value = '';
-        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="8">Belum ada data diproses.</td></tr>';
+        updateGutter();
+        updateProcessLabel();
+        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>';
         batchFilter = 'all';
         updateBatchSummary();
         batchData = [];
@@ -1474,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isStale = () => runId !== batchRunId;
         isProcessing = true;
         processBatchBtn.disabled = true;
-        processBatchBtn.textContent = 'Memproses...';
+        processBatchBtn.textContent = 'Memproses…';
         batchTableBody.innerHTML = '';
         batchData = [];
         batchFilter = 'all';
@@ -1483,8 +1666,11 @@ document.addEventListener('DOMContentLoaded', () => {
         initBatchMap();
         
         batchProgressContainer.classList.remove('hidden');
+        const progressLabel = document.getElementById('batchProgressLabel');
+        const progressTrack = document.getElementById('batchProgressTrack');
+        if (progressLabel) progressLabel.textContent = 'Memproses';
         batchProgressBar.style.width = '0%';
-        batchProgressText.textContent = `Memproses: 0 / ${lines.length}`;
+        batchProgressText.textContent = `0 / ${lines.length}`;
 
         // Create tasks
         let tasks = lines.map((line, index) => {
@@ -1547,7 +1733,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         completed++;
                         const percent = (completed / tasks.length) * 100;
                         batchProgressBar.style.width = `${percent}%`;
-                        batchProgressText.textContent = `Memproses: ${completed} / ${tasks.length}`;
+                        if (progressTrack) progressTrack.setAttribute('aria-valuenow', String(Math.round(percent)));
+                        batchProgressText.textContent = `${completed} / ${tasks.length}`;
                         next();
                     });
                 }
@@ -1557,6 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isStale()) return;
         resetBatchButton();
+        if (progressLabel) progressLabel.textContent = 'Selesai';
         
         // Ensure final render is sorted by original ID
         batchData.sort((a, b) => a.id - b.id);
@@ -1673,46 +1861,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const BATCH_MESSAGES = {
+        'Wilayah Perairan': 'Titik berada di perairan',
+        'Luar Batas RI': 'Di luar wilayah Indonesia',
+        'Error API': 'Layanan data tidak merespons — coba proses ulang',
+        'Gagal': 'Kecamatan tidak ditemukan',
+        'Error': 'Format tidak dikenali — gunakan desimal atau DMS',
+        'Kosong': 'Baris kosong'
+    };
+
+    // Di mobile kolom Koordinat/Desa/Provinsi disembunyikan → pesan cukup membentang 2 kolom (Kecamatan, Kab/Kota)
+    const mobileTableMq = window.matchMedia('(max-width: 768px)');
+    const batchMsgColspan = () => (mobileTableMq.matches ? 2 : 4);
+    const syncMsgColspans = () => document.querySelectorAll('.batch-table td.col-msg').forEach(td => { td.colSpan = batchMsgColspan(); });
+    if (mobileTableMq.addEventListener) mobileTableMq.addEventListener('change', syncMsgColspans);
+
     function renderBatchRow(data) {
         const tr = document.createElement('tr');
-        tr.style.cursor = 'pointer';
-        tr.title = 'Klik untuk melihat koordinat di peta';
+        tr.title = 'Klik untuk melihat titik di peta';
 
         const group = batchStatusGroup(data.status);
-        const statusClass = 'status-' + group;
         tr.dataset.group = group;
         tr.classList.add('row-' + group);
         if (batchFilter !== 'all' && batchFilter !== group) tr.classList.add('row-filtered');
-
-        // Mapping kolom: [text, bold, className]
-        // Baris error: tampilkan teks input asli agar pengguna tahu baris mana yang salah
-        const latDisplay = (data.status === 'Error' && data.inputText) ? data.inputText : data.lat;
         if (data.errorMsg) tr.title = data.errorMsg;
 
-        const columns = [
-            [data.id, false],
-            [latDisplay, false],
-            [data.lon, false],
-            [data.status === 'Kosong' ? '' : (data.desaKel || '-'), false],
-            [data.kecamatan, true],
-            [data.kabKota, false],
-            [data.provinsi, false],
-            [data.status, true, statusClass]
-        ];
+        const td = (text, cls, colspan) => {
+            const el = document.createElement('td');
+            if (cls) el.className = cls;
+            if (colspan) el.colSpan = colspan;
+            el.textContent = text ?? '-';
+            tr.appendChild(el);
+            return el;
+        };
 
-        for (const [text, bold, className] of columns) {
-            const td = document.createElement('td');
-            if (className) td.className = className;
+        const hasCoord = typeof data.lat === 'number' && typeof data.lon === 'number';
+        const coordText = hasCoord ? `${data.lat}, ${data.lon}` : (data.inputText || '');
 
-            if (bold) {
-                const strong = document.createElement('strong');
-                strong.textContent = text ?? '-';
-                td.appendChild(strong);
-            } else {
-                td.textContent = text ?? '-';
-            }
-            tr.appendChild(td);
+        td(data.id, 'col-no');
+        td(coordText, 'col-coord');
+        if (group === 'success') {
+            td(data.desaKel || '-');
+            td(data.kecamatan, 'col-kec');
+            td(data.kabKota);
+            td(data.provinsi);
+        } else {
+            const msg = (data.status === 'Gagal' || data.status === 'Error API') && data.errorMsg ? data.errorMsg : BATCH_MESSAGES[data.status];
+            td(msg || data.status, 'col-msg', batchMsgColspan());
         }
+        const statusTd = td('', 'col-status');
+        const pill = document.createElement('span');
+        pill.className = `status-pill status-${group}`;
+        pill.textContent = data.status === 'Luar Batas RI' ? 'Luar RI' : data.status === 'Wilayah Perairan' ? 'Perairan' : data.status;
+        statusTd.appendChild(pill);
 
         batchTableBody.appendChild(tr);
         updateBatchSummary();
@@ -1798,16 +1999,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Highlight baris di tabel utama
         const mainRows = batchTableBody.querySelectorAll('tr');
-        mainRows.forEach(r => r.style.backgroundColor = ''); // reset
+        mainRows.forEach(r => r.classList.remove('row-selected')); // reset
         const targetMainRow = Array.from(mainRows).find(r => r.querySelector('td:first-child')?.textContent === idText);
-        if (targetMainRow) targetMainRow.style.backgroundColor = 'rgba(238, 162, 1, 0.15)';
+        if (targetMainRow) targetMainRow.classList.add('row-selected');
 
         // Highlight baris di modal tabel (jika sedang terbuka)
         if (tableModalBody) {
             const modalRows = tableModalBody.querySelectorAll('.batch-table tbody tr');
-            modalRows.forEach(r => r.style.backgroundColor = ''); // reset
+            modalRows.forEach(r => r.classList.remove('row-selected')); // reset
             const targetModalRow = Array.from(modalRows).find(r => r.querySelector('td:first-child')?.textContent === idText);
-            if (targetModalRow) targetModalRow.style.backgroundColor = 'rgba(238, 162, 1, 0.15)';
+            if (targetModalRow) targetModalRow.classList.add('row-selected');
         }
 
         // Cari marker terkait dan pan peta
@@ -1998,7 +2199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (expandSingleMapBtn) {
         expandSingleMapBtn.addEventListener('click', function() {
             activeExpandedMap = 'single';
-            document.getElementById('mapModalTitle').textContent = 'Peta Interaktif (Cari Tunggal)';
+            document.getElementById('mapModalTitle').textContent = 'Peta lokasi';
             document.getElementById('mapModalLegend').style.display = 'none';
             
             // Ambil data terbaru dari panel hasil Cari Tunggal
@@ -2027,11 +2228,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Berikan warna status
             const statusEl = document.getElementById('modalInfoStatus');
             if (status === 'Sukses') {
-                statusEl.style.color = '#10B981'; // green
+                statusEl.style.color = '#0F6B41'; // green
             } else if (status === 'Tidak Ada Data') {
-                statusEl.style.color = '#EF4444'; // red
+                statusEl.style.color = '#9B1C12'; // red
             } else {
-                statusEl.style.color = '#F59E0B'; // amber/warning
+                statusEl.style.color = '#7A5200'; // amber/warning
             }
             
             document.getElementById('mapSingleInfoBox').classList.remove('hidden');
@@ -2049,7 +2250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     expandMapBtn.addEventListener('click', function() {
         activeExpandedMap = 'batch';
-        document.getElementById('mapModalTitle').textContent = 'Peta Sebaran Titik (Cari Massal)';
+        document.getElementById('mapModalTitle').textContent = 'Peta sebaran titik';
         document.getElementById('mapModalLegend').style.display = 'flex';
         document.getElementById('mapModal').classList.add('active');
         document.getElementById('mapModalBody').appendChild(document.getElementById('batchMap'));
@@ -2094,16 +2295,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Disclaimer Toggle (Mobile Only)
     const toggleDisclaimerBtn = document.getElementById('toggleDisclaimerBtn');
     const disclaimerWrapper = document.querySelector('.disclaimer-content-wrapper');
+    const aboutLink = document.getElementById('aboutLink');
+    if (aboutLink && toggleDisclaimerBtn && disclaimerWrapper) {
+        aboutLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!disclaimerWrapper.classList.contains('expanded')) toggleDisclaimerBtn.click();
+            document.getElementById('tentang').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
     if (toggleDisclaimerBtn && disclaimerWrapper) {
         toggleDisclaimerBtn.addEventListener('click', () => {
             if (disclaimerWrapper.classList.contains('expanded')) {
                 disclaimerWrapper.classList.remove('expanded');
                 toggleDisclaimerBtn.setAttribute('aria-expanded', 'false');
-                toggleDisclaimerBtn.textContent = 'Lihat Disclaimer Selengkapnya';
+                toggleDisclaimerBtn.textContent = 'Baca disclaimer';
             } else {
                 disclaimerWrapper.classList.add('expanded');
                 toggleDisclaimerBtn.setAttribute('aria-expanded', 'true');
-                toggleDisclaimerBtn.textContent = 'Sembunyikan Disclaimer';
+                toggleDisclaimerBtn.textContent = 'Tutup disclaimer';
             }
         });
     }
