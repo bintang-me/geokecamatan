@@ -15,7 +15,7 @@ export const S3Logo: React.FC = () => {
             <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 44 }}>
                 <Logo size={230} animated delay={2} />
                 <div style={rise(f, 28, 14, 30)}><Wordmark size={92} underline={ul} /></div>
-                <div style={{ fontSize: 34, color: C.muted, ...rise(f, 42) }}>Dari koordinat, cepat dan akurat</div>
+                <div style={{ fontSize: 34, color: C.muted, ...rise(f, 42) }}>Berdasarkan koordinat, cepat dan akurat</div>
             </div>
         </AbsoluteFill>
     );

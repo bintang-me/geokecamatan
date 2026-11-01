@@ -15,7 +15,7 @@ const BAD = new Set([2, 5, 9, 14, 19, 23, 28]);
 export const S2Problem: React.FC = () => {
     const f = useCurrentFrame();
     const scroll = interpolate(f, [0, 120], [0, -520], clamp);
-    const count = Math.round(interpolate(f, [8, 100], [12, 248], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
+    const count = Math.round(interpolate(f, [8, 100], [12, 216], { ...clamp, easing: (t) => 1 - Math.pow(1 - t, 3) }));
     const rows = Array.from({ length: 30 }, (_, i) => i);
     return (
         <AbsoluteFill style={{ fontFamily: FONT }}>
@@ -40,7 +40,7 @@ export const S2Problem: React.FC = () => {
             </div>
             <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, ${C.dCanvas} 46%, rgba(11,18,32,0) 70%)` }} />
             <div style={{ position: 'absolute', left: 140, top: 330, width: 820 }}>
-                <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, lineHeight: 1.12, ...rise(f, 6) }}>Formatnya<br />campur aduk.</div>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, lineHeight: 1.12, ...rise(f, 6) }}>Bingung, format<br />datanya campur aduk.</div>
                 <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, lineHeight: 1.12, marginTop: 14, ...rise(f, 30) }}>Datanya ratusan baris.</div>
                 <div style={{ marginTop: 40, fontFamily: MONO, fontSize: 30, color: C.dMuted, ...rise(f, 40) }}>{count} baris</div>
             </div>

@@ -17,12 +17,12 @@ export const S1Hook: React.FC = () => {
     const box = interpolate(f, [0, 12], [0, 1], clamp);
     return (
         <AbsoluteFill style={{ fontFamily: FONT, alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', top: 190, width: '100%', textAlign: 'center' }}>
-                <div style={{ fontSize: 70, fontWeight: 700, color: C.dInk, letterSpacing: -1.1, ...rise(f, 4) }}>Punya titik koordinat,</div>
-                <div style={{ fontSize: 70, fontWeight: 700, color: C.dGold, letterSpacing: -1.1, marginTop: 4, lineHeight: 1.18, ...rise(f, 16) }}>tapi masih harus mencari kecamatan<br />dan wilayah administrasi lainnya?</div>
+            <div style={{ position: 'absolute', top: 250, width: '100%', textAlign: 'center' }}>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, ...rise(f, 4) }}>Punya titik koordinat,</div>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, marginTop: 6, ...rise(f, 16) }}>tapi harus tahu kecamatannya?</div>
             </div>
             <div style={{
-                position: 'absolute', top: 640, display: 'flex', alignItems: 'center', gap: 22,
+                position: 'absolute', top: 560, display: 'flex', alignItems: 'center', gap: 22,
                 width: 980, height: 120, padding: '0 40px', borderRadius: 26,
                 background: C.dSurface, border: `2px solid ${C.dLine}`,
                 boxShadow: '0 30px 80px rgba(0,0,0,.45)', opacity: box, transform: `scale(${0.96 + 0.04 * box})`,

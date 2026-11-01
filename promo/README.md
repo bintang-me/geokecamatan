@@ -18,9 +18,9 @@ Audio akhir dinormalkan ke −14 LUFS (standar kekerasan YouTube).
 
 | Waktu | Adegan | Berkas |
 |---|---|---|
-| 0–3 dtk | Hook: "Punya titik koordinat, tapi masih harus mencari kecamatan dan wilayah administrasi lainnya?" | `src/scenes/S1Hook.tsx` |
-| 3–7 dtk | Masalah: format campur aduk, ratusan baris | `src/scenes/S2Problem.tsx` |
-| 7–9,5 dtk | Logo muncul, tagline "Dari koordinat, cepat dan akurat" | `src/scenes/S3Logo.tsx` |
+| 0–3 dtk | Hook: "Punya titik koordinat, tapi harus tahu kecamatannya?" | `src/scenes/S1Hook.tsx` |
+| 3–7 dtk | Masalah: "Bingung, format datanya campur aduk. Datanya ratusan baris." (216 baris) | `src/scenes/S2Problem.tsx` |
+| 7–9,5 dtk | Logo muncul, tagline "Berdasarkan koordinat, cepat dan akurat" | `src/scenes/S3Logo.tsx` |
 | 9,5–15 dtk | Cari Tunggal: dirapikan otomatis → Gambir | `src/scenes/S4Single.tsx` |
 | 15–20 dtk | Peta batas asli Kecamatan Gambir & Kota Jakarta Pusat | `src/scenes/S5Map.tsx` |
 | 20–25 dtk | Cari Massal: 8 data terakhir (209–216) dari 216 titik, Unduh CSV | `src/scenes/S6Batch.tsx` |
