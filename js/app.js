@@ -137,7 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const r = readRoute();
         routing = true;
         try {
-            if (r.tab === 'massal') {
+            if (r.tab === 'tentang') {
+                await showAbout(false);
+            } else if (r.tab === 'massal') {
                 activateTab('massal');
                 const saved = SESSION.get(SS_BATCH);
                 if (r.data) {
@@ -424,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
             tabPanes.forEach(p => p.classList.remove('active'));
+            leaveAbout();
 
             btn.classList.add('active');
             btn.setAttribute('aria-pressed', 'true');
@@ -450,10 +453,81 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
                     initBatchMap();
                     if (batchMap) batchMap.invalidateSize();
+                    // Proses selesai saat tab ini tersembunyi: paskan peta sekarang setelah ukurannya benar
+                    if (pendingBatchFit) { pendingBatchFit = false; fitBatchMapBounds(); }
                 }, 100);
             }
         });
     });
+
+    // ==========================================
+    // Tentang & Privasi di dalam aplikasi: tanpa memuat ulang halaman,
+    // sehingga Cari Massal yang sedang berjalan tetap berlanjut di belakang
+    // ==========================================
+    const aboutPane = document.getElementById('tab-tentang');
+    const headerAboutLink = document.querySelector('.header-link');
+    const appTitle = document.title;
+    let aboutLoad = null;
+    let pendingBatchFit = false;
+
+    function loadAbout() {
+        if (!aboutLoad) {
+            aboutLoad = fetch('/tentang')
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+                .then(html => {
+                    const main = new DOMParser().parseFromString(html, 'text/html').querySelector('main');
+                    if (!main) throw new Error('Isi Tentang tidak ditemukan');
+                    aboutPane.innerHTML = main.innerHTML;
+                })
+                .catch(e => { aboutLoad = null; throw e; });
+        }
+        return aboutLoad;
+    }
+
+    async function showAbout(push) {
+        if (!aboutPane) { location.href = '/tentang'; return; }
+        try { await loadAbout(); } catch (e) { location.href = '/tentang'; return; }
+        tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+        tabPanes.forEach(p => p.classList.toggle('active', p === aboutPane));
+        if (headerAboutLink) headerAboutLink.setAttribute('aria-current', 'page');
+        document.body.classList.add('is-about');
+        document.title = 'Tentang & Privasi | Cari Kecamatan';
+        if (push) setPath('/tentang', true);
+        window.scrollTo(0, 0);
+    }
+
+    function leaveAbout() {
+        if (headerAboutLink) headerAboutLink.removeAttribute('aria-current');
+        document.body.classList.remove('is-about');
+        document.title = appTitle;
+    }
+
+    // Tautan ke Tentang (header & footer), serta tautan kembali dari dalam Tentang
+    document.addEventListener('click', (e) => {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (href === '/tentang') {
+            e.preventDefault();
+            if (!aboutPane.classList.contains('active')) showAbout(true);
+            return;
+        }
+        if (aboutPane && aboutPane.contains(a) && (href === '/' || href === '/tunggal' || href === '/massal')) {
+            e.preventDefault();
+            activateTab(href === '/massal' || (href === '/' && lastSearchTab() === 'massal') ? 'massal' : 'tunggal');
+            window.scrollTo(0, 0);
+        }
+    });
+    // Siapkan isi Tentang saat peramban senggang, agar terbuka seketika
+    (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(() => loadAbout().catch(() => {}));
+
+    // Tab pencarian terakhir sebelum membuka Tentang (untuk tombol "Kembali ke pencarian")
+    let lastSearchTabName = 'tunggal';
+    function lastSearchTab() { return lastSearchTabName; }
+    tabBtns.forEach(b => b.addEventListener('click', () => {
+        lastSearchTabName = b.dataset.tab === 'tab-massal' ? 'massal' : 'tunggal';
+    }));
 
     // ==========================================
     // Batch Processing Logic
@@ -682,7 +756,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Ensure final render is sorted by original ID
         batchData.sort((a, b) => a.id - b.id);
-        fitBatchMapBounds();
+        if (document.getElementById('tab-massal').classList.contains('active')) fitBatchMapBounds();
+        else pendingBatchFit = true;
 
         // Simpan hasil di tab ini agar bisa dikembalikan tanpa diproses ulang
         const snapshot = { hash: lastBatchHash, input: batchInput.value, data: batchData };

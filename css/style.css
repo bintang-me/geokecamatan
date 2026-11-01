@@ -1094,6 +1094,11 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
 a.tab-btn { text-decoration: none; display: inline-block; }
 
 .about-page { display: flex; flex-direction: column; gap: 24px; }
+.tab-pane.about-pane.active { gap: 24px; }
+.about-pane .hero { margin-bottom: 4px; }
+.about-pane > *:nth-child(4) { animation-delay: 0.18s; }
+.about-pane > *:nth-child(5) { animation-delay: 0.24s; }
+body.is-about .footer-note a { display: none; }
 .about-page .hero { margin-bottom: 4px; }
 .about-grid {
     display: grid;
