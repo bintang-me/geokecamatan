@@ -1,72 +1,115 @@
 // ==========================================
 // 1. Validator & DMS Converter
 // ==========================================
+
+// Normalisasi simbol & arah mata angin yang dipakai bersama oleh parser DMS dan desimal+hemisfer
+function normalizeCoordSymbols(str) {
+    let s = str.trim();
+    // Huruf "o" yang dipakai sebagai simbol derajat (cth: 6o14'52"S) — dilakukan SEBELUM toUpperCase
+    s = s.replace(/(\d)\s*[oO]\s*(?=\d)/g, '$1°');
+    s = s.replace(/[˚º⁰]/g, '°');
+    s = s.replace(/[′ʹ`’‘]/g, "'");
+    s = s.replace(/[″ʺ“”]/g, '"');
+    s = s.replace(/''/g, '"');
+    s = s.replace(/\s+/g, ' ').toUpperCase();
+    // Arah mata angin Indonesia → standar internasional (N, S, E, W)
+    s = s.replace(/LS\b/g, 'S')
+         .replace(/LU\b/g, 'N')
+         .replace(/BT\b/g, 'E')
+         .replace(/BB\b/g, 'W');
+    return s;
+}
+
+const isLatDir = (d) => d === 'N' || d === 'S';
+const isLonDir = (d) => d === 'E' || d === 'W';
+
+// Gabungkan dua nilai bertanda arah menjadi {lat, lon}; null jika arah tidak valid
+function combineDirectional(v1, d1, v2, d2) {
+    if (isNaN(v1) || isNaN(v2)) return null;
+    if (isLatDir(d1) === isLatDir(d2)) return null; // harus satu N/S dan satu E/W
+    const sign = (v, d) => (d === 'S' || d === 'W') ? -Math.abs(v) : Math.abs(v);
+    let lat, lon;
+    if (isLatDir(d1)) { lat = sign(v1, d1); lon = sign(v2, d2); }
+    else { lat = sign(v2, d2); lon = sign(v1, d1); }
+    return { lat: Math.round(lat * 1e6) / 1e6, lon: Math.round(lon * 1e6) / 1e6 };
+}
+
 function convertDMSToDecimal(dmsStr) {
-    let cleanStr = dmsStr.trim().replace(/\s+/g, ' ').toUpperCase();
+    // Koma desimal (cth: 6,967") → titik
+    const cleanStr = normalizeCoordSymbols(dmsStr).replace(/,/g, '.');
 
-    // Normalisasi simbol derajat, menit, detik non-standar
-    cleanStr = cleanStr.replace(/[˚º⁰o]/g, '°');
-    cleanStr = cleanStr.replace(/[′ʹ`]/g, "'");
-    cleanStr = cleanStr.replace(/[″ʺ]/g, '"');
-    // Normalisasi koma desimal (contoh: 6,967" → 6.967")
-    cleanStr = cleanStr.replace(/,/g, '.');
+    // Derajat, menit (boleh desimal), detik opsional, arah
+    const dmsRegex = /(\d+(?:\.\d+)?)\s*[°\s]\s*(\d+(?:\.\d+)?)\s*['\s]\s*(?:(\d+(?:\.\d+)?)\s*"?)?\s*([NSEW])/g;
 
-    // Normalisasi arah mata angin Indonesia ke standar internasional (N, S, E, W)
-    cleanStr = cleanStr.replace(/LS/g, 'S')
-                       .replace(/LU/g, 'N')
-                       .replace(/BT/g, 'E')
-                       .replace(/BB/g, 'W');
-
-    const dmsRegex = /([\d\.]+)[°\s]+(\d+)['’\s]+([\d\.]+)?["”\s]*([NSEW])/gi;
-
-    let matches = [];
+    const matches = [];
     let match;
     while ((match = dmsRegex.exec(cleanStr)) !== null) {
         matches.push(match);
     }
+    if (matches.length !== 2) return null;
 
-    if (matches.length >= 2) {
-        const parsePart = (m) => {
-            let deg = parseFloat(m[1]);
-            let min = parseFloat(m[2]);
-            let sec = m[3] ? parseFloat(m[3]) : 0;
-            let dir = m[4];
+    const parsePart = (m) => {
+        const deg = parseFloat(m[1]);
+        const min = parseFloat(m[2]);
+        const sec = m[3] ? parseFloat(m[3]) : 0;
+        // Validasi rentang: menit 0-59, detik 0-59
+        if (min >= 60 || sec >= 60) return NaN;
+        return deg + (min / 60) + (sec / 3600);
+    };
 
-            // Validasi rentang: menit 0-59, detik 0-59
-            if (min >= 60 || sec >= 60) return NaN;
+    return combineDirectional(parsePart(matches[0]), matches[0][4], parsePart(matches[1]), matches[1][4]);
+}
 
-            let dec = deg + (min / 60) + (sec / 3600);
-            if (dir === 'S' || dir === 'W') dec = dec * -1;
-            return dec;
-        };
-
-        let val1 = parsePart(matches[0]);
-        let dir1 = matches[0][4];
-        let val2 = parsePart(matches[1]);
-        let dir2 = matches[1][4];
-
-        // Jika parsePart return NaN → menit/detik tidak valid
-        if (isNaN(val1) || isNaN(val2)) return null;
-
-        // Validasi: pastikan satu N/S dan satu E/W
-        const isLat = (d) => d === 'N' || d === 'S';
-        const isLon = (d) => d === 'E' || d === 'W';
-        if (isLat(dir1) === isLat(dir2)) return null;
-
-        let lat, lon;
-        if (isLat(dir1)) {
-            lat = val1; lon = val2;
-        } else {
-            lat = val2; lon = val1;
-        }
-
-        // Presisi 6 angka desimal
-        lat = Math.round(lat * 1e6) / 1e6;
-        lon = Math.round(lon * 1e6) / 1e6;
-
-        return { lat, lon };
-    }
+// Format derajat desimal dengan arah, cth: "6.2088 S, 106.8456 E", "6.2088°LS 106.8456°BT", "S 6.2 E 106.8"
+function convertHemisphereDecimal(str) {
+    const s = normalizeCoordSymbols(str).replace(/(\d),(\d)/g, '$1.$2');
+    const num = '(\\d+(?:\\.\\d+)?)';
+    const suffix = new RegExp(`^${num}\\s*°?\\s*([NSEW])[\\s,;]*${num}\\s*°?\\s*([NSEW])$`);
+    const prefix = new RegExp(`^([NSEW])\\s*${num}\\s*°?[\\s,;]*([NSEW])\\s*${num}\\s*°?$`);
+    let m = s.match(suffix);
+    if (m) return combineDirectional(parseFloat(m[1]), m[2], parseFloat(m[3]), m[4]);
+    m = s.match(prefix);
+    if (m) return combineDirectional(parseFloat(m[2]), m[1], parseFloat(m[4]), m[3]);
     return null;
+}
+
+// Fungsi pintar hapus koma ribuan / koma desimal
+function cleanNumberStr(str) {
+    let s = str;
+    if (s.includes('.') && s.includes(',')) {
+        const cIdx = s.lastIndexOf(',');
+        const dIdx = s.lastIndexOf('.');
+        if (dIdx > cIdx) s = s.replace(/,/g, ''); // US (e.g. 44,098.00)
+        else s = s.replace(/\./g, '').replace(/,/g, '.'); // EU/ID
+    } else if (s.includes(',')) {
+        if ((s.match(/,/g) || []).length > 1) {
+            s = s.replace(/,/g, ''); // Koma ribuan ganda (e.g. 20,642,531)
+        } else {
+            s = s.replace(',', '.'); // Koma tunggal = desimal ala ID
+        }
+    }
+    return s;
+}
+
+const STRICT_NUMBER = /^[+-]?\d+(\.\d+)?$/;
+
+// Koreksi angka "raksasa" dari Excel yang kehilangan titik desimal, per sumbu
+function fixGiantLat(lat) {
+    if (Math.abs(lat) <= 90) return lat;
+    const digits = Math.abs(lat).toString().replace('.', '');
+    if (!/^\d+$/.test(digits) || digits.length < 2) return NaN;
+    const v = parseFloat(digits.substring(0, 1) + '.' + digits.substring(1));
+    return lat < 0 ? -v : v;
+}
+
+function fixGiantLon(lon) {
+    if (Math.abs(lon) <= 180) return lon;
+    const digits = Math.abs(lon).toString().replace('.', '');
+    if (!/^\d+$/.test(digits) || digits.length < 3) return NaN;
+    const prefix3 = parseInt(digits.substring(0, 3), 10);
+    const dotIndex = (prefix3 >= 100 && prefix3 <= 145) ? 3 : 2;
+    const v = parseFloat(digits.substring(0, dotIndex) + '.' + digits.substring(dotIndex));
+    return lon < 0 ? -v : v;
 }
 
 function parseCoordinates(inputStr) {
@@ -74,111 +117,70 @@ function parseCoordinates(inputStr) {
         return { valid: false, error: "Koordinat tidak boleh kosong." };
     }
 
-    // 1. Coba konversi DMS terlebih dahulu
-    const dmsResult = convertDMSToDecimal(inputStr);
-    if (dmsResult) {
-        if (dmsResult.lat < -90 || dmsResult.lat > 90 || dmsResult.lon < -180 || dmsResult.lon > 180) {
+    // 1. Coba konversi DMS, lalu derajat desimal + arah mata angin
+    const dirResult = convertDMSToDecimal(inputStr) || convertHemisphereDecimal(inputStr);
+    if (dirResult) {
+        if (dirResult.lat < -90 || dirResult.lat > 90 || dirResult.lon < -180 || dirResult.lon > 180) {
             return { valid: false, error: "Nilai lat/long dari format DMS di luar batas Bumi." };
         }
-        return { valid: true, lat: dmsResult.lat, lon: dmsResult.lon, converted: true };
+        return { valid: true, lat: dirResult.lat, lon: dirResult.lon, converted: true };
     }
+
+    const formatError = { valid: false, error: "Format koordinat tidak dikenali. Coba desimal (cth: -6.208, 106.845) atau DMS (cth: 6°14'52.1\"S 106°52'40.0\"E)" };
 
     // 2. Fallback ke format desimal standar
     // Hilangkan tanda petik tunggal/ganda (sering terbawa dari copy-paste Excel)
-    let cleanStr = inputStr.trim().replace(/['"]/g, '');
-    
-    // a. Coba pisahkan berdasarkan pemisah utama: tab, lalu koma-spasi, lalu spasi, lalu koma
-    let parts = [];
+    const cleanStr = inputStr.trim().replace(/['"]/g, '');
+
+    // Pisahkan berdasarkan pemisah utama: tab, titik koma, koma-spasi, spasi, lalu koma
+    let parts;
+    let parsedFromCommaPairs = false;
     if (cleanStr.includes('\t')) {
         parts = cleanStr.split(/\t+/);
-    } else if (cleanStr.includes(' , ') || cleanStr.includes(', ')) {
+    } else if (cleanStr.includes(';')) {
+        parts = cleanStr.split(/\s*;\s*/);
+    } else if (/\s,|,\s/.test(cleanStr)) {
         parts = cleanStr.split(/\s*,\s*/);
+        if (parts.length === 4 && /^[+-]?\d+$/.test(parts[0]) && /^\d+$/.test(parts[1]) &&
+            /^[+-]?\d+$/.test(parts[2]) && /^\d+$/.test(parts[3])) {
+            // Koma desimal ala ID + koma pemisah, cth: "-6,2088, 106,8456"
+            parts = [`${parts[0]}.${parts[1]}`, `${parts[2]}.${parts[3]}`];
+            parsedFromCommaPairs = true;
+        } else if (parts.length !== 2) {
+            return formatError;
+        }
     } else if (cleanStr.includes(' ')) {
         parts = cleanStr.split(/\s+/);
     } else {
         parts = cleanStr.split(',');
     }
+    parts = parts.map(p => p.trim()).filter(p => p !== '');
+    if (parts.length < 2) return formatError;
 
-    if (parts.length >= 2) {
-        let latStrRaw = parts[0].trim();
-        let lonStrRaw = parts[1].trim();
+    let latStr = parts[0].replace(/,$/, '');
+    let lonStr = parts[1].replace(/,$/, '');
+    let convertedFlag = parsedFromCommaPairs || latStr.includes(',') || lonStr.includes(',');
+    latStr = cleanNumberStr(latStr);
+    lonStr = cleanNumberStr(lonStr);
 
-        // Bersihkan koma trailing (misal split by space dari "-6.2, 106.8" -> "-6.2,")
-        if (latStrRaw.endsWith(',')) latStrRaw = latStrRaw.slice(0, -1);
-        if (lonStrRaw.endsWith(',')) lonStrRaw = lonStrRaw.slice(0, -1);
+    // Validasi ketat: tolak sisa karakter (°, ', huruf, dll) agar tidak terpotong diam-diam oleh parseFloat
+    if (!STRICT_NUMBER.test(latStr) || !STRICT_NUMBER.test(lonStr)) return formatError;
 
-        // Fungsi pintar hapus koma ribuan
-        const cleanNumberStr = (str) => {
-            let s = str;
-            if (s.includes('.') && s.includes(',')) {
-                let cIdx = s.lastIndexOf(',');
-                let dIdx = s.lastIndexOf('.');
-                if (dIdx > cIdx) s = s.replace(/,/g, ''); // US (e.g. 44,098.00)
-                else s = s.replace(/\./g, '').replace(/,/g, '.'); // EU/ID
-            } else if (s.includes(',')) {
-                if ((s.match(/,/g) || []).length > 1) {
-                    s = s.replace(/,/g, ''); // Koma ribuan ganda (e.g. 20,642,531)
-                } else {
-                    // Jika angkanya besar misal 42,328871 (satu koma salah ketik), 
-                    // atau -6,208 (koma desimal).
-                    // Kita asumsikan koma tunggal tanpa titik adalah desimal ala ID.
-                    // Namun jika jumlah digit setelah koma sangat panjang (misal 42,328871), koma desimal tetap valid.
-                    // Jika formatnya 984,096 (1 koma, tepat 3 digit di belakang), bisa jadi itu ribuan.
-                    // Untuk aman, kita jadikan titik desimal, NANTI akan dikoreksi oleh KOREKSI ANGKA RAKSASA.
-                    let partsComma = s.split(',');
-                    if (partsComma[1].length === 3 && Math.abs(parseFloat(s.replace(',', ''))) > 90) {
-                        s = s.replace(',', ''); // Anggap ribuan
-                    } else {
-                        s = s.replace(',', '.'); // Anggap desimal
-                    }
-                }
-            }
-            return s;
-        };
+    let lat = parseFloat(latStr);
+    let lon = parseFloat(lonStr);
 
-        let latStr = cleanNumberStr(latStrRaw);
-        let lonStr = cleanNumberStr(lonStrRaw);
-        
-        let lat = parseFloat(latStr);
-        let lon = parseFloat(lonStr);
-
-        if (!isNaN(lat) && !isNaN(lon)) {
-            let convertedFlag = parts[0].includes(',') || parts[1].includes(',');
-
-            // c. KOREKSI ANGKA RAKSASA (Kesalahan Ketik Excel tanpa desimal asli)
-            if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
-                let latStrRaw = Math.abs(lat).toString().replace('.', '');
-                let lonStrRaw = Math.abs(lon).toString().replace('.', '');
-                
-                // Koreksi Latitude (1 angka sebelum desimal)
-                if (latStrRaw.length > 1) {
-                    let newLat = parseFloat(latStrRaw.substring(0, 1) + "." + latStrRaw.substring(1));
-                    lat = lat < 0 ? -newLat : newLat;
-                }
-
-                // Koreksi Longitude (2 atau 3 angka sebelum desimal)
-                if (lonStrRaw.length > 2) {
-                    let prefix3 = parseInt(lonStrRaw.substring(0, 3));
-                    let dotIndex = (prefix3 >= 100 && prefix3 <= 145) ? 3 : 2;
-                    let newLon = parseFloat(lonStrRaw.substring(0, dotIndex) + "." + lonStrRaw.substring(dotIndex));
-                    lon = lon < 0 ? -newLon : newLon;
-                }
-                
-                convertedFlag = true;
-            }
-
-            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-                return { valid: false, error: "Nilai lat/long di luar batas normal Bumi." };
-            }
-
-            // Tandai koordinat di luar batas wilayah Indonesia (tetap diproses, tidak diblokir)
-            const outsideIndonesia = (lat < INDONESIA_BOUNDS.latMin || lat > INDONESIA_BOUNDS.latMax || lon < INDONESIA_BOUNDS.lonMin || lon > INDONESIA_BOUNDS.lonMax);
-
-            return { valid: true, lat: lat, lon: lon, converted: convertedFlag, outsideIndonesia };
-        }
+    // KOREKSI ANGKA RAKSASA (Kesalahan Ketik Excel tanpa desimal asli) — hanya sumbu yang keluar batas
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+        lat = fixGiantLat(lat);
+        lon = fixGiantLon(lon);
+        convertedFlag = true;
     }
 
-    return { valid: false, error: "Format koordinat tidak dikenali. Coba desimal (cth: -6.208, 106.845) atau DMS (cth: 6°14'52.1\"S 106°52'40.0\"E)" };
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        return { valid: false, error: "Nilai lat/long di luar batas normal Bumi." };
+    }
+
+    return { valid: true, lat: lat, lon: lon, converted: convertedFlag };
 }
 
 // ==========================================
@@ -201,7 +203,7 @@ function parseBIGResponse(data) {
     let kecamatan = toTitleCase(attr.WADMKC);
     let desaKel = toTitleCase(attr.WADMKD || attr.WADMKD_HTML || attr.WADMKP || "-");
 
-    return { provinsi, kabKota, kecamatan, desaKel, alamat: "-", geometry: null };
+    return { provinsi, kabKota, kecamatan, desaKel, alamat: "-" };
 }
 
 // ==========================================
@@ -237,8 +239,7 @@ function parseNominatimResponse(data) {
     const countryCode = addr.country_code || null;
     // Deteksi badan air (laut, samudra, teluk, selat) — tidak memiliki administrative data
     const isWaterBody = !!(addr.sea || addr.ocean || addr.bay || addr.strait);
-    const geometry = data.geojson || null;
-    return { provinsi, kabKota, kecamatan, desaKel, alamat, countryCode, isWaterBody, geometry };
+    return { provinsi, kabKota, kecamatan, desaKel, alamat, countryCode, isWaterBody };
 }
 
 // ==========================================
@@ -285,9 +286,10 @@ function parseBDCResponse(data) {
 // ==========================================
 // 6. Geocoder — Master Hierarchy Strategy
 //    Strategi pamungkas:
-//    1. BPS: Kebenaran absolut untuk Kecamatan, Kab/Kota, Provinsi
+//    1. BIG: Kebenaran absolut untuk Kecamatan, Kab/Kota, Provinsi
 //    2. ArcGIS / Nominatim: Hanya digunakan untuk melengkapi
-//       detail 'alamat' (nama jalan, kelurahan) yang BPS tidak sediakan.
+//       detail 'alamat' (nama jalan, kelurahan) yang BIG tidak sediakan,
+//       serta sebagai cadangan bila BIG tidak menemukan poligon.
 // ==========================================
 
 // Batas koordinat terluar wilayah Negara Republik Indonesia
@@ -302,7 +304,7 @@ const CACHE_MAX = 50;
 const CACHE_TTL = 5 * 60 * 1000;
 
 function getCacheKey(lat, lon) {
-    return `${lat.toFixed(4)},${lon.toFixed(4)}`;
+    return `${lat.toFixed(5)},${lon.toFixed(5)}`;
 }
 
 function getFromCache(lat, lon) {
@@ -310,11 +312,6 @@ function getFromCache(lat, lon) {
     const entry = geocodeCache.get(key);
     if (!entry) return null;
     if (Date.now() - entry.timestamp > CACHE_TTL) {
-        geocodeCache.delete(key);
-        return null;
-    }
-    // Invalidasi cache lama yang tidak memiliki geometry
-    if (entry.data && entry.data.success && entry.data.administrative && !entry.data.administrative.geometry) {
         geocodeCache.delete(key);
         return null;
     }
@@ -342,56 +339,84 @@ const fetchWithTimeout = (url, options = {}, timeoutMs = 4000) => {
         .catch(() => { clearTimeout(id); return null; });
 };
 
+// Antrean global Nominatim — kebijakan OSM: maksimal 1 request/detik
+const NOMINATIM_INTERVAL_MS = 1100;
+let nominatimQueue = Promise.resolve();
+let nominatimLastCall = 0;
+function nominatimFetch(url, timeoutMs = 4000) {
+    const run = nominatimQueue.then(async () => {
+        const wait = nominatimLastCall + NOMINATIM_INTERVAL_MS - Date.now();
+        if (wait > 0) await new Promise(r => setTimeout(r, wait));
+        nominatimLastCall = Date.now();
+        return fetchWithTimeout(url, { headers: { 'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8' } }, timeoutMs);
+    });
+    nominatimQueue = run.catch(() => null);
+    return run;
+}
+
 async function reverseGeocode(lat, lon) {
     // Cek cache terlebih dahulu
     const cached = getFromCache(lat, lon);
     if (cached) return cached;
 
-    // --- FASE 1: Geocoding 4 API paralel (BIG, ArcGIS, OSM, IsOnWater) ---
+    // --- FASE 1: BIG, ArcGIS, IsOnWater paralel ---
     const bigUrl = `https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/4/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson`;
     const arcgisUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode?location=${lon},${lat}&f=pjson&langCode=id`;
-    // Gunakan zoom=14 (tingkat Kecamatan/Suburb) di OSM agar poligon yang dikembalikan lebih relevan sebagai batas wilayah, dan tambahkan polygon_geojson=1
-    const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=14&polygon_geojson=1`;
+    // zoom=14 (tingkat Kecamatan/Suburb) di OSM
+    const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&zoom=14`;
     const waterUrl = `https://is-on-water.balbona.me/api/v1/get/${lat}/${lon}`;
 
     try {
-        const [bigRes, arcRes, osmRes, waterRes] = await Promise.allSettled([
-            fetchWithTimeout(bigUrl),
+        const [bigData, arcData, waterData] = await Promise.all([
+            fetchWithTimeout(bigUrl, {}, 8000), // server BIG relatif lambat
             fetchWithTimeout(arcgisUrl),
-            fetchWithTimeout(osmUrl, { headers: { 'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8' } }),
             fetchWithTimeout(waterUrl, {}, 3000) // batas timeout 3 detik agar tidak memblokir jika API mati
         ]);
 
-        const bigData   = bigRes.status   === 'fulfilled' ? bigRes.value   : null;
-        const arcData   = arcRes.status   === 'fulfilled' ? arcRes.value   : null;
-        const osmData   = osmRes.status   === 'fulfilled' ? osmRes.value   : null;
-        const waterData = waterRes.status === 'fulfilled' ? waterRes.value : null;
+        const bigResult = bigData ? parseBIGResponse(bigData) : null;
+        const arcResult = arcData ? parseArcGISResponse(arcData) : null;
+        const bigFound = !!(bigResult && bigResult.kecamatan !== '-');
 
-        let bigResult = bigData  ? parseBIGResponse(bigData)     : null;
-        let arcResult = arcData  ? parseArcGISResponse(arcData)   : null;
-        let osmResult = (osmData && !osmData.error) ? parseNominatimResponse(osmData) : null;
+        // --- FASE 2: Nominatim (dibatasi 1 req/detik) hanya bila dibutuhkan:
+        //     BIG tidak menemukan poligon, atau ArcGIS tidak memberi alamat lengkap ---
+        let osmData = null;
+        if (!bigFound || !arcResult || arcResult.alamat === '-') {
+            osmData = await nominatimFetch(osmUrl);
+        }
+        const osmResult = (osmData && !osmData.error) ? parseNominatimResponse(osmData) : null;
 
-        const isWaterFromApi = waterData && waterData.isWater === true;
-
-        // Optimasi Pendeteksian Perairan secara Native & Terintegrasi (ArcGIS, OSM, dan IsOnWater)
-        const arcAddress = arcData ? arcData.address : null;
-        const isArcWater = arcAddress && (arcAddress.Type === 'Sea' || arcAddress.Type === 'Ocean' || (!arcAddress.Region && !arcAddress.Subregion && !arcAddress.City));
-        const isOsmWater = osmResult && osmResult.isWaterBody;
-
-        // Kita tetapkan perairan jika dideteksi di laut oleh ArcGIS/OSM ATAU jika dideteksi perairan oleh API balbona dan berada di luar batas administrasi darat BIG
-        if (isArcWater || isOsmWater || (isWaterFromApi && (!bigResult || bigResult.kecamatan === '-'))) {
-            const waterName = (arcAddress && arcAddress.Match_addr) || (osmResult && osmResult.alamat) || (waterData && waterData.feature) || 'Perairan';
+        // Semua sumber data administrasi gagal merespons → gangguan jaringan/layanan, bukan "luar RI"
+        if (!bigData && !arcData && !osmData) {
             return {
                 success: false,
-                isWaterBody: true,
-                error: `Wilayah ini terdeteksi berada di perairan (${waterName}). Tidak terdapat data administrasi darat pada titik koordinat ini.`,
-                outsideIndonesia: false
+                networkError: true,
+                error: "Gagal terhubung ke layanan data geoportal. Periksa koneksi internet lalu coba lagi."
             };
+        }
+
+        // BIG adalah sumber primer & absolut: bila BIG menemukan desa/kecamatan, abaikan deteksi perairan
+        if (!bigFound) {
+            const isWaterFromApi = waterData && waterData.isWater === true;
+            const arcAddress = arcData ? arcData.address : null;
+            const isArcWater = arcAddress && (arcAddress.Type === 'Sea' || arcAddress.Type === 'Ocean' || (!arcAddress.Region && !arcAddress.Subregion && !arcAddress.City));
+            const isOsmWater = osmResult && osmResult.isWaterBody;
+
+            if (isArcWater || isOsmWater || isWaterFromApi) {
+                const waterName = (arcAddress && arcAddress.Match_addr) || (osmResult && osmResult.alamat !== '-' && osmResult.alamat) || (waterData && waterData.feature) || 'Perairan';
+                const result = {
+                    success: false,
+                    isWaterBody: true,
+                    error: `Wilayah ini terdeteksi berada di perairan (${waterName}). Tidak terdapat data administrasi darat pada titik koordinat ini.`,
+                    outsideIndonesia: false
+                };
+                if (bigData) setToCache(lat, lon, result);
+                return result;
+            }
         }
 
         let finalResult = null;
 
-        if (bigResult && bigResult.kecamatan !== '-') {
+        if (bigFound) {
             finalResult = { ...bigResult };
             if (arcResult && arcResult.alamat !== '-') {
                 finalResult.alamat = arcResult.alamat;
@@ -400,20 +425,20 @@ async function reverseGeocode(lat, lon) {
             } else {
                 finalResult.alamat = `${finalResult.kecamatan}, ${finalResult.kabKota}, ${finalResult.provinsi}`;
             }
-        } 
+        }
         else if (arcResult && arcResult.kecamatan !== '-') {
             finalResult = { ...arcResult };
-        } 
+        }
         else if (osmResult && osmResult.kecamatan !== '-') {
             finalResult = { ...osmResult };
-        } 
+        }
         else {
             finalResult = arcResult || osmResult;
         }
 
         if (finalResult) {
             let outsideIndonesia = false;
-            if (!bigResult || bigResult.kecamatan === '-') {
+            if (!bigFound) {
                 const confirmedNonIndonesia = [arcResult, osmResult].some(r => {
                     return r && r.countryCode && !['id', 'idn', 'ina'].includes(r.countryCode.toLowerCase());
                 });
@@ -428,18 +453,18 @@ async function reverseGeocode(lat, lon) {
                 finalResult.alamat = '-';
             }
 
-            const result = { success: true, administrative: finalResult, outsideIndonesia };
-            setToCache(lat, lon, result);
+            const result = { success: true, administrative: finalResult, outsideIndonesia, source: bigFound ? 'BIG' : 'fallback' };
+            // Hasil cadangan saat BIG gagal merespons tidak di-cache, agar pencarian ulang bisa mendapat data BIG
+            if (bigData || outsideIndonesia) setToCache(lat, lon, result);
             return result;
         }
 
-        const result = { success: false, error: "Lokasi tidak ditemukan di database manapun. Titik mungkin berada di luar perairan wilayah Indonesia." };
-        setToCache(lat, lon, result);
-        return result;
+        // Sumber merespons tetapi tidak ada data — tidak di-cache
+        return { success: false, notFound: true, error: "Lokasi tidak ditemukan di database manapun. Titik mungkin berada di luar wilayah daratan Indonesia." };
 
     } catch (error) {
         console.error("Geocoding failed:", error);
-        return { success: false, error: "Gagal terhubung ke layanan data geoportal." };
+        return { success: false, networkError: true, error: "Gagal terhubung ke layanan data geoportal." };
     }
 }
 
@@ -476,14 +501,6 @@ const BOUNDARY_STYLES = {
         fillColor: '#EEA201',
         fillOpacity: 0.10,
         dashArray: null
-    },
-    desaKel: {
-        color: '#EF4444',   // Merah cerah
-        weight: 1.8,
-        opacity: 0.9,
-        fillColor: '#EF4444',
-        fillOpacity: 0.04,
-        dashArray: '4, 4'
     }
 };
 
@@ -501,8 +518,7 @@ function clearBoundaryLayers() {
 // Konfigurasi BIG Satupeta MapServer Endpoints
 const BIG_URLS = {
     kabKota: 'https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/2', // Wilayah Administrasi Kabupaten/Kota (Area)
-    kecamatan: 'https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/3', // Wilayah Administrasi Kecamatan (Area)
-    desaKel: 'https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/4' // Wilayah Administrasi Desa/Kelurahan (Area)
+    kecamatan: 'https://kspservices.big.go.id/satupeta/rest/services/PUBLIK/BATAS_WILAYAH/MapServer/3' // Wilayah Administrasi Kecamatan (Area)
 };
 
 /**
@@ -528,59 +544,24 @@ function fetchBIGBoundary(url, lat, lon) {
     });
 }
 
-// Cache untuk menyimpan hasil kueri batas desa dari OSM (menghindari lambat/rate-limit)
-const osmVillageCache = new Map();
-
-/**
- * Mengambil poligon batas Desa/Kelurahan menggunakan API OSM (Nominatim) sebagai fallback.
- */
-async function fetchOSMDesaKelBoundary(desaKel, kecamatan, kabKota) {
-    if (!desaKel || desaKel === '-' || desaKel === '(Perairan)' || desaKel === '(Luar RI)') return null;
-    
-    let cleanDesa = desaKel.replace(/^Kelurahan /i, '').replace(/^Desa /i, '').trim();
-    let cleanKec = kecamatan.replace(/^Kecamatan /i, '').trim();
-    
-    const cacheKey = `${cleanDesa}_${cleanKec}`.toLowerCase();
-    if (osmVillageCache.has(cacheKey)) {
-        return osmVillageCache.get(cacheKey);
-    }
-
-    // Gunakan satu kueri teroptimasi yang paling andal untuk meminimalkan waktu muat & menghindari rate-limit
-    const q = `${cleanDesa}, ${cleanKec}, Indonesia`;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&polygon_geojson=1&limit=3`;
-    try {
-        const response = await fetchWithTimeout(url, { headers: { 'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8' } }, 4000);
-        if (response && response.length > 0) {
-            const match = response.find(item => 
-                item.category === 'boundary' && 
-                item.type === 'administrative' && 
-                item.geojson && 
-                (item.geojson.type === 'Polygon' || item.geojson.type === 'MultiPolygon')
-            );
-            if (match) {
-                osmVillageCache.set(cacheKey, match.geojson);
-                return match.geojson;
-            }
-        }
-    } catch (e) {
-        console.warn('Gagal memuat batas desa OSM untuk query: ' + q, e);
-    }
-    return null;
-}
-
 /**
  * Mengambil poligon batas provinsi menggunakan API OSM (Nominatim).
  */
+const osmProvinsiCache = new Map(); // nama provinsi → GeoJSON (maks 5 entri, poligon provinsi berukuran besar)
+
 async function fetchOSMProvinsiBoundary(namaProvinsi) {
-    if (!namaProvinsi || namaProvinsi === '-') return null;
+    if (!namaProvinsi || namaProvinsi === '-' || namaProvinsi === '(Luar RI)') return null;
+    if (osmProvinsiCache.has(namaProvinsi)) return osmProvinsiCache.get(namaProvinsi);
     
     // Perbaiki penamaan untuk OSM (hapus awalan "DKI", dsb agar pencarian lebih relevan)
     let searchName = namaProvinsi.replace(/^DKI /i, '');
 
     const url = `https://nominatim.openstreetmap.org/search?state=${encodeURIComponent(searchName)}&country=Indonesia&format=jsonv2&polygon_geojson=1&limit=1`;
     try {
-        const response = await fetchWithTimeout(url, { headers: { 'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8' } }, 5000);
+        const response = await nominatimFetch(url, 8000);
         if (response && response.length > 0 && response[0].geojson) {
+            if (osmProvinsiCache.size >= 5) osmProvinsiCache.delete(osmProvinsiCache.keys().next().value);
+            osmProvinsiCache.set(namaProvinsi, response[0].geojson);
             return response[0].geojson;
         }
     } catch (e) {
@@ -637,18 +618,6 @@ async function fetchAndDrawBoundaries(adminData, lat, lon) {
             boundaryLayers.push(layer);
         }
     }).catch(e => console.warn('Gagal memuat batas kecamatan', e));
-}
-
-// Compat: drawPolygon lama (untuk single geometry fallback)
-function drawPolygon(geometry) {
-    clearBoundaryLayers();
-    if (geometry && map) {
-        const layer = L.geoJSON(geometry, { style: BOUNDARY_STYLES.kecamatan }).addTo(map);
-        boundaryLayers.push(layer);
-        try {
-            map.fitBounds(layer.getBounds(), { padding: [20, 20], maxZoom: 15 });
-        } catch(e) { console.error(e); }
-    }
 }
 
 // Factory: buat tile layers — sekali definisi, dipakai initMap dan initBatchMap
@@ -710,14 +679,21 @@ function initMap(containerId, onLocationSelected) {
 
     marker = L.marker([initialLat, initialLon], { draggable: true }).addTo(map);
 
+    // Normalisasi bujur ke -180..180 (peta bisa digeser melewati antimeridian) & bulatkan 6 desimal
+    const normalizeLatLng = (latlng) => {
+        const w = latlng.wrap();
+        return L.latLng(Math.round(w.lat * 1e6) / 1e6, Math.round(w.lng * 1e6) / 1e6);
+    };
+
     marker.on('dragend', function () {
-        const pos = marker.getLatLng();
+        const pos = normalizeLatLng(marker.getLatLng());
+        marker.setLatLng(pos);
         map.setView(pos, map.getZoom());
         onLocationSelected(pos.lat, pos.lng);
     });
 
     map.on('click', function (e) {
-        const pos = e.latlng;
+        const pos = normalizeLatLng(e.latlng);
         marker.setLatLng(pos);
         map.setView(pos, map.getZoom());
         onLocationSelected(pos.lat, pos.lng);
@@ -780,7 +756,8 @@ function updateMapMarker(lat, lon) {
     if (!map || !marker) return;
     const latlng = L.latLng(lat, lon);
     marker.setLatLng(latlng);
-    map.setView(latlng, map.getZoom());
+    // Zoom ke tingkat kecamatan agar titik & poligon terlihat (jangan zoom-out bila pengguna sudah lebih dekat)
+    map.setView(latlng, Math.max(map.getZoom(), 13));
 }
 
 // ==========================================
@@ -882,8 +859,10 @@ function escapeHtml(str) {
 }
 
 async function showBatchBoundaries(data) {
-    if (!batchMap || data.status !== 'Sukses') return;
+    if (!batchMap) return;
     clearBatchBoundaryLayers();
+    activeBatchCoords = null;
+    if (data.status !== 'Sukses') return;
 
     // Set koordinat aktif pencarian batch untuk mencegah race condition
     activeBatchCoords = { lat: data.lat, lon: data.lon };
@@ -971,12 +950,10 @@ function addBatchMarker(data) {
         lastSelectedBatchMarker = m;
     });
 
-    // Fitur: Poligon Interaktif (On-Click Highlight)
-    if (data.status === 'Sukses') {
-        m.on('click', async () => {
-            await showBatchBoundaries(data);
-        });
-    }
+    // Fitur: Poligon Interaktif (On-Click Highlight) — titik non-Sukses membersihkan poligon lama
+    m.on('click', () => {
+        showBatchBoundaries(data);
+    });
 
     m.addTo(batchMap);
     batchMarkers.push(m);
@@ -1122,6 +1099,26 @@ function showResult(data) {
 
 
 
+// Salin teks ke clipboard dengan fallback untuk konteks non-HTTPS (navigator.clipboard tidak tersedia)
+function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+    return new Promise((resolve, reject) => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error('Salin ke clipboard tidak didukung browser ini'));
+    });
+}
+
 function setInputValue(lat, lon) {
     document.getElementById('coordInput').value = `${lat}, ${lon}`;
 }
@@ -1133,7 +1130,8 @@ const HISTORY_KEY = 'geokecamatan_history';
 
 function getHistory() {
     try {
-        return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+        const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY));
+        return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
         return [];
     }
@@ -1156,18 +1154,22 @@ function saveToHistory(lat, lon, adminData) {
     });
 
     if (history.length > 50) history.pop();
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch (e) {
+        console.warn('Riwayat tidak dapat disimpan (localStorage tidak tersedia/penuh):', e);
+    }
     renderHistory();
 }
 
 function clearHistory() {
-    localStorage.removeItem(HISTORY_KEY);
+    try { localStorage.removeItem(HISTORY_KEY); } catch (e) { console.warn(e); }
     renderHistory();
 }
 
 function removeHistoryItem(coordStr) {
     let history = getHistory().filter(h => h.coord !== coordStr);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (e) { console.warn(e); }
     renderHistory();
 }
 
@@ -1283,7 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         copyKecamatanContainer.addEventListener('click', () => {
             const textToCopy = resKecamatan.textContent;
             if (textToCopy && textToCopy !== '-') {
-                navigator.clipboard.writeText(textToCopy).then(() => {
+                copyText(textToCopy).then(() => {
                     copyTooltip.classList.add('show');
                     setTimeout(() => {
                         copyTooltip.classList.remove('show');
@@ -1303,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         copyDesaKelContainer.addEventListener('click', () => {
             const textToCopy = resDesaKel.textContent;
             if (textToCopy && textToCopy !== '-') {
-                navigator.clipboard.writeText(textToCopy).then(() => {
+                copyText(textToCopy).then(() => {
                     copyDesaKelTooltip.classList.add('show');
                     setTimeout(() => {
                         copyDesaKelTooltip.classList.remove('show');
@@ -1343,7 +1345,14 @@ document.addEventListener('DOMContentLoaded', () => {
         doGeocode(parsed.lat, parsed.lon);
     }
 
+    let singleRequestSeq = 0; // token untuk membuang respons pencarian lama (race condition)
+
     async function doGeocode(lat, lon) {
+        const reqId = ++singleRequestSeq;
+        // Bersihkan batas lama & tandai koordinat aktif agar fetch batas lama tertolak
+        clearBoundaryLayers();
+        singleSearchCoords = { lat, lon };
+
         // Koordinat di luar RI: peringatan langsung, tanpa API call
         if (lat < INDONESIA_BOUNDS.latMin || lat > INDONESIA_BOUNDS.latMax || lon < INDONESIA_BOUNDS.lonMin || lon > INDONESIA_BOUNDS.lonMax) {
             showError("Wilayah ini berada di luar batas Negara Republik Indonesia.");
@@ -1351,9 +1360,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         showLoading();
-        clearBoundaryLayers();
 
         const result = await reverseGeocode(lat, lon);
+        if (reqId !== singleRequestSeq) return; // sudah ada pencarian yang lebih baru
         // Konfirmasi dari API: wilayah ini bukan Republik Indonesia
         if (result.outsideIndonesia) {
             showError("Wilayah ini berada di luar batas Negara Republik Indonesia.");
@@ -1428,8 +1437,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let batchData = [];
     let isProcessing = false;
+    let batchRunId = 0; // token untuk membatalkan proses batch yang sedang berjalan
+
+    function resetBatchButton() {
+        isProcessing = false;
+        processBatchBtn.disabled = false;
+        processBatchBtn.textContent = 'Mulai Proses';
+    }
 
     clearBatchBtn.addEventListener('click', () => {
+        batchRunId++; // batalkan proses yang sedang berjalan
+        resetBatchButton();
         batchInput.value = '';
         batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>';
         batchData = [];
@@ -1442,13 +1460,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const rawText = batchInput.value;
         // Menghapus newline ekstra di akhir, tapi mempertahankan baris kosong di tengah
-        const lines = rawText.replace(/\n+$/, '').split('\n');
+        const lines = rawText.replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
         
         if (lines.length === 0 || (lines.length === 1 && lines[0].trim() === '')) {
             alert('Silakan masukkan setidaknya satu baris koordinat.');
             return;
         }
 
+        const runId = ++batchRunId;
+        const isStale = () => runId !== batchRunId;
         isProcessing = true;
         processBatchBtn.disabled = true;
         processBatchBtn.textContent = 'Memproses...';
@@ -1490,6 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeCount++;
 
                     processTask(task).then(result => {
+                        if (isStale()) return;
                         batchData.push(result);
                         renderBatchRow(result);
                         // addBatchMarker terima, hanya jika lat/lon adalah angka valid
@@ -1498,6 +1519,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             addBatchMarker(result);
                         }
                     }).catch(err => {
+                        if (isStale()) return;
                         // Jika processTask gagal total, tetap catat sebagai error
                         console.error('Task gagal:', task.id, err);
                         const fallback = {
@@ -1509,11 +1531,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         renderBatchRow(fallback);
                     }).finally(() => {
                         // KRITIS: selalu jalankan apapun yang terjadi
+                        activeCount--;
+                        if (isStale()) {
+                            // Proses dibatalkan: hentikan antrean tanpa menyentuh UI
+                            index = tasks.length;
+                            if (activeCount === 0) resolve();
+                            return;
+                        }
                         completed++;
                         const percent = (completed / tasks.length) * 100;
                         batchProgressBar.style.width = `${percent}%`;
                         batchProgressText.textContent = `Memproses: ${completed} / ${tasks.length}`;
-                        activeCount--;
                         next();
                     });
                 }
@@ -1521,9 +1549,8 @@ document.addEventListener('DOMContentLoaded', () => {
             next();
         });
 
-        isProcessing = false;
-        processBatchBtn.disabled = false;
-        processBatchBtn.textContent = 'Mulai Proses';
+        if (isStale()) return;
+        resetBatchButton();
         
         // Ensure final render is sorted by original ID
         batchData.sort((a, b) => a.id - b.id);
@@ -1546,7 +1573,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     id: task.id,
                     lat: '-', lon: '-', kecamatan: '-', kabKota: '-', provinsi: '-',
-                    status: 'Error'
+                    status: 'Error',
+                    inputText: task.originalText.trim(),
+                    errorMsg: task.parsed ? task.parsed.error : ''
                 };
             }
 
@@ -1604,7 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         provinsi: '(Perairan)',
                         status: 'Wilayah Perairan'
                     };
-                } else if (result.error && (result.error.includes('luar perairan') || result.error.includes('luar batas Negara Republik Indonesia'))) {
+                } else if (result.outsideIndonesia) {
                     return {
                         id: task.id,
                         lat: lat,
@@ -1621,8 +1650,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         lat: lat,
                         lon: lon,
                         desaKel: '-',
-                        kecamatan: '-', kabKota: '-', provinsi: '-',
-                        status: 'Error API'
+                        kecamatan: result.notFound ? 'Tidak Ditemukan' : '-', kabKota: '-', provinsi: '-',
+                        status: result.networkError ? 'Error API' : 'Gagal',
+                        errorMsg: result.error || ''
                     };
                 }
             }
@@ -1648,9 +1678,13 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (data.status === 'Luar Batas RI' || data.status === 'Wilayah Perairan') statusClass = 'status-warning';
 
         // Mapping kolom: [text, bold, className]
+        // Baris error: tampilkan teks input asli agar pengguna tahu baris mana yang salah
+        const latDisplay = (data.status === 'Error' && data.inputText) ? data.inputText : data.lat;
+        if (data.errorMsg) tr.title = data.errorMsg;
+
         const columns = [
             [data.id, false],
-            [data.lat, false],
+            [latDisplay, false],
             [data.lon, false],
             [data.kecamatan, true],
             [data.kabKota, false],
@@ -1724,79 +1758,38 @@ document.addEventListener('DOMContentLoaded', () => {
     batchTableBody.addEventListener('click', syncMapWithTableRow);
     tableModalBody.addEventListener('click', syncMapWithTableRow);
 
-    // Export & Copy
-    copyTableBtn.addEventListener('click', () => {
-        if (batchData.length === 0) return;
-        const headers = "No\tLintang\tBujur\tKecamatan\tKab/Kota\tProvinsi\tStatus\n";
-        const rows = batchData.map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n');
-        
-        navigator.clipboard.writeText(headers + rows).then(() => {
-            const originalText = copyTableBtn.textContent;
-            copyTableBtn.textContent = 'Tersalin!';
-            setTimeout(() => copyTableBtn.textContent = originalText, 2000);
-        });
-    });
-
-    copyKecamatanBtn.addEventListener('click', () => {
-        if (batchData.length === 0) return;
-        const rows = batchData.map(d => d.kecamatan).join('\n');
-        
-        navigator.clipboard.writeText(rows).then(() => {
-            const originalText = copyKecamatanBtn.textContent;
-            copyKecamatanBtn.textContent = 'Tersalin!';
-            setTimeout(() => copyKecamatanBtn.textContent = originalText, 2000);
-        });
-    });
-
-    copyKabKotaBtn.addEventListener('click', () => {
-        if (batchData.length === 0) return;
-        const rows = batchData.map(d => d.kabKota).join('\n');
-        
-        navigator.clipboard.writeText(rows).then(() => {
-            const originalText = copyKabKotaBtn.textContent;
-            copyKabKotaBtn.textContent = 'Tersalin!';
-            setTimeout(() => copyKabKotaBtn.textContent = originalText, 2000);
-        });
-    });
-
-    copyCoordBtn.addEventListener('click', () => {
-        if (batchData.length === 0) return;
-        const rows = batchData.map(d => `${d.lat}\t${d.lon}`).join('\n');
-        
-        navigator.clipboard.writeText(rows).then(() => {
-            const originalText = copyCoordBtn.textContent;
-            copyCoordBtn.textContent = 'Tersalin!';
-            setTimeout(() => copyCoordBtn.textContent = originalText, 2000);
-        });
-    });
-
-    // Helper: salin ke clipboard dan tampilkan feedback di tombol yang benar
+    // Export & Copy — tombol di panel utama dan di modal tabel memakai builder yang sama
     function clipboardCopyWithFeedback(text, btn) {
-        navigator.clipboard.writeText(text).then(() => {
+        copyText(text).then(() => {
+            if (btn.dataset.copying) return;
+            btn.dataset.copying = '1';
             const originalText = btn.textContent;
             btn.textContent = 'Tersalin!';
-            setTimeout(() => btn.textContent = originalText, 2000);
-        });
+            setTimeout(() => { btn.textContent = originalText; delete btn.dataset.copying; }, 2000);
+        }).catch(err => console.error('Gagal menyalin: ', err));
     }
 
-    // Tombol aksi di modal tabel hasil — handler mandiri (agar feedback muncul di tombol modal, bukan tombol asli)
-    copyTableBtnModal.addEventListener('click', function() {
-        if (batchData.length === 0) return;
-        const headers = "No\tLintang\tBujur\tKecamatan\tKab/Kota\tProvinsi\tStatus\n";
-        const rows = batchData.map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n');
-        clipboardCopyWithFeedback(headers + rows, copyTableBtnModal);
-    });
-    copyKecamatanBtnModal.addEventListener('click', function() {
-        if (batchData.length === 0) return;
-        clipboardCopyWithFeedback(batchData.map(d => d.kecamatan).join('\n'), copyKecamatanBtnModal);
-    });
-    copyCoordBtnModal.addEventListener('click', function() {
-        if (batchData.length === 0) return;
-        clipboardCopyWithFeedback(batchData.map(d => `${d.lat}\t${d.lon}`).join('\n'), copyCoordBtnModal);
-    });
-    copyKabKotaBtnModal.addEventListener('click', function() {
-        if (batchData.length === 0) return;
-        clipboardCopyWithFeedback(batchData.map(d => d.kabKota).join('\n'), copyKabKotaBtnModal);
+    const copyBuilders = {
+        table: () => "No\tLintang\tBujur\tKecamatan\tKab/Kota\tProvinsi\tStatus\n" +
+            batchData.map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n'),
+        kecamatan: () => batchData.map(d => d.kecamatan).join('\n'),
+        kabKota: () => batchData.map(d => d.kabKota).join('\n'),
+        coord: () => batchData.map(d => `${d.lat}\t${d.lon}`).join('\n')
+    };
+
+    [
+        [copyTableBtn, 'table'], [copyTableBtnModal, 'table'],
+        [copyKecamatanBtn, 'kecamatan'], [copyKecamatanBtnModal, 'kecamatan'],
+        [copyKabKotaBtn, 'kabKota'], [copyKabKotaBtnModal, 'kabKota'],
+        [copyCoordBtn, 'coord'], [copyCoordBtnModal, 'coord']
+    ].forEach(([btn, kind]) => {
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            if (batchData.length === 0) return;
+            // Salin selalu urut sesuai nomor baris, termasuk saat proses masih berjalan
+            batchData.sort((a, b) => a.id - b.id);
+            clipboardCopyWithFeedback(copyBuilders[kind](), btn);
+        });
     });
 
     // Perbesar tabel hasil (modal)
