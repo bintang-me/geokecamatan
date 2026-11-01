@@ -188,20 +188,29 @@ function parseCoordinates(inputStr) {
 //    Menggunakan layanan Kebijakan Satu Peta untuk mendeteksi koordinat
 //    langsung ke dalam batas wilayah resmi RI.
 // ==========================================
+// Format nama wilayah dari data BIG (HURUF KAPITAL) menjadi Title Case yang benar:
+// "DKI JAKARTA" → "DKI Jakarta", "KOTO XI TARUSAN" → "Koto XI Tarusan", "TOLI-TOLI" → "Toli-Toli"
+const ROMAN_NUMERAL = /^(X{0,3})(IX|IV|V?I{0,3})$/;
+function formatWilayahName(str, isProvinsi = false) {
+    if (!str || str === '-') return '-';
+    const words = String(str).trim().split(/\s+/);
+    return words.map((w, i) => {
+        const upper = w.toUpperCase();
+        if (upper !== '' && ROMAN_NUMERAL.test(upper)) return upper;          // angka Romawi
+        if (isProvinsi && i === 0 && (upper === 'DKI' || upper === 'DI')) return upper; // DKI / DI
+        return w.toLowerCase().replace(/(^|[-(/])([a-z])/g, (m, pre, ch) => pre + ch.toUpperCase());
+    }).join(' ');
+}
+
 function parseBIGResponse(data) {
     if (!data || !data.features || data.features.length === 0) return null;
     const attr = data.features[0].attributes || data.features[0].properties;
     if (!attr) return null;
 
-    const toTitleCase = (str) => {
-        if (!str) return "-";
-        return str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    };
-
-    let provinsi = toTitleCase(attr.WADMPR);
-    let kabKota = toTitleCase(attr.WADMKK);
-    let kecamatan = toTitleCase(attr.WADMKC);
-    let desaKel = toTitleCase(attr.WADMKD || attr.WADMKD_HTML || attr.WADMKP || "-");
+    let provinsi = formatWilayahName(attr.WADMPR, true);
+    let kabKota = formatWilayahName(attr.WADMKK);
+    let kecamatan = formatWilayahName(attr.WADMKC);
+    let desaKel = formatWilayahName(attr.WADMKD || attr.WADMKD_HTML || attr.WADMKP || "-");
 
     return { provinsi, kabKota, kecamatan, desaKel, alamat: "-" };
 }
@@ -1416,10 +1425,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const batchProgressContainer = document.getElementById('batchProgressContainer');
     const batchProgressBar = document.getElementById('batchProgressBar');
     const batchProgressText = document.getElementById('batchProgressText');
-    const copyTableBtn = document.getElementById('copyTableBtn');
-    const copyKecamatanBtn = document.getElementById('copyKecamatanBtn');
-    const copyKabKotaBtn = document.getElementById('copyKabKotaBtn');
-    const copyCoordBtn = document.getElementById('copyCoordBtn');
     const expandTableBtn = document.getElementById('expandTableBtn');
     const tableModal = document.getElementById('tableModal');
     const closeTableModalBtn = document.getElementById('closeTableModalBtn');
@@ -1430,10 +1435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapModal = document.getElementById('mapModal');
     const closeMapModalBtn = document.getElementById('closeMapModalBtn');
     const mapModalBody = document.getElementById('mapModalBody');
-    const copyKecamatanBtnModal = document.getElementById('copyKecamatanBtnModal');
-    const copyKabKotaBtnModal = document.getElementById('copyKabKotaBtnModal');
-    const copyCoordBtnModal = document.getElementById('copyCoordBtnModal');
-    const copyTableBtnModal = document.getElementById('copyTableBtnModal');
 
     let batchData = [];
     let isProcessing = false;
@@ -1449,7 +1450,9 @@ document.addEventListener('DOMContentLoaded', () => {
         batchRunId++; // batalkan proses yang sedang berjalan
         resetBatchButton();
         batchInput.value = '';
-        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>';
+        batchTableBody.innerHTML = '<tr class="empty-row"><td colspan="8">Belum ada data diproses.</td></tr>';
+        batchFilter = 'all';
+        updateBatchSummary();
         batchData = [];
         batchProgressContainer.classList.add('hidden');
         clearBatchMarkers();
@@ -1474,6 +1477,8 @@ document.addEventListener('DOMContentLoaded', () => {
         processBatchBtn.textContent = 'Memproses...';
         batchTableBody.innerHTML = '';
         batchData = [];
+        batchFilter = 'all';
+        updateBatchSummary();
         clearBatchMarkers();
         initBatchMap();
         
@@ -1511,6 +1516,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     processTask(task).then(result => {
                         if (isStale()) return;
+                        if (result.inputText === undefined) result.inputText = task.originalText.trim();
                         batchData.push(result);
                         renderBatchRow(result);
                         // addBatchMarker terima, hanya jika lat/lon adalah angka valid
@@ -1523,7 +1529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Jika processTask gagal total, tetap catat sebagai error
                         console.error('Task gagal:', task.id, err);
                         const fallback = {
-                            id: task.id, lat: '-', lon: '-',
+                            id: task.id, lat: '-', lon: '-', inputText: task.originalText.trim(),
                             kecamatan: '-', kabKota: '-', provinsi: '-',
                             status: 'Error'
                         };
@@ -1672,10 +1678,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tr.style.cursor = 'pointer';
         tr.title = 'Klik untuk melihat koordinat di peta';
 
-        let statusClass = 'status-error';
-        if (data.status === 'Sukses') statusClass = 'status-success';
-        else if (data.status === 'Kosong') statusClass = 'status-empty';
-        else if (data.status === 'Luar Batas RI' || data.status === 'Wilayah Perairan') statusClass = 'status-warning';
+        const group = batchStatusGroup(data.status);
+        const statusClass = 'status-' + group;
+        tr.dataset.group = group;
+        tr.classList.add('row-' + group);
+        if (batchFilter !== 'all' && batchFilter !== group) tr.classList.add('row-filtered');
 
         // Mapping kolom: [text, bold, className]
         // Baris error: tampilkan teks input asli agar pengguna tahu baris mana yang salah
@@ -1686,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
             [data.id, false],
             [latDisplay, false],
             [data.lon, false],
+            [data.status === 'Kosong' ? '' : (data.desaKel || '-'), false],
             [data.kecamatan, true],
             [data.kabKota, false],
             [data.provinsi, false],
@@ -1707,6 +1715,74 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         batchTableBody.appendChild(tr);
+        updateBatchSummary();
+    }
+
+    // ---- Ringkasan & filter status hasil batch ----
+    const batchSummary = document.getElementById('batchSummary');
+    let batchFilter = 'all';
+    const BATCH_GROUP_LABELS = {
+        success: 'Sukses',
+        warning: 'Perairan/Luar RI',
+        error: 'Error/Gagal',
+        empty: 'Kosong'
+    };
+
+    function batchStatusGroup(status) {
+        if (status === 'Sukses') return 'success';
+        if (status === 'Kosong') return 'empty';
+        if (status === 'Luar Batas RI' || status === 'Wilayah Perairan') return 'warning';
+        return 'error';
+    }
+
+    function updateBatchSummary() {
+        if (!batchSummary) return;
+        if (batchData.length === 0) {
+            batchSummary.classList.add('hidden');
+            batchSummary.innerHTML = '';
+            return;
+        }
+        const counts = { success: 0, warning: 0, error: 0, empty: 0 };
+        batchData.forEach(d => counts[batchStatusGroup(d.status)]++);
+        if (batchFilter !== 'all' && counts[batchFilter] === 0) batchFilter = 'all';
+
+        batchSummary.innerHTML = '';
+        const makeChip = (key, label, count) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = `summary-chip chip-${key}` + (batchFilter === key ? ' active' : '');
+            b.dataset.filter = key;
+            b.setAttribute('aria-pressed', batchFilter === key ? 'true' : 'false');
+            const lbl = document.createElement('span');
+            lbl.textContent = label;
+            const num = document.createElement('strong');
+            num.textContent = count;
+            b.append(lbl, ' ', num);
+            batchSummary.appendChild(b);
+        };
+        makeChip('all', 'Semua', batchData.length);
+        Object.keys(BATCH_GROUP_LABELS).forEach(k => {
+            if (counts[k] > 0) makeChip(k, BATCH_GROUP_LABELS[k], counts[k]);
+        });
+        batchSummary.classList.remove('hidden');
+    }
+
+    function applyBatchFilter() {
+        const rows = [
+            ...batchTableBody.querySelectorAll('tr[data-group]'),
+            ...tableModalBody.querySelectorAll('tr[data-group]')
+        ];
+        rows.forEach(r => r.classList.toggle('row-filtered', batchFilter !== 'all' && r.dataset.group !== batchFilter));
+    }
+
+    if (batchSummary) {
+        batchSummary.addEventListener('click', (e) => {
+            const chip = e.target.closest('.summary-chip');
+            if (!chip) return;
+            batchFilter = (chip.dataset.filter === batchFilter && batchFilter !== 'all') ? 'all' : chip.dataset.filter;
+            applyBatchFilter();
+            updateBatchSummary();
+        });
     }
 
     // Interaktivitas Tabel -> Peta: sinkronisasi sorotan baris dan marker
@@ -1758,37 +1834,84 @@ document.addEventListener('DOMContentLoaded', () => {
     batchTableBody.addEventListener('click', syncMapWithTableRow);
     tableModalBody.addEventListener('click', syncMapWithTableRow);
 
-    // Export & Copy — tombol di panel utama dan di modal tabel memakai builder yang sama
+    // Export & Copy — menu "Salin ▾" dan tombol "Unduh CSV" (panel utama & modal tabel)
     function clipboardCopyWithFeedback(text, btn) {
         copyText(text).then(() => {
             if (btn.dataset.copying) return;
             btn.dataset.copying = '1';
-            const originalText = btn.textContent;
+            const originalHTML = btn.innerHTML;
             btn.textContent = 'Tersalin!';
-            setTimeout(() => { btn.textContent = originalText; delete btn.dataset.copying; }, 2000);
+            setTimeout(() => { btn.innerHTML = originalHTML; delete btn.dataset.copying; }, 2000);
         }).catch(err => console.error('Gagal menyalin: ', err));
     }
 
+    const sortedBatchData = () => batchData.slice().sort((a, b) => a.id - b.id);
     const copyBuilders = {
-        table: () => "No\tLintang\tBujur\tKecamatan\tKab/Kota\tProvinsi\tStatus\n" +
-            batchData.map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n'),
-        kecamatan: () => batchData.map(d => d.kecamatan).join('\n'),
-        kabKota: () => batchData.map(d => d.kabKota).join('\n'),
-        coord: () => batchData.map(d => `${d.lat}\t${d.lon}`).join('\n')
+        table: () => "No\tLintang\tBujur\tDesa/Kelurahan\tKecamatan\tKab/Kota\tProvinsi\tStatus\n" +
+            sortedBatchData().map(d => `${d.id}\t${d.lat}\t${d.lon}\t${d.desaKel ?? ''}\t${d.kecamatan}\t${d.kabKota}\t${d.provinsi}\t${d.status}`).join('\n'),
+        kecamatan: () => sortedBatchData().map(d => d.kecamatan).join('\n'),
+        kabKota: () => sortedBatchData().map(d => d.kabKota).join('\n'),
+        desaKel: () => sortedBatchData().map(d => d.desaKel ?? '').join('\n'),
+        coord: () => sortedBatchData().map(d => `${d.lat}\t${d.lon}`).join('\n')
     };
 
-    [
-        [copyTableBtn, 'table'], [copyTableBtnModal, 'table'],
-        [copyKecamatanBtn, 'kecamatan'], [copyKecamatanBtnModal, 'kecamatan'],
-        [copyKabKotaBtn, 'kabKota'], [copyKabKotaBtnModal, 'kabKota'],
-        [copyCoordBtn, 'coord'], [copyCoordBtnModal, 'coord']
-    ].forEach(([btn, kind]) => {
-        if (!btn) return;
+    function closeCopyMenus(except) {
+        document.querySelectorAll('.copy-menu').forEach(menu => {
+            if (menu === except) return;
+            const list = menu.querySelector('.copy-menu-list');
+            const toggle = menu.querySelector('.copy-menu-toggle');
+            if (list) list.hidden = true;
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    document.querySelectorAll('.copy-menu').forEach(menu => {
+        const toggle = menu.querySelector('.copy-menu-toggle');
+        const list = menu.querySelector('.copy-menu-list');
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (batchData.length === 0) return;
+            const willOpen = list.hidden;
+            closeCopyMenus(menu);
+            list.hidden = !willOpen;
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        });
+        list.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-copy]');
+            if (!item) return;
+            e.stopPropagation();
+            closeCopyMenus();
+            if (batchData.length === 0) return;
+            clipboardCopyWithFeedback(copyBuilders[item.dataset.copy](), toggle);
+        });
+    });
+    document.addEventListener('click', () => closeCopyMenus());
+
+    function buildBatchCsv() {
+        const esc = (v) => {
+            const str = String(v ?? '');
+            return /[",;\r\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+        };
+        const header = ['No', 'Input', 'Lintang', 'Bujur', 'Desa/Kelurahan', 'Kecamatan', 'Kab/Kota', 'Provinsi', 'Status'];
+        const rows = sortedBatchData().map(d => [d.id, d.inputText ?? '', d.lat, d.lon, d.desaKel ?? '', d.kecamatan, d.kabKota, d.provinsi, d.status]);
+        // BOM agar Excel membaca UTF-8 dengan benar
+        return '﻿' + [header, ...rows].map(r => r.map(esc).join(',')).join('\r\n');
+    }
+
+    document.querySelectorAll('.download-csv-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             if (batchData.length === 0) return;
-            // Salin selalu urut sesuai nomor baris, termasuk saat proses masih berjalan
-            batchData.sort((a, b) => a.id - b.id);
-            clipboardCopyWithFeedback(copyBuilders[kind](), btn);
+            const blob = new Blob([buildBatchCsv()], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hasil-cari-kecamatan-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
     });
 
@@ -1826,6 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeCopyMenus();
         if (e.key === 'Escape' && tableModal.classList.contains('active')) {
             tableModal.classList.remove('active');
         }
@@ -1974,9 +2098,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleDisclaimerBtn.addEventListener('click', () => {
             if (disclaimerWrapper.classList.contains('expanded')) {
                 disclaimerWrapper.classList.remove('expanded');
+                toggleDisclaimerBtn.setAttribute('aria-expanded', 'false');
                 toggleDisclaimerBtn.textContent = 'Lihat Disclaimer Selengkapnya';
             } else {
                 disclaimerWrapper.classList.add('expanded');
+                toggleDisclaimerBtn.setAttribute('aria-expanded', 'true');
                 toggleDisclaimerBtn.textContent = 'Sembunyikan Disclaimer';
             }
         });

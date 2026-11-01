@@ -842,7 +842,7 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
 
 .batch-table {
     width: 100%;
-    min-width: 650px;
+    min-width: 860px;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.85rem;
@@ -1040,7 +1040,7 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
 
 .table-modal-body .batch-table {
     width: 100%;
-    min-width: 650px;
+    min-width: 860px;
     border-collapse: separate;
     border-spacing: 0;
     position: relative;
@@ -1329,7 +1329,7 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
     }
 
     .batch-map-container {
-        min-height: 250px;
+        min-height: 320px;
     }
 
     .batch-progress {
@@ -1354,10 +1354,21 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
         white-space: normal;
     }
 
-    .batch-table th:nth-child(5),
-    .batch-table td:nth-child(5),
-    .batch-table th:nth-child(6),
-    .batch-table td:nth-child(6) {
+    /* Mobile: sembunyikan Desa/Kel., Kab/Kota, Provinsi — Status tetap terlihat */
+    .batch-table {
+        min-width: 0;
+        width: 100%;
+    }
+
+    /* Tampilkan No, Kecamatan, Kab/Kota, Status (No = nomor baris input) */
+    .batch-table th:nth-child(2),
+    .batch-table td:nth-child(2),
+    .batch-table th:nth-child(3),
+    .batch-table td:nth-child(3),
+    .batch-table th:nth-child(4),
+    .batch-table td:nth-child(4),
+    .batch-table th:nth-child(7),
+    .batch-table td:nth-child(7) {
         display: none;
     }
 }
@@ -1419,42 +1430,50 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
     display: none !important;
 }
 
-/* Disclaimer Collapsible on Mobile */
+/* Disclaimer Collapsible (semua ukuran layar) */
+.disclaimer-content-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+}
+
+.disclaimer-content-wrapper.expanded {
+    max-height: 1200px;
+    transition: max-height 0.4s ease-in;
+    margin-bottom: 0.75rem;
+}
+
+.disclaimer-summary {
+    font-weight: 400;
+    color: var(--color-text-muted-light);
+}
+
 .toggle-disclaimer-btn {
-    display: none;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--color-text-prime);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.25rem;
+}
+
+.toggle-disclaimer-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 @media (max-width: 768px) {
-    .disclaimer-content-wrapper {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease-out;
-    }
-    
-    .disclaimer-content-wrapper.expanded {
-        max-height: 1000px;
-        transition: max-height 0.4s ease-in;
-        margin-bottom: 1rem;
-    }
-    
     .toggle-disclaimer-btn {
         display: block;
         width: 100%;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: var(--color-text-prime);
         padding: 0.75rem 1rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.85rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
         margin-top: 0.5rem;
-    }
-    
-    .toggle-disclaimer-btn:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.15);
     }
 }
 
@@ -1575,3 +1594,211 @@ body:has(.intro-splash:not(.intro-exit):not(.intro-hidden)) {
 
 
 
+
+
+/* ===== Cari Massal: tabel selebar penuh, ringkasan status, menu salin ===== */
+.batch-layout-grid {
+    margin-bottom: 2rem;
+}
+
+/* Panel input mengisi tinggi baris (sejajar peta); textarea ikut membesar */
+.batch-left .batch-section {
+    margin-bottom: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.batch-left .batch-textarea {
+    flex: 1;
+    min-height: 150px;
+}
+
+.batch-actions .btn-primary {
+    width: auto;
+}
+
+.batch-result-full {
+    margin-bottom: 0;
+}
+
+.batch-result-header {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.batch-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Tint baris berdasarkan status */
+.batch-table tbody tr.row-error td {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.batch-table tbody tr.row-warning td {
+    background: rgba(238, 162, 1, 0.06);
+}
+
+.batch-table tbody tr.row-error td:first-child {
+    box-shadow: inset 3px 0 0 #EF4444;
+}
+
+.batch-table tbody tr.row-warning td:first-child {
+    box-shadow: inset 3px 0 0 #EEA201;
+}
+
+.batch-table tbody tr.row-filtered {
+    display: none;
+}
+
+/* Chip ringkasan & filter status */
+.batch-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.summary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-text-muted-light);
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.summary-chip strong {
+    color: var(--color-text-prime);
+    font-weight: 700;
+}
+
+.summary-chip::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+}
+
+.summary-chip.chip-all::before { display: none; }
+.summary-chip.chip-success::before { background: #10B981; }
+.summary-chip.chip-warning::before { background: #EEA201; }
+.summary-chip.chip-error::before { background: #EF4444; }
+
+.summary-chip:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.summary-chip.active {
+    border-color: var(--color-accent);
+    background: rgba(238, 162, 1, 0.12);
+    color: var(--color-text-prime);
+}
+
+.summary-chip:focus-visible,
+.copy-menu-toggle:focus-visible,
+.copy-menu-list button:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* Menu dropdown "Salin ▾" */
+.copy-menu {
+    position: relative;
+}
+
+.copy-menu-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 1200;
+    min-width: 220px;
+    padding: 0.35rem;
+    background: #0F1D35;
+    border: 1px solid rgba(238, 162, 1, 0.3);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+}
+
+.copy-menu-list[hidden] {
+    display: none;
+}
+
+.copy-menu-list button {
+    background: transparent;
+    border: none;
+    color: var(--color-text-prime);
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.copy-menu-list button:hover {
+    background: rgba(238, 162, 1, 0.12);
+    color: var(--color-accent);
+}
+
+/* ===== Mobile: hasil ringkas & peta lebih besar ===== */
+@media (max-width: 768px) {
+    .admin-hierarchy {
+        gap: 0.6rem;
+    }
+
+    .admin-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+        padding: 0.65rem 0.9rem;
+    }
+
+    .admin-item .label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .admin-item .value {
+        text-align: left;
+    }
+
+    .admin-item .copy-wrapper {
+        padding-left: 0;
+        margin-left: 0;
+    }
+
+    .map-section {
+        min-height: clamp(360px, 62vh, 560px);
+    }
+
+    /* Atribusi peta dipadatkan menjadi satu baris (tap/hover untuk melihat lengkap) */
+    .leaflet-control-attribution {
+        font-size: 9px;
+        max-width: calc(100% - 56px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .leaflet-control-attribution:hover {
+        white-space: normal;
+    }
+
+    .batch-result-header {
+        align-items: flex-start;
+    }
+}

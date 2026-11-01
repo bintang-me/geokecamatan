@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cari Kecamatan - Berdasarkan Titik Koordinat</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="css/style.css?v=20261101">
-    <link rel="stylesheet" href="css/map.css?v=20261101">
+    <link rel="stylesheet" href="css/style.css?v=20261102">
+    <link rel="stylesheet" href="css/map.css?v=20261102">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -142,7 +142,7 @@
                 <section class="map-section glass-panel">
                     <div class="map-wrapper" style="position: relative; flex: 1; display: flex; flex-direction: column;">
                         <div id="map" class="map-container"></div>
-                        <button id="expandSingleMapBtn" class="btn-map-expand" title="Perbesar Peta">⛶</button>
+                        <button id="expandSingleMapBtn" class="btn-map-expand" title="Perbesar Peta" aria-label="Perbesar peta">⛶</button>
                     </div>
                     <p class="map-hint">💡 Anda bisa menggeser marker atau klik di peta untuk melihat wilayah lain.</p>
                 </section>
@@ -189,37 +189,7 @@
                             </div>
                         </section>
 
-                        <section class="batch-result-section glass-panel">
-                            <div class="batch-result-header">
-                                <h2>Tabel Hasil</h2>
-                                <div class="batch-actions">
-                                    <button id="copyKecamatanBtn" class="btn-secondary btn-small">Salin Kec.</button>
-                                    <button id="copyKabKotaBtn" class="btn-secondary btn-small">Salin Kab/Kota</button>
-                                    <button id="copyCoordBtn" class="btn-secondary btn-small">Salin Koordinat</button>
-                                    <button id="copyTableBtn" class="btn-primary btn-small">Salin Tabel</button>
-                                    <button id="expandTableBtn" class="btn-secondary btn-small" title="Perbesar Tabel">⛶</button>
-                                </div>
-                            </div>
-                            
-                            <div class="table-container">
-                                <table id="batchTable" class="batch-table">
-                                    <thead>
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Lintang</th>
-                                            <th>Bujur</th>
-                                            <th>Kecamatan</th>
-                                            <th>Kab/Kota</th>
-                                            <th>Provinsi</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="batchTableBody">
-                                        <tr class="empty-row"><td colspan="7">Belum ada data diproses.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
+
 
                     </div>
 
@@ -229,7 +199,7 @@
                             <div class="batch-map-header">
                                 <div class="batch-map-header-row">
                                     <h2>Peta Sebaran Titik</h2>
-                                    <button id="expandMapBtn" class="btn-secondary btn-small" title="Perbesar Peta">⛶</button>
+                                    <button id="expandMapBtn" class="btn-secondary btn-small" title="Perbesar Peta" aria-label="Perbesar peta">⛶</button>
                                 </div>
                                 <p class="helper-text">Klik marker untuk melihat info titik.</p>
                             </div>
@@ -254,6 +224,45 @@
 
                     </div>
                 </div>
+                <section class="batch-result-section glass-panel batch-result-full">
+                    <div class="batch-result-header">
+                        <h2>Tabel Hasil</h2>
+                        <div class="batch-actions">
+                                    <div class="copy-menu">
+                                        <button type="button" class="btn-secondary btn-small copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin <span aria-hidden="true">▾</span></button>
+                                        <div class="copy-menu-list" role="menu" hidden>
+                                            <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
+                                            <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
+                                            <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
+                                            <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
+                                            <button type="button" role="menuitem" data-copy="coord">Koordinat (Lintang, Bujur)</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-primary btn-small download-csv-btn">Unduh CSV</button>
+                                    <button id="expandTableBtn" class="btn-secondary btn-small" title="Perbesar Tabel" aria-label="Perbesar tabel">⛶</button>
+                        </div>
+                    </div>
+                    <div id="batchSummary" class="batch-summary hidden" role="toolbar" aria-label="Filter status"></div>
+                    <div class="table-container">
+                        <table id="batchTable" class="batch-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Lintang</th>
+                                    <th>Bujur</th>
+                                    <th>Desa/Kel.</th>
+                                    <th>Kecamatan</th>
+                                    <th>Kab/Kota</th>
+                                    <th>Provinsi</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchTableBody">
+                                <tr class="empty-row"><td colspan="8">Belum ada data diproses.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div> <!-- End of Tab 2 -->
 
             <!-- Modal perbesar tabel hasil -->
@@ -262,11 +271,18 @@
                     <div class="table-modal-header">
                         <h2>Tabel Hasil</h2>
                         <div class="table-modal-actions">
-                            <button id="copyKecamatanBtnModal" class="btn-secondary btn-small">Salin Kec.</button>
-                            <button id="copyKabKotaBtnModal" class="btn-secondary btn-small">Salin Kab/Kota</button>
-                            <button id="copyCoordBtnModal" class="btn-secondary btn-small">Salin Koordinat</button>
-                            <button id="copyTableBtnModal" class="btn-primary btn-small">Salin Tabel</button>
-                            <button id="closeTableModalBtn" class="modal-close-btn">&times;</button>
+                            <div class="copy-menu">
+                                        <button type="button" class="btn-secondary btn-small copy-menu-toggle" aria-haspopup="menu" aria-expanded="false">Salin <span aria-hidden="true">▾</span></button>
+                                        <div class="copy-menu-list" role="menu" hidden>
+                                            <button type="button" role="menuitem" data-copy="table">Seluruh tabel</button>
+                                            <button type="button" role="menuitem" data-copy="kecamatan">Kolom Kecamatan</button>
+                                            <button type="button" role="menuitem" data-copy="kabKota">Kolom Kab/Kota</button>
+                                            <button type="button" role="menuitem" data-copy="desaKel">Kolom Desa/Kelurahan</button>
+                                            <button type="button" role="menuitem" data-copy="coord">Koordinat (Lintang, Bujur)</button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-primary btn-small download-csv-btn">Unduh CSV</button>
+                            <button id="closeTableModalBtn" class="modal-close-btn" aria-label="Tutup">&times;</button>
                         </div>
                     </div>
                     <div class="table-modal-body"></div>
@@ -278,7 +294,7 @@
                 <div class="map-modal-content">
                     <div class="map-modal-header">
                         <h2 id="mapModalTitle">Peta Sebaran Titik</h2>
-                        <button id="closeMapModalBtn" class="modal-close-btn">&times;</button>
+                        <button id="closeMapModalBtn" class="modal-close-btn" aria-label="Tutup">&times;</button>
                     </div>
                     <div id="mapModalLegend" class="map-modal-legend">
                         <span class="legend-item">
@@ -329,7 +345,7 @@
                 </div>
 
                 <div class="footer-disclaimer" id="footerDisclaimer">
-                    <p><strong><em>Disclaimer</em>/Penafian:</strong></p>
+                    <p><strong><em>Disclaimer</em>/Penafian:</strong> <span class="disclaimer-summary">Hasil bersifat informatif dan tidak dapat digunakan untuk keperluan hukum maupun penetapan batas wilayah.</span></p>
                     <div class="disclaimer-content-wrapper">
                         <p><em>Website</em> <span class="highlight-inline">Cari Kecamatan</span> merupakan alat bantu pencarian data administrasi nama kecamatan di Negara Republik Indonesia berdasarkan titik koordinat yang bersifat informatif.</p>
                         <p><strong>Sumber Data:</strong></p>
@@ -346,7 +362,7 @@
                             <li>Jangan gunakan untuk penetapan batas wilayah, sengketa perbatasan, sengketa pertanahan, maupun segala keperluan hukum dan putusan lainnya yang bersifat mengikat.</li>
                         </ul>
                     </div>
-                    <button class="toggle-disclaimer-btn" id="toggleDisclaimerBtn">Lihat Disclaimer Selengkapnya</button>
+                    <button class="toggle-disclaimer-btn" id="toggleDisclaimerBtn" aria-expanded="false">Lihat Disclaimer Selengkapnya</button>
                 </div>
                 <div class="footer-credits">
                     <p>Proyek oleh <strong>Bintang Bayu K. P.</strong></p>
@@ -361,7 +377,7 @@
     <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
     
     <!-- App Scripts (Bundled) -->
-    <script src="js/bundle.js?v=20261101"></script>
+    <script src="js/bundle.js?v=20261102"></script>
 </body>
 </html>
 
