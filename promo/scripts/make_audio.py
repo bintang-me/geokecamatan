@@ -11,7 +11,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else 'public/audio'
 os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(20261101)
 BEAT = 0.5
-DUR = 30.0
+DUR = 35.0  # 27,5 dtk: hentakan akhir; sisanya ekor lembut untuk layar akhir
 
 def t_arr(sec): return np.arange(int(sec * SR)) / SR
 def midi(n): return 440.0 * 2 ** ((n - 69) / 12)
@@ -65,7 +65,7 @@ for (start, name), end in zip(PROG, ends):
     seg = t_arr(end - start + 1.2)  # ekor menumpuk ke akor berikut
     env = np.minimum(1, seg / 0.45) * np.clip((end - start + 1.2 - seg) / 1.2, 0, 1)
     if name == 'D' and start == 27.5:
-        env = np.minimum(1, seg / 0.02) * np.exp(-seg / 1.4)
+        env = np.minimum(1, seg / 0.02) * (0.35 + 0.65 * np.exp(-seg / 1.2)) * np.clip((end - start + 1.2 - seg) / 1.2, 0, 1)
     for n in CH[name]:
         f = midi(n + 12)
         v = (soft_saw(f * 0.997, seg, 8) + soft_saw(f * 1.003, seg, 8)) * 0.5
@@ -89,6 +89,14 @@ while s < 27.5 - 1e-6:
     sig = (soft_saw(midi(n), pt, 6, 2.2)) * pe
     place(pluck, sig, s, 0.05 if s < 7 else 0.07)
     k += 1; s += step
+
+# ekor layar akhir: arpeggio pelan seperempat ketukan, 28,5–33,5 dtk
+s = 28.5; k = 0
+while s < 33.5:
+    notes = CH['D'][1:] + [CH['D'][1] + 12]
+    pt = t_arr(1.0); pe = np.exp(-pt / 0.35) * np.minimum(1, pt / 0.004)
+    place(pluck, soft_saw(midi(notes[k % len(notes)] + 12), pt, 6, 2.2) * pe, s, 0.035)
+    k += 1; s += BEAT
 
 # drum (mulai 7 dtk), jeda tipis 25–25,5 dtk sebelum chip
 def kick():
@@ -123,7 +131,7 @@ place(fx, impact, 7.0, 0.35)
 music = pad + pluck + bass + drums + fx
 music = reverb(music, 1.8, 0.22)
 # fade akhir 28,8–30 dtk
-fade = np.ones(N); i0 = int(28.6 * SR); fade[i0:] = np.linspace(1, 0, N - i0) ** 1.5
+fade = np.ones(N); i0 = int(32.0 * SR); fade[i0:] = np.linspace(1, 0, N - i0) ** 1.5
 music *= fade
 music /= np.max(np.abs(music)); music *= 0.8
 # stereo lebar tipis: pluck sedikit ke kanan

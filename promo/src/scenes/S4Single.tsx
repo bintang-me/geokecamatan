@@ -1,12 +1,12 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
-import { C, FONT, MONO } from '../brand';
+import { C, FONT, MONO, SEARCH_SECONDS } from '../brand';
 import { clamp, easeOut, pop, rise } from '../anim';
 import { RealMap } from '../components/RealMap';
 import { PIN, JKT_W, JKT_H } from '../data/jakarta';
 import { MainPin } from '../components/Logo';
 
-export const S4_CUES = { paste: 14, fix: 44, press: 70, result: 84, map: 100 };
+export const S4_CUES = { paste: 8, fix: 26, press: 42, result: 66, map: 78 };
 const RAW = '-6,1754; 106,8272';
 const FIXED = '-6.1754, 106.8272';
 
@@ -28,6 +28,10 @@ export const S4Single: React.FC = () => {
     const sweep = interpolate(f, [S4_CUES.fix - 4, S4_CUES.fix + 10], [-20, 120], clamp);
     const press = interpolate(f, [S4_CUES.press, S4_CUES.press + 4, S4_CUES.press + 10], [1, 0.95, 1], clamp);
     const card = pop(f, fps, S4_CUES.result);
+    // stopwatch: berjalan dari tombol ditekan sampai hasil muncul, lalu berhenti di SEARCH_SECONDS
+    const sw = interpolate(f, [S4_CUES.press, S4_CUES.result], [0, SEARCH_SECONDS], clamp);
+    const swShow = interpolate(f, [S4_CUES.press, S4_CUES.press + 4], [0, 1], clamp);
+    const swDone = f >= S4_CUES.result;
     const mapCard = pop(f, fps, S4_CUES.map);
     const pinDrop = pop(f, fps, S4_CUES.map + 8, 200);
     const kec = interpolate(f, [S4_CUES.map + 12, S4_CUES.map + 50], [0, 1], { ...clamp, easing: easeOut });
@@ -35,7 +39,6 @@ export const S4Single: React.FC = () => {
         <AbsoluteFill style={{ fontFamily: FONT }}>
             <div style={{ position: 'absolute', left: 160, top: 96 }}>
                 <div style={{ fontSize: 66, fontWeight: 700, color: C.ink, letterSpacing: -1.1, ...rise(f, 2) }}>Ketik apa adanya.</div>
-                <div style={{ fontSize: 34, color: C.muted, marginTop: 10, ...rise(f, 12) }}>Penulisan yang keliru dirapikan otomatis.</div>
             </div>
             {/* kotak pencarian + tombol */}
             <div style={{ position: 'absolute', left: 160, top: 300, width: 1600, display: 'flex', gap: 20, ...rise(f, 0, 12, 18) }}>
@@ -56,6 +59,11 @@ export const S4Single: React.FC = () => {
                 <span>Dirapikan otomatis: koma desimal diubah menjadi titik.</span>
                 <span style={{ color: '#626B7E' }}>Masukan asli:</span>
                 <span style={{ fontFamily: MONO, fontSize: 24, padding: '3px 12px', borderRadius: 8, background: C.canvas, border: `1.5px solid ${C.lineSoft}`, color: C.ink }}>{RAW}</span>
+            </div>
+            {/* stopwatch */}
+            <div style={{ position: 'absolute', left: 924, top: 544, zIndex: 5, boxShadow: '0 6px 18px rgba(15,29,53,.12)', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 20px', borderRadius: 999, background: swDone ? C.successBg : C.surface, border: `1.5px solid ${swDone ? 'transparent' : C.line}`, color: swDone ? C.successText : C.muted, fontSize: 27, fontWeight: 600, opacity: swShow }}>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2.5M9.5 2.5h5" /></svg>
+                <span>{swDone ? 'Ditemukan dalam ' : ''}<span style={{ fontFamily: MONO }}>{sw.toFixed(1).replace('.', ',')}</span> detik</span>
             </div>
             {/* kartu hasil */}
             <div style={{ position: 'absolute', left: 160, top: 520, width: 700, padding: '34px 40px 18px', borderRadius: 30, background: C.surface, border: `1.5px solid ${C.line}`, boxShadow: '0 20px 50px rgba(15,29,53,.10)', opacity: card, transform: `translateY(${(1 - card) * 60}px)` }}>

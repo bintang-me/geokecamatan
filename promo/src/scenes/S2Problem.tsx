@@ -40,8 +40,8 @@ export const S2Problem: React.FC = () => {
             </div>
             <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, ${C.dCanvas} 46%, rgba(11,18,32,0) 70%)` }} />
             <div style={{ position: 'absolute', left: 140, top: 330, width: 820 }}>
-                <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, lineHeight: 1.12, ...rise(f, 6) }}>Bingung, format<br />datanya campur aduk.</div>
-                <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, lineHeight: 1.12, marginTop: 14, ...rise(f, 30) }}>Datanya ratusan baris.</div>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dInk, letterSpacing: -1.2, lineHeight: 1.12, ...rise(f, 6) }}>Format datanya<br />campur aduk?</div>
+                <div style={{ fontSize: 76, fontWeight: 700, color: C.dGold, letterSpacing: -1.2, lineHeight: 1.12, marginTop: 14, ...rise(f, 30) }}>Ratusan baris pula.</div>
                 <div style={{ marginTop: 40, fontFamily: MONO, fontSize: 30, color: C.dMuted, ...rise(f, 40) }}>{count} baris</div>
             </div>
         </AbsoluteFill>

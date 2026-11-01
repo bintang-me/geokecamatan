@@ -13,7 +13,7 @@ export const S7Trust: React.FC = () => {
     const d = interpolate(f, [S7_CUES.toggle, S7_CUES.toggle + 12], [0, 1], clamp);
     const col = (a: string, b: string) => interpolateColors(d, [0, 1], [a, b]);
     const press = interpolate(f, [S7_CUES.toggle - 2, S7_CUES.toggle + 2, S7_CUES.toggle + 8], [1, 0.88, 1], clamp);
-    const chips = ['Tanpa akun', 'Tanpa pelacak', 'Mode terang & gelap'];
+    const chips = ['Gratis', 'Tanpa daftar', 'Unduh CSV'];
     return (
         <AbsoluteFill style={{ fontFamily: FONT, alignItems: 'center' }}>
             <div style={{ position: 'absolute', top: 110, display: 'flex', gap: 26 }}>
