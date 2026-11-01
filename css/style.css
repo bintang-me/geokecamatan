@@ -986,6 +986,48 @@ button, a, .leaflet-control, .leaflet-control a, .leaflet-control button { touch
     gap: 4px;
 }
 .map-single-info-box .info-row { display: flex; justify-content: space-between; gap: 16px; }
+
+/* Keterangan titik Cari Massal (kiri atas peta) */
+.batch-info-box { min-width: 260px; max-width: 340px; }
+.batch-info-box .info-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.batch-info-box .info-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.batch-info-box .info-close {
+    width: 28px; height: 28px;
+    border: none; background: transparent; border-radius: 8px;
+    font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer;
+}
+.batch-info-box .info-close:hover { background: var(--line-soft); color: var(--ink); }
+.batch-info-box .mono { font-family: var(--mono); font-weight: 500; font-size: 12px; }
+
+/* Pin terpilih: cincin berdenyut di ujung pin + pin sedikit membesar */
+.batch-pin { overflow: visible; }
+.batch-pin svg { transition: transform 0.2s var(--ease-out, ease); transform-origin: 50% 100%; position: relative; z-index: 1; }
+.batch-pin.is-selected svg { transform: scale(1.25); }
+.batch-pin.is-selected::before,
+.batch-pin.is-selected::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -14px;
+    width: 28px;
+    height: 28px;
+    margin-left: -14px;
+    border-radius: 50%;
+}
+.batch-pin.is-selected::before { border: 3px solid var(--ink); background: rgba(238, 162, 1, 0.35); }
+.batch-pin.is-selected::after { border: 2px solid var(--ink); animation: pinPulse 1.6s ease-out infinite; }
+@keyframes pinPulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
 .map-single-info-box strong { color: var(--muted); font-weight: 500; }
 .map-single-info-box span { font-weight: 600; text-align: right; }
 
@@ -1278,6 +1320,11 @@ a.tab-btn { text-decoration: none; display: inline-block; }
     .table-modal-header, .map-modal-header { position: sticky; top: 0; z-index: 5; background: var(--surface); padding: 10px 12px 10px 16px; }
     #closeMapModalBtn, #closeTableModalBtn { width: 44px; height: 44px; font-size: 26px; }
     .map-single-info-box { left: 12px; right: 12px; top: auto; bottom: 28px; min-width: 0; }
+    .batch-info-box { top: 60px; left: 60px; right: 12px; bottom: auto; max-width: none; padding: 8px 10px; gap: 1px; font-size: 12px; }
+    .batch-info-box .info-head { margin-bottom: 2px; padding-bottom: 4px; }
+    .batch-info-box .info-title { font-size: 13px; }
+    .batch-info-box .info-close { width: 24px; height: 24px; }
+    .batch-info-box .info-row:nth-child(6) { display: none; } /* koordinat sudah ada di tabel */
 }
 
 @media (max-width: 400px) {

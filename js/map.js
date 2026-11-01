@@ -532,7 +532,7 @@ async function showBatchBoundaries(data) {
             
             // Zoom sedikit untuk menyorot poligon tanpa menghilangkan konteks
             try {
-                batchMap.fitBounds(kecLayer.getBounds(), { padding: [20, 20], maxZoom: 14 });
+                batchMap.fitBounds(kecLayer.getBounds(), { paddingTopLeft: [20, batchInfoClearance()], paddingBottomRight: [20, 40], maxZoom: 14 });
             } catch(e) {}
         }
     }).catch(e => console.warn('Gagal memuat batas kecamatan batch', e));
@@ -562,36 +562,20 @@ function addBatchMarker(data) {
 
     const pinIcon = L.divIcon({
         html: svgPin,
-        className: '',
+        className: 'batch-pin',
         iconSize: [22, 33],
-        iconAnchor: [11, 33],
-        popupAnchor: [0, -34]
+        iconAnchor: [11, 33]
     });
 
-    const popupContent = `
-        <div style="font-family:inherit;min-width:160px;">
-            <div style="font-weight:700;margin-bottom:4px;color:#0F1D35;">No. ${escapeHtml(String(data.id))}</div>
-            <div style="font-size:0.85rem;color:#374151;">
-                <b>Desa/Kelurahan:</b> ${escapeHtml(data.desaKel || '-')}<br>
-                <b>Kecamatan:</b> ${escapeHtml(data.kecamatan)}<br>
-                <b>Kabupaten/Kota:</b> ${escapeHtml(data.kabKota)}<br>
-                <b>Provinsi:</b> ${escapeHtml(data.provinsi)}<br>
-                <b>Status:</b> <span style="color:${pinColor};font-weight:600;">${escapeHtml(statusLabel(data.status))}</span>
-            </div>
-        </div>
-    `;
-
-    const m = L.marker([data.lat, data.lon], { icon: pinIcon });
+    const m = L.marker([data.lat, data.lon], { icon: pinIcon, title: `Titik No. ${data.id}`, keyboard: true });
     m.batchId = data.id; // Simpan ID untuk referensi silang tabel-peta
-    m.bindPopup(popupContent);
-    
-    m.on('click', () => {
-        lastSelectedBatchMarker = m;
-    });
+    m.batchData = data;
+    m.pinColor = pinColor;
 
-    // Fitur: Poligon Interaktif (On-Click Highlight) — titik non-Sukses membersihkan poligon lama
+    // Klik pin: keterangan di kiri atas peta (seperti Cari Tunggal), pin diberi cincin, baris tabel disorot
     m.on('click', () => {
-        showBatchBoundaries(data);
+        selectBatchMarker(m);
+        highlightBatchRows(data.id);
     });
 
     m.addTo(batchMap);
@@ -604,8 +588,119 @@ function addBatchMarker(data) {
     }
 }
 
+// ---- Titik terpilih di peta Cari Massal ----
+const BATCH_STATUS_TEXT_COLOR = { success: '#0F6B41', warning: '#7A5200', error: '#9B1C12', empty: '#3E4757' };
+
+function batchGroupOf(status) {
+    if (status === 'Sukses') return 'success';
+    if (status === 'Kosong') return 'empty';
+    if (status === 'Luar Batas RI' || status === 'Wilayah Perairan') return 'warning';
+    return 'error';
+}
+
+// Kotak keterangan di kiri atas peta (ikut pindah saat peta diperbesar)
+function getBatchInfoBox() {
+    if (!batchMap) return null;
+    let box = document.getElementById('batchInfoBox');
+    if (!box) {
+        box = L.DomUtil.create('div', 'map-single-info-box batch-info-box hidden', batchMap.getContainer());
+        box.id = 'batchInfoBox';
+        box.setAttribute('role', 'status');
+        box.setAttribute('aria-live', 'polite');
+        L.DomEvent.disableClickPropagation(box);
+        L.DomEvent.disableScrollPropagation(box);
+    }
+    return box;
+}
+
+function hideBatchInfo() {
+    const box = document.getElementById('batchInfoBox');
+    if (box) box.classList.add('hidden');
+    if (lastSelectedBatchMarker && lastSelectedBatchMarker.getElement()) {
+        lastSelectedBatchMarker.getElement().classList.remove('is-selected');
+        lastSelectedBatchMarker.setZIndexOffset(0);
+    }
+}
+
+function showBatchInfo(data) {
+    const box = getBatchInfoBox();
+    if (!box) return;
+    box.innerHTML = '';
+    const head = document.createElement('div');
+    head.className = 'info-head';
+    const title = document.createElement('span');
+    title.className = 'info-title';
+    title.textContent = `Titik No. ${data.id}`;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'info-close';
+    close.setAttribute('aria-label', 'Tutup keterangan titik');
+    close.textContent = '×';
+    close.addEventListener('click', () => { hideBatchInfo(); clearBatchBoundaryLayers(); });
+    head.append(title, close);
+    box.appendChild(head);
+
+    const group = batchGroupOf(data.status);
+    const rows = [
+        ['Desa/Kelurahan', group === 'success' ? (data.desaKel || '-') : '-'],
+        ['Kecamatan', group === 'success' ? data.kecamatan : '-'],
+        ['Kabupaten/Kota', group === 'success' ? data.kabKota : '-'],
+        ['Provinsi', group === 'success' ? data.provinsi : '-'],
+        ['Koordinat', `${data.lat}, ${data.lon}`],
+        ['Status', statusLabel(data.status)]
+    ];
+    rows.forEach(([label, value], i) => {
+        const row = document.createElement('div');
+        row.className = 'info-row';
+        const k = document.createElement('strong');
+        k.textContent = label;
+        const v = document.createElement('span');
+        v.textContent = value ?? '-';
+        if (label === 'Koordinat') v.className = 'mono';
+        if (i === rows.length - 1) v.style.color = BATCH_STATUS_TEXT_COLOR[group];
+        row.append(k, ' ', v);
+        box.appendChild(row);
+    });
+    box.classList.remove('hidden');
+}
+
+// Jarak dari atas peta yang tertutup kotak keterangan (agar pin/poligon tidak tertutup)
+function batchInfoClearance() {
+    const box = document.getElementById('batchInfoBox');
+    if (!box || box.classList.contains('hidden')) return 20;
+    return box.offsetTop + box.offsetHeight + 24;
+}
+
+// Pilih pin: cincin penanda + keterangan + poligon batas
+function selectBatchMarker(m) {
+    if (!m) return;
+    if (lastSelectedBatchMarker && lastSelectedBatchMarker !== m && lastSelectedBatchMarker.getElement()) {
+        lastSelectedBatchMarker.getElement().classList.remove('is-selected');
+        lastSelectedBatchMarker.setZIndexOffset(0);
+    }
+    lastSelectedBatchMarker = m;
+    const el = m.getElement();
+    if (el) el.classList.add('is-selected');
+    m.setZIndexOffset(1000);
+    showBatchInfo(m.batchData);
+    // Geser peta seperlunya agar pin terpilih tidak tertutup kotak keterangan
+    try {
+        batchMap.panInside(m.getLatLng(), { paddingTopLeft: [24, batchInfoClearance() + 30], paddingBottomRight: [24, 60] });
+    } catch (e) { /* abaikan */ }
+    showBatchBoundaries(m.batchData);
+}
+
+// Sorot baris tabel (utama & jendela perbesar) untuk nomor titik tertentu
+function highlightBatchRows(id) {
+    const idText = String(id);
+    document.querySelectorAll('#batchTableBody tr, .table-modal-body .batch-table tbody tr').forEach(r => {
+        r.classList.toggle('row-selected', r.querySelector('td:first-child')?.textContent === idText);
+    });
+}
+
 function clearBatchMarkers() {
     if (!batchMap) return;
+    hideBatchInfo();
     batchMarkers.forEach(m => m.remove());
     batchMarkers = [];
     lastSelectedBatchMarker = null;
