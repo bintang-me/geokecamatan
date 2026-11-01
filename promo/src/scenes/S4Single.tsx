@@ -2,7 +2,8 @@ import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { C, FONT, MONO } from '../brand';
 import { clamp, easeOut, pop, rise } from '../anim';
-import { MapArt } from '../components/MapArt';
+import { RealMap } from '../components/RealMap';
+import { PIN, JKT_W, JKT_H } from '../data/jakarta';
 import { MainPin } from '../components/Logo';
 
 export const S4_CUES = { paste: 14, fix: 44, press: 70, result: 84, map: 100 };
@@ -70,8 +71,8 @@ export const S4Single: React.FC = () => {
             </div>
             {/* kartu peta (diperbesar di adegan berikut) */}
             <div style={{ position: 'absolute', left: 900, top: 520, width: 860, height: 470, borderRadius: 30, overflow: 'hidden', border: `1.5px solid ${C.line}`, boxShadow: '0 20px 50px rgba(15,29,53,.10)', opacity: mapCard, transform: `scale(${0.94 + 0.06 * mapCard})` }}>
-                <MapArt kec={kec} kab={0} label={0} />
-                <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, ${-100 + (1 - pinDrop) * -60}%)`, opacity: pinDrop }}><MainPin size={52} /></div>
+                <RealMap kec={kec} kab={0} label={0} />
+                <div style={{ position: 'absolute', left: `${PIN.x / JKT_W * 100}%`, top: `${PIN.y / JKT_H * 100}%`, transform: `translate(-50%, ${-100 + (1 - pinDrop) * -60}%)`, opacity: pinDrop }}><MainPin size={52} /></div>
             </div>
         </AbsoluteFill>
     );

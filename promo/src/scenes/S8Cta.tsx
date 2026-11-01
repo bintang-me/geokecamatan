@@ -18,7 +18,7 @@ export const S8Cta: React.FC = () => {
                     <Logo size={150} edge="#2C3B57" />
                     <Wordmark size={96} color={C.dInk} />
                 </div>
-                <div style={{ marginTop: 40, fontSize: 40, color: C.dMuted, ...rise(f, 6) }}>Dari koordinat ke kecamatan, dalam hitungan detik.</div>
+                <div style={{ marginTop: 40, fontSize: 40, color: C.dMuted, ...rise(f, 6) }}>Dari koordinat, cepat dan akurat</div>
                 <div style={{ marginTop: 64, display: 'flex', alignItems: 'center', gap: 18, padding: 12, paddingLeft: 40, borderRadius: 999, background: C.dSurface, border: `2px solid ${C.dLine}`, position: 'relative', ...rise(f, 12) }}>
                     <span style={{ fontFamily: MONO, fontSize: 40, color: C.dInk }}>carikecamatan.vercel.app</span>
                     <span style={{ fontSize: 36, fontWeight: 600, color: C.ink, background: C.dGold, padding: '20px 40px', borderRadius: 999, transform: `scale(${press})`, boxShadow: '0 10px 30px rgba(245,180,40,.3)' }}>Coba sekarang</span>
