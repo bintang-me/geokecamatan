@@ -989,7 +989,7 @@ function initBatchMap() {
 // Pesan & label status yang tampil ke pengguna
 const OUTSIDE_RI_MSG = "Titik ini berada di luar wilayah Negara Kesatuan Republik Indonesia.";
 const STATUS_LABELS = {
-    'Sukses': 'Berhasil',
+    'Sukses': 'Ditemukan',
     'Wilayah Perairan': 'Perairan',
     'Luar Batas RI': 'Luar Indonesia',
     'Gagal': 'Tidak ditemukan',
@@ -1200,7 +1200,7 @@ function showResult(data, lat, lon) {
     const kec = admin.kecamatan || '-';
     let status = 'Data tidak ditemukan', kind = 'error';
     if (kec === '(Luar RI)') { status = 'Luar Indonesia'; kind = 'warning'; }
-    else if (kec !== '-' && kec !== '') { status = 'Berhasil'; kind = 'success'; }
+    else if (kec !== '-' && kec !== '') { status = 'Ditemukan'; kind = 'success'; }
 
     // Badge sumber data
     if (kec === '(Luar RI)') setBadge('Berada di luar wilayah Indonesia', 'danger');
@@ -2034,7 +2034,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const batchSummary = document.getElementById('batchSummary');
     let batchFilter = 'all';
     const BATCH_GROUP_LABELS = {
-        success: 'Berhasil',
+        success: 'Ditemukan',
         warning: 'Perairan/luar Indonesia',
         error: 'Gagal/tidak valid',
         empty: 'Kosong'
@@ -2327,7 +2327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (kec === '(Perairan)' || kec.includes('Perairan')) {
                     status = 'Perairan';
                 } else {
-                    status = 'Berhasil';
+                    status = 'Ditemukan';
                 }
             }
             
@@ -2339,7 +2339,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Berikan warna status
             const statusEl = document.getElementById('modalInfoStatus');
-            if (status === 'Berhasil') {
+            if (status === 'Ditemukan') {
                 statusEl.style.color = '#0F6B41'; // green
             } else if (status === 'Belum ada pencarian') {
                 statusEl.style.color = '#5B6577'; // netral
